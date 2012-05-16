@@ -41,37 +41,46 @@ SET(CMAKE_MODULE_PATH
     "${CMAKE_SOURCE_DIR}/cmake/modules/"
     )
 
-FIND_PACKAGE(SQLITE3 REQUIRED)
+FIND_PACKAGE(Musicaccess REQUIRED)
 #use doxygen for documentation. don't need this for compilation.
 FIND_PACKAGE(Doxygen)
 
 #place source files here
 SET(
     music_SOURCES
-    src/main.cpp
+    src/music/constantq.cpp
     )
 
 #place header here
 SET(
     music_HEADERS
-    src/main.hpp
+    src/music.hpp
+    src/music/constantq.hpp
     )
 
 #put all (possibly autocreated) headers and source files here
 SET(
-    music_ALL_SOURCES
+    music_TEST_SOURCES
     ${music_SOURCES}
+    src/tests/tests.cpp
+    src/tests/testframework.cpp
+    src/tests/main.cpp
     )
 
 SET(
-    music_ALL_HEADERS
+    music_TEST_HEADERS
     ${music_HEADERS}
+    src/tests/tests.hpp
+    src/tests/testframework.hpp
+    src/tests/main.hpp
     )    
 
 INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_BINARY_DIR}
     ${SQLITE_INCLUDE_DIRS}
     src/
+    src/music
+    src/tests
     )
 
 #to copy a directory (e.g. test files) to another.
@@ -105,15 +114,30 @@ IF(DOXYGEN_FOUND)
 ENDIF()
 
 #add executable files for our project
-ADD_EXECUTABLE(
-    music
-    ${music_ALL_SOURCES}
-    ${music_ALL_HEADERS_MOC}
+ADD_LIBRARY(
+    music SHARED
+    ${music_SOURCES}
+    )
+#tell the linker which libs need to be linked
+TARGET_LINK_LIBRARIES(music
+    ${MUSICACCESS_LIBRARIES}
     )
 
 #add unit tests here
 ENABLE_TESTING()
-ADD_TEST(tmp                  "music" "--test" "tmp")
+ADD_TEST(basename                  "musictests" "basename")
+
+ADD_EXECUTABLE(musictests
+    ${music_TEST_SOURCES}
+    )
+#tell the linker which libs need to be linked
+TARGET_LINK_LIBRARIES(musictests
+    ${MUSICACCESS_LIBRARIES}
+    )
+#tell the linker which libs need to be linked
+TARGET_LINK_LIBRARIES(musictests
+    
+    )
 #use "make test" to start all tests.
 
 #use this to automatically create installation packages for different platforms
@@ -139,7 +163,7 @@ ENDIF(UNIX)
 
 #meta data
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY
-    "music is a MUsic SImilarity Classifier"
+    "music is a library for music similarity classifying"
     )
 SET(CPACK_PACKAGE_VENDOR
     "-"
@@ -174,13 +198,10 @@ SET(CPACK_SOURCE_IGNORE_FILES
     )
 INCLUDE(CPack)
 
-
-#tell the linker which libs need to be linked
-TARGET_LINK_LIBRARIES(music
-    ${SQLITE3_LIBRARIES}
-    )
-
 INSTALL (TARGETS music
     DESTINATION bin
     )
-
+FILE(GLOB music_global_headers "${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp")
+INSTALL (FILES ${music_global_headers}
+    DESTINATION include
+    )
