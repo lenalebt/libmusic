@@ -38,7 +38,7 @@ ENDIF()
 #set cmake module directory, which is needed to find other libs
 SET(CMAKE_MODULE_PATH
     ${CMAKE_MODULE_PATH}
-    "${CMAKE_SOURCE_DIR}/cmake/Modules/"
+    "${CMAKE_SOURCE_DIR}/cmake/modules/"
     )
 
 FIND_PACKAGE(SQLITE3 REQUIRED)
@@ -60,12 +60,12 @@ SET(
 #put all (possibly autocreated) headers and source files here
 SET(
     music_ALL_SOURCES
-    ${biker_SOURCES}
+    ${music_SOURCES}
     )
 
 SET(
     music_ALL_HEADERS
-    ${biker_HEADERS}
+    ${music_HEADERS}
     )    
 
 INCLUDE_DIRECTORIES(
@@ -81,8 +81,8 @@ IF(DOXYGEN_FOUND)
     #convert semicolon-seperated list to whitespace-seperated one
     FOREACH(ARG ${music_HEADERS})
         SET(music_HEADERS_WHITESPACE "${music_HEADERS_WHITESPACE} ${CMAKE_CURRENT_SOURCE_DIR}/${ARG}")
-    ENDFOREACH(ARG ${biker_HEADERS})
-    FOREACH(ARG ${biker_SOURCES})
+    ENDFOREACH(ARG ${music_HEADERS})
+    FOREACH(ARG ${music_SOURCES})
         SET(music_SOURCES_WHITESPACE "${music_SOURCES_WHITESPACE} ${CMAKE_CURRENT_SOURCE_DIR}/${ARG}")
     ENDFOREACH(ARG ${music_SOURCES})
     GET_DIRECTORY_PROPERTY(DIRINC INCLUDE_DIRECTORIES)
@@ -106,7 +106,7 @@ ENDIF()
 
 #add executable files for our project
 ADD_EXECUTABLE(
-    biker
+    music
     ${music_ALL_SOURCES}
     ${music_ALL_HEADERS_MOC}
     )
@@ -151,10 +151,10 @@ SET(CPACK_RESOURCE_FILE_LICENSE
     #"${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.TXT"
     )
 SET(CPACK_PACKAGE_VERSION_MAJOR
-    ${biker_VERSION_MAJOR}
+    ${music_VERSION_MAJOR}
     )
 SET(CPACK_PACKAGE_VERSION_MINOR
-    ${biker_VERSION_MINOR}
+    ${music_VERSION_MINOR}
     )
 SET(CPACK_PACKAGE_CONTACT
     "lbruder@rim.com"
@@ -176,7 +176,7 @@ INCLUDE(CPack)
 
 
 #tell the linker which libs need to be linked
-TARGET_LINK_LIBRARIES(biker
+TARGET_LINK_LIBRARIES(music
     ${SQLITE3_LIBRARIES}
     )
 
