@@ -1,0 +1,65 @@
+# add files here that should not be added to the repository
+
+#do not add files in our build directory
+build/
+
+#do not track backups of files
+*.bak
+*.backup
+*.*~
+*~
+
+#do not track object files
+*.gch
+*.o
+*.out
+*.obj
+*.dll
+*.a
+*.la
+*.exe
+*.class
+
+
+# do not track files from any source code editor
+#
+#QtCreator
+*.user
+#
+#VisualStudio
+*.sln
+Release/
+Debug/
+
+
+#files from LaTeX
+*.aux
+*.blg
+*.glg
+*.glo
+*.gls
+*.ist
+*.lof
+*.log
+*.out
+*.toc
+*.4ct
+*.4tc
+*.dvi
+*.idv
+*.lg
+*.tmp
+*.xref
+*.lot
+
+
+#just in case: do not track cmake files, except CMakeLists.txt
+#CMakeLists.txt
+CMakeCache.txt
+cmake_install.cmake
+CMakeFiles/
+Makefile
+!CMakeLists.txt
+
+#do not track dolphin's (linux file manager) directory settings
+.directory
