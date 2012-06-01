@@ -3,7 +3,7 @@
 
 namespace tests
 {
-    
+    int testLibMusicAccess();
 }
 
 #endif //TESTS_HPP
