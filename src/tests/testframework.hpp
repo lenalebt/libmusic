@@ -19,11 +19,14 @@
 
 #if defined __FILE__ && defined __LINE__
     #define LINESTR(a,b)           tests::basename(std::string(QUOTEME(__FILE__))) + ":" + QUOTEME(__LINE__) + ": "+ QUOTEME(a) + " == " + QUOTEME(b) + "?"
+    #define LINESTR_OP(a,op,b)     tests::basename(std::string(QUOTEME(__FILE__))) + ":" + QUOTEME(__LINE__) + ": "+ QUOTEME(a) + " " + QUOTEME(op) + " " + QUOTEME(b) + "?"
 #else
     #define LINESTR(a,b)           std::string(QUOTEME(a)) + " == " + QUOTEME(b) + "?"
+    #define LINESTR_OP(a,op,b)     std::string(QUOTEME(a)) + " " + QUOTEME(op) + " " + QUOTEME(b) + "?"
 #endif
 
 #define CHECK_EQ(a,b)           if (!check_equality(LINESTR(a,b), a, b)) return EXIT_FAILURE;
+#define CHECK_OP(a,op,b)        std::cerr << std::left << std::setw(TEST_PASSED_MSG_WIDTH) << LINESTR_OP(a,op,b) << " - " << std::flush; if (!(a op b)) {std::cerr << "failed!" << std::endl; return EXIT_FAILURE;} else {std::cerr << "passed!" << std::endl;}
 #define CHECK_EQ_TYPE(a,b,type) if (!check_equality<type, type >(LINESTR(a,b), a, b)) return EXIT_FAILURE;
 #define CHECK(a)                if (!check_equality(LINESTR(a,true), a, true)) return EXIT_FAILURE;
 

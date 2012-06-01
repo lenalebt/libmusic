@@ -84,7 +84,7 @@ INCLUDE_DIRECTORIES(
     )
 
 #to copy a directory (e.g. test files) to another.
-#FILE(COPY ${CMAKE_CURRENT_SOURCE_DIR}/testfiledirectory DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+FILE(COPY ${CMAKE_CURRENT_SOURCE_DIR}/testdata DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 IF(DOXYGEN_FOUND)
     #convert semicolon-seperated list to whitespace-seperated one
@@ -126,6 +126,7 @@ TARGET_LINK_LIBRARIES(music
 #add unit tests here
 ENABLE_TESTING()
 ADD_TEST(basename                  "musictests" "basename")
+ADD_TEST(libmusicaccess            "musictests" "libmusicaccess")
 
 ADD_EXECUTABLE(musictests
     ${music_TEST_SOURCES}
