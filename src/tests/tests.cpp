@@ -3,6 +3,9 @@
 #include <cstdlib>
 
 #include <musicaccess.hpp>
+#include <Eigen/Dense>
+#define EIGEN_YES_I_KNOW_SPARSE_MODULE_IS_NOT_STABLE_YET
+#include <Eigen/Sparse>
 
 namespace tests
 {
@@ -47,6 +50,48 @@ namespace tests
     
     int testEigen()
     {
+        std::cerr << "Testing dense matrix..." << std::endl;
+        Eigen::MatrixXd m(2,2);
+        m(0,0) = 3;
+        CHECK_EQ(m(0,0), 3);
+        m(1,0) = 2.5;
+        CHECK_EQ(m(1,0), 2.5);
+        m(0,1) = -1;
+        CHECK_EQ(m(0,1), -1);
+        m(1,1) = m(1,0) + m(0,1);
+        CHECK_EQ(m(1,1), 1.5);
+        
+        Eigen::VectorXd v(2);
+        v(0) = 4;
+        CHECK_EQ(v(0), 4);
+        v(1) = v(0) - 1;
+        CHECK_EQ(v(1), 3);
+        
+        Eigen::VectorXd value = m * v;
+        CHECK_EQ(value(0), 9);
+        CHECK_EQ(value(1), 14.5);
+        
+        Eigen::MatrixXd m2(2,2);
+        m2 << 3, -1, 2.5, 1.5;
+        CHECK_EQ(m, m2);
+        
+        std::cerr << "Testing sparse matrix..." << std::endl;
+        Eigen::DynamicSparseMatrix<double> mSparse(2,2);
+        mSparse.insert(0,0) = 3;
+        CHECK_EQ(mSparse.coeff(0,0), 3);
+        mSparse.insert(1,0) = 2.5;
+        CHECK_EQ(mSparse.coeff(1,0), 2.5);
+        mSparse.insert(0,1) = -1;
+        CHECK_EQ(mSparse.coeff(0,1), -1);
+        mSparse.insert(1,1) = 1.5;
+        CHECK_EQ(mSparse.coeff(1,1), 1.5);
+        
+        m2 = m * mSparse;
+        CHECK_EQ(m2(0,0), 6.5);
+        CHECK_EQ(m2(1,0), 11.25);
+        CHECK_EQ(m2(0,1), -4.5);
+        CHECK_EQ(m2(1,1), -0.25);
+        
         return EXIT_SUCCESS;
     }
 }
