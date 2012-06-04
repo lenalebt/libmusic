@@ -44,4 +44,9 @@ namespace tests
         
         return EXIT_SUCCESS;
     }
+    
+    int testEigen()
+    {
+        return EXIT_SUCCESS;
+    }
 }
