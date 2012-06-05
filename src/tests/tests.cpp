@@ -7,6 +7,9 @@
 #define EIGEN_YES_I_KNOW_SPARSE_MODULE_IS_NOT_STABLE_YET
 #include <Eigen/Sparse>
 
+#include "constantq.hpp"
+#include "fft.hpp"
+
 namespace tests
 {
     int testLibMusicAccess()
@@ -93,5 +96,18 @@ namespace tests
         CHECK_EQ(m2(1,1), -0.25);
         
         return EXIT_SUCCESS;
+    }
+    
+    int testFFT()
+    {
+        music::FFT fft;
+        
+        return EXIT_FAILURE;
+    }
+    int testConstantQ()
+    {
+        music::ConstantQTransform cqt;
+        
+        return EXIT_FAILURE;
     }
 }
