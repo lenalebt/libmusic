@@ -42,6 +42,8 @@ SET(CMAKE_MODULE_PATH
     )
 
 FIND_PACKAGE(Musicaccess REQUIRED)
+#used for matrix multiplication, maybe for fft, too
+FIND_PACKAGE(Eigen3 3.0.0 REQUIRED)
 #use doxygen for documentation. don't need this for compilation.
 FIND_PACKAGE(Doxygen)
 
@@ -78,6 +80,7 @@ SET(
 INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_BINARY_DIR}
     ${SQLITE_INCLUDE_DIRS}
+    ${EIGEN3_INCLUDE_DIR}
     src/
     src/music
     src/tests
