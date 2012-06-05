@@ -10,6 +10,9 @@
 #include "constantq.hpp"
 #include "fft.hpp"
 
+#include <list>
+#include <limits>
+
 namespace tests
 {
     int testLibMusicAccess()
@@ -120,37 +123,52 @@ namespace tests
         kiss_fft_scalar largemem[1024];
         kiss_fft_cpx largeoutmem[1024];
         
-        //TODO: Fill data.
-        for(int i=0; i<1024; i++)
+        std::list<int> intlist;
+        intlist.push_back(1);
+        intlist.push_back(2);
+        intlist.push_back(3);
+        intlist.push_back(4);
+        intlist.push_back(5);
+        intlist.push_back(6);
+        intlist.push_back(7);
+        intlist.push_back(8);
+        intlist.push_back(9);
+        intlist.push_back(10);
+        intlist.push_back(20);
+        intlist.push_back(30);
+        intlist.push_back(40);
+        intlist.push_back(50);
+        intlist.push_back(500);
+        intlist.push_back(510);
+        intlist.push_back(511);
+        //intlist.push_back(512);   //does not work, but I think that is okay.
+        
+        for(std::list<int>::iterator it = intlist.begin(); it != intlist.end(); it++)
         {
-            largemem[i] = sin(5*2*M_PI*i/1023.0);
-        }
-        
-        for (int i=0; i<1024; i++)
-        {
-            std::cerr << largemem[i] << " ";
-        }
-        std::cerr << std::endl;
-        
-        
-        fft.doFFT(largemem, 1024, largeoutmem, freqLength);
-        CHECK_EQ(freqLength, 513);
-        
-        int largestPosition=-1;
-        float largestValue=-1000000.0f;
-        for (int i=0; i<freqLength; i++)
-        {
-            std::cerr << "(" << largeoutmem[i].r << "+" << largeoutmem[i].i << "*i)" << " ";
-            if (largestValue < largeoutmem[i].r*largeoutmem[i].r + largeoutmem[i].i*largeoutmem[i].i)
+            std::cerr << "applying with sine of frequency " << *it << "*T..." << std::endl;
+            CHECK_OP(*it, <=, 1024/2+1);
+            CHECK_OP(*it, >=, 1);
+            
+            for(int i=0; i<1024; i++)
             {
-                largestValue = sqrt(largeoutmem[i].r*largeoutmem[i].r + largeoutmem[i].i*largeoutmem[i].i);
-                largestPosition=i;
+                largemem[i] = sin((*it)*2*M_PI*i/1024.0);
             }
+            
+            fft.doFFT(largemem, 1024, largeoutmem, freqLength);
+            CHECK_EQ(freqLength, 513);
+            
+            int largestPosition=-1;
+            float largestValue = std::numeric_limits<float>::min();
+            for (int i=0; i<freqLength; i++)
+            {
+                if (largestValue < largeoutmem[i].r*largeoutmem[i].r + largeoutmem[i].i*largeoutmem[i].i)
+                {
+                    largestValue = sqrt(largeoutmem[i].r*largeoutmem[i].r + largeoutmem[i].i*largeoutmem[i].i);
+                    largestPosition=i;
+                }
+            }
+            CHECK_EQ(largestPosition, *it);
         }
-        std:: cerr << std::endl;
-        std::cerr << "largest value was " << largestValue << " at position " << largestPosition << "." << std::endl;
-        
-        //TODO: find largest frequency bin. that should be the one with the frequency for the sine we used beforehand
         
         return EXIT_SUCCESS;
     }
