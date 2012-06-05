@@ -102,7 +102,57 @@ namespace tests
     {
         music::FFT fft;
         
-        return EXIT_FAILURE;
+        std::cerr << "calculating the fft of a signal..." << std::endl;
+        
+        kiss_fft_scalar mem[8] = {1.0, 1.2, 1.5, 1.3, 1.05, 1.0, 1.0, 1.0};
+        kiss_fft_cpx outmem[8];
+        
+        int freqLength;
+        fft.doFFT(mem, 8, outmem, freqLength);
+        
+        CHECK_EQ(freqLength, 5);
+        for (int i=0; i<freqLength; i++)
+        {
+            std::cerr << "(" << outmem[i].r << "+" << outmem[i].i << "*i)" << " ";
+        }
+        std:: cerr << std::endl;
+        
+        kiss_fft_scalar largemem[1024];
+        kiss_fft_cpx largeoutmem[1024];
+        
+        //TODO: Fill data.
+        for(int i=0; i<1024; i++)
+        {
+            largemem[i] = sin(5*2*M_PI*i/1023.0);
+        }
+        
+        for (int i=0; i<1024; i++)
+        {
+            std::cerr << largemem[i] << " ";
+        }
+        std::cerr << std::endl;
+        
+        
+        fft.doFFT(largemem, 1024, largeoutmem, freqLength);
+        CHECK_EQ(freqLength, 513);
+        
+        int largestPosition=-1;
+        float largestValue=-1000000.0f;
+        for (int i=0; i<freqLength; i++)
+        {
+            std::cerr << "(" << largeoutmem[i].r << "+" << largeoutmem[i].i << "*i)" << " ";
+            if (largestValue < largeoutmem[i].r*largeoutmem[i].r + largeoutmem[i].i*largeoutmem[i].i)
+            {
+                largestValue = largeoutmem[i].r;
+                largestPosition=i;
+            }
+        }
+        std:: cerr << std::endl;
+        std::cerr << "largest value was " << largestValue << " at position " << largestPosition << "." << std::endl;
+        
+        //TODO: find largest frequency bin. that should be the one with the frequency for the sine we used beforehand
+        
+        return EXIT_SUCCESS;
     }
     int testConstantQ()
     {

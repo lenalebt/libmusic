@@ -31,6 +31,8 @@ IF ( CMAKE_COMPILER_IS_GNUCXX )
     MESSAGE ("Using Gnu g++ compiler...")
     #gcc should be more pedantic.
     ADD_DEFINITIONS(-Wall -pedantic -Wno-long-long)
+    #allows usage of c++ comments without warnings
+    SET(CMAKE_C_FLAGS -std=c99)
 ELSE ( MSVC )
     MESSAGE ("Using MS Visual Studio compiler...")
 ENDIF()
@@ -52,6 +54,10 @@ SET(
     music_SOURCES
     src/music/constantq.cpp
     src/music/fft.cpp
+    
+    #kissfft source files
+    src/kissfft/kiss_fft.c
+    src/kissfft/tools/kiss_fftr.c
     )
 
 #place header here
@@ -60,6 +66,10 @@ SET(
     src/music.hpp
     src/music/constantq.hpp
     src/music/fft.hpp
+    
+    #kissfft headers
+    src/kissfft/kiss_fft.h
+    src/kissfft/tools/kiss_fftr.h
     )
 
 #put all (possibly autocreated) headers and source files here
@@ -86,6 +96,8 @@ INCLUDE_DIRECTORIES(
     src/
     src/music
     src/tests
+    src/kissfft
+    src/kissfft/tools
     )
 
 #to copy a directory (e.g. test files) to another.
