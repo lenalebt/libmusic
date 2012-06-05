@@ -143,7 +143,7 @@ namespace tests
             std::cerr << "(" << largeoutmem[i].r << "+" << largeoutmem[i].i << "*i)" << " ";
             if (largestValue < largeoutmem[i].r*largeoutmem[i].r + largeoutmem[i].i*largeoutmem[i].i)
             {
-                largestValue = largeoutmem[i].r;
+                largestValue = sqrt(largeoutmem[i].r*largeoutmem[i].r + largeoutmem[i].i*largeoutmem[i].i);
                 largestPosition=i;
             }
         }
