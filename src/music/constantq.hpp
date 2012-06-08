@@ -28,13 +28,14 @@ Spain, 2010.
          * @param fMin the minimal frequency in Hz that is of interest
          * @param fMax the maximal frequency in Hz that is of interest
          * @param fs the sampling frequency of the audio data that will be processed in Hz (typically 22050 Hz)
-         * @param threshold values in the CQT kernel smaller than this value will be vanished. use a larger value to gain accuracy, or a smaller value to gain speed.
          * @param lowpassFilter a lowpassfilter that will be applied during the process. Make sure that this filter has a cutoff frequency of fs/2.
+         * @param q the q value, which is kind of the "size" of a bin. I is defined as the quotient of the bin base frequency and its bandwidth, which should stay constant.
+         * @param threshold values in the CQT kernel smaller than this value will be vanished. use a larger value to gain accuracy, or a smaller value to gain speed.
          * @return A Constant Q Transform kernel that can be applied to a piece of music via its apply() function.
          * 
          * @todo implement
          */
-        static ConstantQTransform* createTransform(int binsPerOctave, int fMin, int fMax, int fs, float q, float threshold, musicaccess::IIRFilter* lowpassFilter);
+        static ConstantQTransform* createTransform(int binsPerOctave, int fMin, int fMax, int fs, musicaccess::IIRFilter* lowpassFilter, float q=1.0f, float threshold=0.0005);
         /**
          * @brief Apply this constant Q transform to a given sound buffer.
          * 
