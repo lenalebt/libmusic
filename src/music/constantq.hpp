@@ -17,10 +17,14 @@ namespace music
         int binsPerOctave;
         musicaccess::IIRFilter* lowpassFilter;
         double q;
+        double Q;
         double threshold;
+        double atomHopFactor;
         
         ConstantQTransform();
-        static inline double window(int width, int position) {return 0.0;}
+        //blackman-harris window, as used in the matlab implementation of the mentioned paper
+        //coefficients taken from Wikipedia (permanent link to used article version): http://en.wikipedia.org/w/index.php?title=Window_function&oldid=495970218#Blackman.E2.80.93Harris_window
+        static inline double window(int width, int position) {return 0.35875 - 0.48829*cos(2*M_PI*position/(width-1)) + 0.14128*cos(4*M_PI*position/(width-1)) - 0.01168*cos(6*M_PI*position/(width-1));}
         static inline double log2(double x) {return std::log(x) / std::log(2.0); /*compiler should optimize this at compile time*/}
     public:
         /**
@@ -54,15 +58,26 @@ namespace music
          */
         const musicaccess::IIRFilter* getLowpassFilter() {return lowpassFilter;}
         /**
-         * @brief Returns the Q value used in this transform.
-         * @return the Q value
+         * @brief Returns the Q factor used in this transform.
+         * @remarks don't confuse q and Q. They are different.
+         * @return the Q factor
          */
-        double getQ() {return q;}
+        double getQ() {return Q;}
+        /**
+         * @brief Returns the Q scaling factor (q) used in this transform.
+         * @remarks don't confuse q and Q. They are different.
+         * @return the Q scaling factor q
+         */
+        double getq() {return q;}
         /**
          * @brief Returns the threshold at which values in the spectral kernel will be seen as zero in this transform.
          * @return the threshold of values being treated as zero
          */
         double getThreshold() {return threshold;}
+        /**
+         * @todo write description
+         */
+        double getAtomHopFactor() {return atomHopFactor;}
         
         /**
          * @brief Creates the kernels for the Constant Q transform which can later be applied to many pieces of music.
@@ -88,7 +103,7 @@ Spain, 2010.
          * 
          * @todo implement
          */
-        static ConstantQTransform* createTransform(musicaccess::IIRFilter* lowpassFilter, int binsPerOctave=12, int fMin=40, int fMax=11025, int fs=22050, double q=1.0, double threshold=0.0005);
+        static ConstantQTransform* createTransform(musicaccess::IIRFilter* lowpassFilter, int binsPerOctave=12, int fMin=40, int fMax=11025, int fs=22050, double q=1.0, double threshold=0.0005, double atomHopFactor=0.25);
         /**
          * @brief Apply this constant Q transform to a given sound buffer.
          * 

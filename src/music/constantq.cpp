@@ -20,7 +20,7 @@ namespace music
         
     }
     
-    ConstantQTransform* ConstantQTransform::createTransform(musicaccess::IIRFilter* lowpassFilter, int binsPerOctave, int fMin, int fMax, int fs, double q, double threshold)
+    ConstantQTransform* ConstantQTransform::createTransform(musicaccess::IIRFilter* lowpassFilter, int binsPerOctave, int fMin, int fMax, int fs, double q, double threshold, double atomHopFactor)
     {
         assert(lowpassFilter != NULL);
         
@@ -28,6 +28,7 @@ namespace music
         cqt = new ConstantQTransform();
         assert(cqt != NULL);
         
+        //set internal variables
         double fRatio = fMax/fMin;
         cqt->octaveCount = std::ceil(log2(fRatio));
         //recalculate the minimum frequency from the number of octaves involved such that we always calculate full octaves
@@ -38,6 +39,11 @@ namespace music
         cqt->lowpassFilter = lowpassFilter;
         cqt->q = q;
         cqt->threshold = threshold;
+        cqt->atomHopFactor = atomHopFactor;
+        //this is what they use in the matlab implementation. Where went deltaOmega from eq.5 in the paper?
+        cqt->Q = q/(std::pow(2.0, 1.0/binsPerOctave) - 1);
+        
+        //TODO: Calculate spectral kernels for one octave
         
         return cqt;
     }
