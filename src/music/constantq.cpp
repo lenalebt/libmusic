@@ -53,5 +53,7 @@ namespace music
         assert(this->lowpassFilter != NULL);
         //TODO: Map buffer to a Eigen vector via Map<>, see
         // http://eigen.tuxfamily.org/dox/TutorialMapClass.html
+        
+        //padding with zeros in the beginning and in the end
     }
 }

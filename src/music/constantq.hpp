@@ -22,9 +22,16 @@ namespace music
         double atomHopFactor;
         
         ConstantQTransform();
-        //blackman-harris window, as used in the matlab implementation of the mentioned paper
+        //blackman-harris window, as used in the matlab implementation of the mentioned paper. other window that might be okay: blackman.
         //coefficients taken from Wikipedia (permanent link to used article version): http://en.wikipedia.org/w/index.php?title=Window_function&oldid=495970218#Blackman.E2.80.93Harris_window
-        static inline double window(int width, int position) {return 0.35875 - 0.48829*cos(2*M_PI*position/(width-1)) + 0.14128*cos(4*M_PI*position/(width-1)) - 0.01168*cos(6*M_PI*position/(width-1));}
+        //TODO: might need to take the sqrt
+        static inline double window(int width, int position)
+        {
+            if ((position < 0) || (position > width))
+                return 0.0;
+            else
+                return 0.35875 - 0.48829*cos(2*M_PI*position/(width-1)) + 0.14128*cos(4*M_PI*position/(width-1)) - 0.01168*cos(6*M_PI*position/(width-1));
+        }
         static inline double log2(double x) {return std::log(x) / std::log(2.0); /*compiler should optimize this at compile time*/}
     public:
         /**
