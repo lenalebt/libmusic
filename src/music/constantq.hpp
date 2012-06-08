@@ -5,6 +5,10 @@
 #include "tests.hpp"
 #include <cmath>
 
+#include <complex>
+#define EIGEN_YES_I_KNOW_SPARSE_MODULE_IS_NOT_STABLE_YET
+#include <Eigen/Sparse>
+
 namespace music
 {
     class ConstantQTransform
@@ -20,6 +24,10 @@ namespace music
         double Q;
         double threshold;
         double atomHopFactor;
+        
+        int nkMax;      //length of the largest atom in samples
+        
+        Eigen::SparseMatrix<std::complex<float> >* fKernel;  //the transform kernel for one octave
         
         ConstantQTransform();
         //blackman-harris window, as used in the matlab implementation of the mentioned paper. other window that might be okay: blackman.
