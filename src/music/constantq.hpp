@@ -1,16 +1,37 @@
 #ifndef CONSTANT_Q_HPP
 #define CONSTANT_Q_HPP
 
-#include "musicaccess/filter.hpp"
+#include <musicaccess/filter.hpp>
+#include "tests.hpp"
+#include <cmath>
 
 namespace music
 {
     class ConstantQTransform
     {
     private:
+        int octaveCount;        //how many octaves are processed by this transform?
+        int fMin;
+        int fMax;
+        int fs;
+        int binsPerOctave;
+        musicaccess::IIRFilter* lowpassFilter;
+        double q;
+        double threshold;
+        
         ConstantQTransform();
-        inline double window(int width, int position);
+        static inline double window(int width, int position) {return 0.0;}
+        static inline double log2(double x) {return std::log(x) / std::log(2.0); /*compiler should optimize this at compile time*/}
     public:
+        int getOctaveCount() {return octaveCount;}
+        int getFMin() {return fMin;}
+        int getFMax() {return fMax;}
+        int getFs() {return fs;}
+        int getBinsPerOctave() {return binsPerOctave;}
+        const musicaccess::IIRFilter* getLowpassFilter() {return lowpassFilter;}
+        double getQ() {return q;}
+        double getThreshold() {return threshold;}
+        
         /**
          * @brief Creates the kernels for the Constant Q transform which can later be applied to many pieces of music.
          * 
@@ -35,7 +56,7 @@ Spain, 2010.
          * 
          * @todo implement
          */
-        static ConstantQTransform* createTransform(int binsPerOctave, int fMin, int fMax, int fs, musicaccess::IIRFilter* lowpassFilter, float q=1.0f, float threshold=0.0005);
+        static ConstantQTransform* createTransform(musicaccess::IIRFilter* lowpassFilter, int binsPerOctave=12, int fMin=40, int fMax=11025, int fs=22050, double q=1.0, double threshold=0.0005);
         /**
          * @brief Apply this constant Q transform to a given sound buffer.
          * 
@@ -52,6 +73,8 @@ Spain, 2010.
          * @todo set the right return value.
          */
         void apply(uint16_t* buffer, int sampleCount);
+        
+        friend int tests::testConstantQ();
     };
 }
 #endif //CONSTANT_Q_HPP
