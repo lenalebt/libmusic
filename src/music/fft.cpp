@@ -15,6 +15,19 @@ namespace music
         free(cfg);
     }
     
+    void FFT::docFFT(const kiss_fft_cpx *timeData, int timeLength, kiss_fft_cpx *freqData, int& freqLength)
+    {
+        //init kissfft
+        kiss_fft_cfg cfg = kiss_fft_alloc(timeLength, 0, NULL, NULL);
+        
+        //start kissfft
+        kiss_fft(cfg, timeData, freqData);
+        
+        freqLength = timeLength;
+        
+        free(cfg);
+    }
+    
     void FFT::doiFFT(const kiss_fft_cpx *freqData, int freqLength, kiss_fft_scalar *timeData, int& timeLength)
     {
         //init kissfft

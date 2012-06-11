@@ -3,6 +3,7 @@
 
 #include <musicaccess/filter.hpp>
 #include "tests.hpp"
+#include "fft.hpp"
 #include <cmath>
 
 #include <complex>
@@ -16,6 +17,7 @@ namespace music
     private:
         int octaveCount;        //how many octaves are processed by this transform?
         int fMin;
+        double kernelfMin;
         int fMax;
         int fs;
         int binsPerOctave;
@@ -27,18 +29,19 @@ namespace music
         
         int nkMax;      //length of the largest atom in samples
         
-        Eigen::SparseMatrix<std::complex<float> >* fKernel;  //the transform kernel for one octave
+        Eigen::SparseMatrix<std::complex<kiss_fft_scalar> >* fKernel;  //the transform kernel for one octave
         
         ConstantQTransform();
-        //blackman-harris window, as used in the matlab implementation of the mentioned paper. other window that might be okay: blackman.
+        //square root of blackman-harris window, as used in the matlab implementation of the mentioned paper. other window that might be okay: blackman.
         //coefficients taken from Wikipedia (permanent link to used article version): http://en.wikipedia.org/w/index.php?title=Window_function&oldid=495970218#Blackman.E2.80.93Harris_window
-        //TODO: might need to take the sqrt
-        static inline double window(int width, int position)
+        //coefficients are identical to the mentioned values in the matlab documentation ("doc blackmanharris").
+        template <typename T>
+        static inline T window(int width, int position)
         {
             if ((position < 0) || (position > width))
                 return 0.0;
             else
-                return 0.35875 - 0.48829*cos(2*M_PI*position/(width-1)) + 0.14128*cos(4*M_PI*position/(width-1)) - 0.01168*cos(6*M_PI*position/(width-1));
+                return sqrt(0.35875 - 0.48829*cos(2*M_PI*position/(width-1)) + 0.14128*cos(4*M_PI*position/(width-1)) - 0.01168*cos(6*M_PI*position/(width-1)));
         }
         static inline double log2(double x) {return std::log(x) / std::log(2.0); /*compiler should optimize this at compile time*/}
     public:
@@ -52,6 +55,11 @@ namespace music
          * @return the frequency of the lowest tone
          */
         int getFMin() {return fMin;}
+        /**
+         * @brief Returns the frequency of the lowest tone in the highest octave that will be processed by this transform.
+         * @return the frequency of the lowest tone
+         */
+        double getKernelFMin() {return kernelfMin;}
         /**
          * @brief Returns the frequency of the highest tone that will be processed by this transform.
          * @return the frequency of the highest tone
