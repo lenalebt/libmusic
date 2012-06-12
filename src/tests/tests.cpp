@@ -203,6 +203,8 @@ namespace tests
         CHECK_EQ(cqt->getQ(), 16.817153745105756);
         CHECK_EQ(cqt->getThreshold(), 0.0005);
         CHECK_EQ(cqt->getAtomHopFactor(), 0.25);
+        CHECK_EQ(cqt->getFFTLength(), 128);
+        CHECK_EQ(cqt->getFFTHop(), 63);
         
         return EXIT_SUCCESS;
     }

@@ -19,6 +19,8 @@ namespace music
         lowpassFilter(NULL),
         q(1.0),
         threshold(0.0005),
+        fftHop(64),
+        fftLen(128),
         nkMax(0),
         fKernel(NULL)
     {
@@ -51,58 +53,70 @@ namespace music
         //calculate the length of the largest atom in samples
         cqt->nkMax = cqt->Q * double(fs) / double(cqt->kernelfMin) + 0.5;   //+0.5 for rounding
         
-        //std::cerr << "nkMax:" << cqt->nkMax << std::endl;
+        int ceil_nkMax_2 = std::ceil(double(cqt->nkMax)/2.0);
         
         //calculate the length of the shortest atom in samples
         int nkMin = cqt->Q * double(fs) / (double(cqt->kernelfMin) * std::pow(2.0, double(binsPerOctave-1)/double(binsPerOctave))) + 0.5;    //+0.5 for rounding
         
-        //std::cerr << "nkMin:" << nkMin << std::endl;
-        
         int atomHop = nkMin * atomHopFactor + 0.5;
         
-        //std::cerr << "atomHop:" << atomHop << std::endl;
+        int first_center = atomHop * std::ceil(double(ceil_nkMax_2)/atomHop);
         
-        int first_center = atomHop * std::ceil(std::ceil(cqt->nkMax/2.0)/atomHop);
+        cqt->fftLen = pow(2.0, int(log2(first_center + ceil_nkMax_2))+1);    //the nextpow2 thing
         
-        //std::cerr << "first_center:" << first_center << std::endl;
+        int winNr = std::floor(double(cqt->fftLen - ceil_nkMax_2 - first_center) / atomHop)+1;
         
-        int FFTLen = pow(2.0, int(log2(first_center + std::ceil(cqt->nkMax/2.0)))+1);    //the nextpow2 thing
+        int last_center = first_center + (winNr-1) * atomHop;
         
-        //std::cerr << "FFTLen:" << FFTLen << std::endl;
+        cqt->fftHop = (last_center + atomHop) - first_center;
+        
+        
+        std::cerr << "nkMax:" << cqt->nkMax << std::endl;
+        std::cerr << "ceil_nkMax_2:" << ceil_nkMax_2 << std::endl;
+        std::cerr << "nkMin:" << nkMin << std::endl;
+        std::cerr << "atomHop:" << atomHop << std::endl;
+        std::cerr << "first_center:" << first_center << std::endl;
+        std::cerr << "FFTLen:" << cqt->fftLen << std::endl;
+        std::cerr << "winNr:" << winNr << std::endl;
+        std::cerr << "last_center:" << last_center << std::endl;
+        std::cerr << "FFTHop:" << cqt->fftHop << std::endl;
+        
         
         //TODO: Calculate spectral kernels for one octave
-        Eigen::Matrix<std::complex<kiss_fft_scalar>, Eigen::Dynamic, Eigen::Dynamic> tmpFKernel(binsPerOctave, FFTLen);     //fill into non-sparse matrix first, and then make sparse out of it (does not need that much memory)
+        Eigen::Matrix<std::complex<kiss_fft_scalar>, Eigen::Dynamic, Eigen::Dynamic> tmpFKernel(binsPerOctave, cqt->fftLen);     //fill into non-sparse matrix first, and then make sparse out of it (does not need that much memory)
         FFT fft;
         
         for (int bin = 1; bin <= binsPerOctave; bin++)
         {
             double fk = cqt->kernelfMin * std::pow(2.0, double(bin-1)/double(binsPerOctave));
-            int Nk = (cqt->Q * cqt->fs / fk ) + 0.5;   //+0.5 for rounding
+            int nk = (cqt->Q * cqt->fs / fk ) + 0.5;   //+0.5 for rounding
             
-            std::complex<kiss_fft_scalar>* temporalKernel = new std::complex<kiss_fft_scalar>[FFTLen];
-            std::complex<kiss_fft_scalar>* spectralKernel = new std::complex<kiss_fft_scalar>[FFTLen];
+            assert (nk <= cqt->nkMax);
             
-            for (int i=0; i<FFTLen; i++)
+            std::complex<kiss_fft_scalar>* temporalKernel = new std::complex<kiss_fft_scalar>[cqt->fftLen];
+            std::complex<kiss_fft_scalar>* spectralKernel = new std::complex<kiss_fft_scalar>[cqt->fftLen];
+            
+            for (int i=0; i<cqt->fftLen; i++)
             {
                 temporalKernel[i]=0;
             }
             
-            for (int i=0; i<Nk; i++)
+            for (int i=0; i<nk; i++)
             {
-                temporalKernel[i+first_center-(Nk/2+(Nk&1))] = window<kiss_fft_scalar>(Nk, i)/Nk * exp( kiss_fft_scalar((2.0 * M_PI * fk ) / fs) * i * std::complex<kiss_fft_scalar>(0.0 ,1.0) );
+                temporalKernel[i+first_center-(nk/2+(nk&1))] = window<kiss_fft_scalar>(nk, i)/nk * exp( kiss_fft_scalar((2.0 * M_PI * fk ) / fs) * i * std::complex<kiss_fft_scalar>(0.0 ,1.0) );
                                                    //^^this rounds up if necessary.
                 if (bin==1)
-                    std::cerr << temporalKernel[i+first_center-(Nk/2+(Nk&1))] << " " << std::endl;
-                    //std::cerr << window<float>(Nk, i)/Nk << " " << std::endl;
+                    std::cerr << temporalKernel[i+first_center-(nk/2+(nk&1))] << " " << std::endl;
+                    //std::cerr << window<float>(nk, i)/nk << " " << std::endl;
             }
             
             int fftlength=0;
-            fft.docFFT((kiss_fft_cpx*)temporalKernel, FFTLen, (kiss_fft_cpx*)spectralKernel, fftlength);
-            std::cerr << Nk << " " << fftlength << std::endl;
+            fft.docFFT((kiss_fft_cpx*)temporalKernel, cqt->fftLen, (kiss_fft_cpx*)spectralKernel, fftlength);
+            assert(cqt->fftLen == fftlength);
             
             //we have our spectral kernel now in spectralKernel. save it!
             
-            for (int i=0; i<FFTLen; i++)
+            for (int i=0; i<cqt->fftLen; i++)
             {
                 tmpFKernel(bin-1, i) = spectralKernel[i];
                 if (bin==1)
@@ -114,10 +128,10 @@ namespace music
             delete[] spectralKernel;
         }
         
-        cqt->fKernel = new Eigen::SparseMatrix<std::complex<kiss_fft_scalar> >(binsPerOctave, FFTLen);
+        cqt->fKernel = new Eigen::SparseMatrix<std::complex<kiss_fft_scalar> >(binsPerOctave, cqt->fftLen);
         for (int i=0; i<binsPerOctave; i++)
         {
-            for (int j=0; j<FFTLen; j++)
+            for (int j=0; j<cqt->fftLen; j++)
             {
                 if (abs(tmpFKernel(i,j)) >= threshold)
                     cqt->fKernel->insert(i, j) = tmpFKernel(i,j);
@@ -141,5 +155,7 @@ namespace music
         //then run over samples and calculate cqt.
         //in the end, we will get a matrix with roughly (binsPerOctave*octaveCount)x(sampleCount/timesliceLength) entries.
         //that matrix will have more entries for higher frequencies, and lesser for lower frequencies.
+        
+        return NULL;
     }
 }
