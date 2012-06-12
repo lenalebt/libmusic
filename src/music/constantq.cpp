@@ -97,47 +97,76 @@ namespace music
             
             std::complex<kiss_fft_scalar>* tmpTemporalKernel = new std::complex<kiss_fft_scalar>[nk];
             
-            std::complex<kiss_fft_scalar>* temporalKernel = new std::complex<kiss_fft_scalar>[cqt->fftLen * cqt->atomNr];
-            std::complex<kiss_fft_scalar>* spectralKernel = new std::complex<kiss_fft_scalar>[cqt->fftLen * cqt->atomNr];
+            std::complex<kiss_fft_scalar>* temporalKernel = new std::complex<kiss_fft_scalar>[cqt->fftLen];
+            std::complex<kiss_fft_scalar>* spectralKernel = new std::complex<kiss_fft_scalar>[cqt->fftLen];
             
             //temporarily compute nonshifted temporal kernel (to speed up calculations later on)
             for (int i=0; i<nk; i++)
             {
                 tmpTemporalKernel[i] = window<kiss_fft_scalar>(nk, i)/nk * exp( kiss_fft_scalar((2.0 * M_PI * fk ) / fs) * i * std::complex<kiss_fft_scalar>(0.0 ,1.0) );
-                if (bin==1)
-                    std::cerr << temporalKernel[i+first_center-(nk/2+(nk&1))] << " " << std::endl;
-                    //std::cerr << window<float>(nk, i)/nk << " " << std::endl;
+                /*if (bin==1)
+                    std::cerr << tmpTemporalKernel[i] << " " << std::endl;
+                */
             }
             
-            //initialize memory of temporal kernels to 0.0+0.0*i
-            for (int i=0; i<cqt->fftLen * cqt->atomNr; i++)
-            {
-                temporalKernel[i]=std::complex<kiss_fft_scalar>(0.0, 0.0);
-            }
+            
             
             //set temporal kernels. they are shifted versions of tmpTemporalKernel.
             for (int k=0; k<cqt->atomNr; k++)
             {
                 int atomOffset = first_center-(nk/2+(nk&1));
+                
+                //initialize memory of temporal kernel to 0.0+0.0*i
+                for (int i=0; i<cqt->fftLen; i++)
+                {
+                    temporalKernel[i]=0.0;
+                }
+                
                 for (int i=0; i<nk; i++)
                 {
                     temporalKernel[(k*atomHop) + i + atomOffset] = tmpTemporalKernel[i];
                 }
+                
+                /*
+                std::cerr << std::endl << "temporal";
+                for (int i=0; i<cqt->fftLen; i++)
+                {
+                    std::cerr << temporalKernel[i] << " ";
+                }
+                std::cerr << std::endl;
+                */
+                
+                //get spectral kernel from temporal kernel
                 int fftlength=0;
-                fft.docFFT((kiss_fft_cpx*)(temporalKernel+k*atomHop), cqt->fftLen, (kiss_fft_cpx*)(spectralKernel+k*atomHop), fftlength);
+                fft.docFFT((kiss_fft_cpx*)(temporalKernel), cqt->fftLen, (kiss_fft_cpx*)(spectralKernel), fftlength);
+                
+                /*
+                std::cerr << std::endl << "specKernel" << std::endl;
+                for (int i=0; i<cqt->fftLen; i++)
+                {
+                    std::cerr << (spectralKernel)[i] << " ";
+                }
+                */
                 assert(cqt->fftLen == fftlength);
+                
+                //std::cerr << std::endl << "sparseSpecKernel" << std::endl;
+                for (int i=0; i<cqt->fftLen; i++)
+                {
+                    if (abs(spectralKernel[i]) >= threshold)
+                    {
+                        (*tmpFKernel)(bin-1 + k*cqt->atomNr, i) = spectralKernel[i];
+                        //std::cerr << spectralKernel[i] << " ";
+                    }
+                    else
+                    {
+                        (*tmpFKernel)(bin-1 + k*cqt->atomNr, i) = 0;
+                        //std::cerr << 0 << " ";
+                    }
+                }
+                //std::cerr << std::endl;
             }
             delete[] tmpTemporalKernel;
             delete[] temporalKernel;
-            
-            //we have our spectral kernels now in spectralKernel. save it!
-            for (int k=0; k<cqt->atomNr; k++)
-            {
-                for (int i=0; i<cqt->fftLen; i++)
-                {
-                    (*tmpFKernel)(bin-1 + k*cqt->atomNr, i) = spectralKernel[i];
-                }
-            }
             
             delete[] spectralKernel;
         }
@@ -149,10 +178,17 @@ namespace music
             for (int j=0; j<cqt->fftLen; j++)
             {
                 if (abs((*tmpFKernel)(i,j)) >= threshold)
-                    cqt->fKernel->insert(i, j) = conj((*tmpFKernel)(i,j));
+                {
+                    std::complex<kiss_fft_scalar> value = (*tmpFKernel)(i,j);
+                    value /= cqt->fftLen;
+                    cqt->fKernel->insert(i, j) = std::conj(value);
+                }
             }
         }
         delete tmpFKernel;
+        
+        //std::cerr << "fKernel(10,10)=" << cqt->fKernel->coeff(10,10) << std::endl;
+        //std::cerr << "fKernel:" << *cqt->fKernel << std::endl;
         
         //should now be able to do some cqt.
         
