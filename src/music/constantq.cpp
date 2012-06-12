@@ -163,10 +163,12 @@ namespace music
         }
         delete tmpFKernel;
         
-        //comment in to see the sparse conjugate fKernel.
+        //comment in to see the sparse conjugate fKernel on the console.
         //std::cerr << "fKernel:" << *cqt->fKernel << std::endl;
         
         //should now be able to do some cqt.
+        
+        //TODO: weights are missing. do we need them?
         
         return cqt;
     }
@@ -175,14 +177,27 @@ namespace music
     {
         assert(this->lowpassFilter != NULL);
         assert(this->fKernel != NULL);
+        
+        int zeroPadding = std::pow(2.0, octaveCount-1) * fftLen;
+        
+        //we need to use std::complex<float> type to calculate the constant q transform.
+        //this hurts in terms of memory usage, as we will occupy four times the memory
+        //plus a bit for zero padding, effectively meaning we use about 10MB/Minute
+        std::complex<float>* floatBuffer = new std::complex<float>[sampleCount + 2*zeroPadding];
+        
+        //copy input array to complex float array with zero padding (about 32kB zero padding for 8 octaves should be okay)
+        for (int i=0; i<sampleCount + 2*zeroPadding; i++)
+        {
+            if ((i<zeroPadding) || (i>sampleCount + zeroPadding))
+                floatBuffer[i] = 0.0;
+            else
+                floatBuffer[i] = std::complex<float>(float(buffer[i+zeroPadding]) / 32768.0f, 0.0);
+        }
+        
         //TODO: Map buffer to a Eigen vector via Map<>, see
         // http://eigen.tuxfamily.org/dox/TutorialMapClass.html
         
-        //padding with zeros in the beginning and in the end
-        
         //then run over samples and calculate cqt.
-        //in the end, we will get a matrix with roughly (binsPerOctave*octaveCount)x(sampleCount/timesliceLength) entries.
-        //that matrix will have more entries for higher frequencies, and lesser for lower frequencies.
         
         return NULL;
     }

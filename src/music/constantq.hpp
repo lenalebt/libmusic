@@ -235,7 +235,9 @@ Spain, 2010.
         /**
          * @brief Apply this constant Q transform to a given sound buffer.
          * 
-         * 
+         * This function will delete the buffer <code>buffer</code>. its pointer will
+         * be invalidated. this saves memory, as we need to zero-pad the data
+         * and it does not make sense
          * 
          * @param buffer the sound buffer in 16bit signed integer format.
          * @param sampleCount the sample count
