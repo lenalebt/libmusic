@@ -10,8 +10,80 @@
 #define EIGEN_YES_I_KNOW_SPARSE_MODULE_IS_NOT_STABLE_YET
 #include <Eigen/Sparse>
 
+/**
+ * @page midinote_scale Midi note scale
+ * To identify a musical note, the midi note scale ist used. Midi notes are just
+ * semitones one after each other.
+ * 
+ * - The lowest note on a piano with 88 keys
+ * is A0, which corresponds to midi note <code>21</code> (<code>0x15</code>).
+ * In Germany, this note is called A''.
+ * 
+ * - The note for standard pitch of 440Hz is
+ * A4, a' or midi note <code>69</code> (<code>0x55</code>).
+ * 
+ * - The lowest midi note is
+ * <code>0</code> (<code>0x00</code>), which corresponds to C-1 or C''''.
+ * 
+ * - The highest midi note is
+ * <code>127</code> (<code>0x7F</code>), which is G9 or g'''''.
+ * 
+ */
+
 namespace music
 {
+    /**
+     * @brief This class describes a result of a constant Q transform.
+     * 
+     * You are able to get the value of the constant Q transform at a
+     * selected sample number. There are some different possibilities
+     * to access the values.
+     * 
+     * @todo implement
+     * 
+     * @author Lena Brueder
+     * @date 2012-06-12
+     */
+    class ConstantQTransformResult
+    {
+    private:
+        
+    public:
+        /**
+         * @brief Returns the value of the constant Q transform at the given sample number
+         *      and interpolates linearly between samples where the transform is known.
+         * 
+         * 
+         * @param sampleNumber the sample number in time
+         * @param midiNoteNumber the number of the midi note you want to get.
+         * @see 
+         * @return the value of the constant Q transform at a given sample number
+         */
+        std::complex<float> getNoteValueLinearInterpolation(int64_t sampleNumber, int midiNoteNumber);
+        
+        /**
+         * @brief Returns the value of the constant Q transform at the given sample number
+         *      and does not interpolate.
+         * 
+         * It just takes the value of the transform that is before the given sample number.
+         * 
+         * @return the value of the constant Q transform at a given sample number
+         */
+        std::complex<float> getNoteValueNoInterpolation(int64_t sampleNumber, int midiNoteNumber);
+    };
+    
+    /**
+     * @brief This class is capable of applying a constant Q transform
+     *  to an input signal.
+     * 
+     * 
+     * 
+     * @todo unstable, api is subject to change.
+     * @todo implementation is not ready yet.
+     * 
+     * @author Lena Brueder
+     * @date 2012-06-12
+     */
     class ConstantQTransform
     {
     private:
@@ -142,7 +214,7 @@ Spain, 2010.
          * @todo implement
          * @todo set the right return value.
          */
-        void apply(uint16_t* buffer, int sampleCount);
+        ConstantQTransformResult* apply(uint16_t* buffer, int sampleCount);
         
         friend int tests::testConstantQ();
     };

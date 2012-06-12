@@ -129,7 +129,7 @@ namespace music
         return cqt;
     }
     
-    void ConstantQTransform::apply(uint16_t* buffer, int sampleCount)
+    ConstantQTransformResult* ConstantQTransform::apply(uint16_t* buffer, int sampleCount)
     {
         assert(this->lowpassFilter != NULL);
         assert(this->fKernel != NULL);
