@@ -85,7 +85,7 @@ namespace music
         
         //TODO: Calculate spectral kernels for one octave
         Eigen::Matrix<std::complex<kiss_fft_scalar>, Eigen::Dynamic, Eigen::Dynamic>* tmpFKernel =
-            new Eigen::Matrix<std::complex<kiss_fft_scalar>, Eigen::Dynamic, Eigen::Dynamic>(binsPerOctave * cqt->atomNr, cqt->fftLen);     //fill into non-sparse matrix first, and then make sparse out of it (does not need that much memory)
+            new Eigen::Matrix<std::complex<kiss_fft_scalar>, Eigen::Dynamic, Eigen::Dynamic>(cqt->fftLen, binsPerOctave * cqt->atomNr);     //fill into non-sparse matrix first, and then make sparse out of it (does not need that much memory)
         FFT fft;
         
         for (int bin = 1; bin <= binsPerOctave; bin++)
@@ -108,8 +108,6 @@ namespace music
                     std::cerr << tmpTemporalKernel[i] << " " << std::endl;
                 */
             }
-            
-            
             
             //set temporal kernels. they are shifted versions of tmpTemporalKernel.
             for (int k=0; k<cqt->atomNr; k++)
@@ -154,12 +152,12 @@ namespace music
                 {
                     if (abs(spectralKernel[i]) >= threshold)
                     {
-                        (*tmpFKernel)(bin-1 + k*cqt->atomNr, i) = spectralKernel[i];
+                        (*tmpFKernel)(i, bin-1 + k*cqt->atomNr) = spectralKernel[i];
                         //std::cerr << spectralKernel[i] << " ";
                     }
                     else
                     {
-                        (*tmpFKernel)(bin-1 + k*cqt->atomNr, i) = 0;
+                        (*tmpFKernel)(i, bin-1 + k*cqt->atomNr) = 0;
                         //std::cerr << 0 << " ";
                     }
                 }
@@ -172,22 +170,22 @@ namespace music
         }
         
         //copy the data from our tmpFKernel to our sparse fKernel.
-        cqt->fKernel = new Eigen::SparseMatrix<std::complex<kiss_fft_scalar> >(binsPerOctave * cqt->atomNr, cqt->fftLen);
+        cqt->fKernel = new Eigen::SparseMatrix<std::complex<kiss_fft_scalar> >(cqt->fftLen, binsPerOctave * cqt->atomNr);
         for (int i=0; i<binsPerOctave * cqt->atomNr; i++)
         {
             for (int j=0; j<cqt->fftLen; j++)
             {
-                if (abs((*tmpFKernel)(i,j)) >= threshold)
+                if (abs((*tmpFKernel)(j,i)) >= threshold)
                 {
-                    std::complex<kiss_fft_scalar> value = (*tmpFKernel)(i,j);
+                    std::complex<kiss_fft_scalar> value = (*tmpFKernel)(j,i);
                     value /= cqt->fftLen;
-                    cqt->fKernel->insert(i, j) = std::conj(value);
+                    cqt->fKernel->insert(j, i) = std::conj(value);
                 }
             }
         }
         delete tmpFKernel;
         
-        //std::cerr << "fKernel(10,10)=" << cqt->fKernel->coeff(10,10) << std::endl;
+        //std::cerr << "fKernel(24,0)=" << cqt->fKernel->coeff(24,0) << std::endl;
         //std::cerr << "fKernel:" << *cqt->fKernel << std::endl;
         
         //should now be able to do some cqt.
