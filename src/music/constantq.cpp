@@ -148,7 +148,7 @@ namespace music
         }
         
         //copy the data from our tmpFKernel to our sparse fKernel.
-        cqt->fKernel = new Eigen::SparseMatrix<std::complex<kiss_fft_scalar> >(cqt->fftLen, binsPerOctave * cqt->atomNr);
+        cqt->fKernel = new Eigen::SparseMatrix<std::complex<float> >(cqt->fftLen, binsPerOctave * cqt->atomNr);
         for (int i=0; i<binsPerOctave * cqt->atomNr; i++)
         {
             for (int j=0; j<cqt->fftLen; j++)
@@ -178,7 +178,8 @@ namespace music
         assert(this->lowpassFilter != NULL);
         assert(this->fKernel != NULL);
         
-        int zeroPadding = std::pow(2.0, octaveCount-1) * fftLen;
+        //how many zeros should be padded?
+        int zeroPadding = fftLen / 2;
         
         /*
         //we need to use std::complex<float> type to calculate the constant q transform.
@@ -216,13 +217,13 @@ namespace music
                 {
                     deleteFFTSourceData = true;
                     fftSourceData = new float[fftLen];
-                    //TODO: Fill array, zero-pad it (->beginning).
+                    //TODO: Fill array, zero-pad it as necessary (->beginning).
                 }
                 else if (position > sampleCount)
                 {
                     deleteFFTSourceData = true;
                     fftSourceData = new float[fftLen];
-                    //TODO: Fill array, zero-pad it (->end).
+                    //TODO: Fill array, zero-pad it as necessary (->end).
                 }
                 else
                 {   //no zero padding needed: use old buffer array
@@ -246,9 +247,14 @@ namespace music
                 }
                 //up to here: calculated FFT of the input data, one frame.
                 
-                //map fftData to vector
-                //apply matrix multiplication with fKernel
-                //reorder the result matrix, save data
+                //map fft Data vector to an Eigen data type
+                Eigen::Map<Eigen::Matrix<std::complex<float>, Eigen::Dynamic, 1> > fftDataMap(fftData, fftLen);
+                
+                //Calculate the transform: apply fKernel to fftData.
+                Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic> resultMatrix;
+                resultMatrix = fftDataMap * *fKernel;
+                
+                //TODO:reorder the result matrix, save data
             }
             
             if (octave)
@@ -275,9 +281,9 @@ namespace music
                 delete[] data;
                 data = newData;
             }
-            
-            zeroPadding /= 2;
         }
+        
+        delete[] fftData;
         
         //TODO: Map buffer to a Eigen vector via Map<>, see
         // http://eigen.tuxfamily.org/dox/TutorialMapClass.html

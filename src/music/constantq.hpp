@@ -115,7 +115,7 @@ namespace music
         
         int nkMax;      //length of the largest atom in samples
         
-        Eigen::SparseMatrix<std::complex<kiss_fft_scalar> >* fKernel;  //the transform kernel for one octave. it already is complex conjugated.
+        Eigen::SparseMatrix<std::complex<float> >* fKernel;  //the transform kernel for one octave. it already is complex conjugated.
         
         ConstantQTransform();
         //square root of blackman-harris window, as used in the matlab implementation of the mentioned paper. other window that might be okay: blackman.
@@ -212,7 +212,7 @@ namespace music
          */
         int getFFTHop() const {return fftHop;}
         
-        const Eigen::SparseMatrix<std::complex<kiss_fft_scalar> >* getFKernel() const {return fKernel;}
+        const Eigen::SparseMatrix<std::complex<float> >* getFKernel() const {return fKernel;}
         
         /**
          * @brief Creates the kernels for the Constant Q transform which can later be applied to many pieces of music.
