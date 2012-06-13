@@ -288,11 +288,11 @@ namespace music
         return NULL;
     }
     
-    std::complex<float> ConstantQTransformResult::getNoteValueNoInterpolation(uint64_t sampleNumber, int midiNoteNumber)
+    std::complex<float> ConstantQTransformResult::getNoteValueNoInterpolation(uint64_t sampleNumber, int midiNoteNumber) const
     {
         return std::complex<float>(0.0f, 0.0f);
     }
-    std::complex<float> ConstantQTransformResult::getNoteValueLinearInterpolation(uint64_t sampleNumber, int midiNoteNumber)
+    std::complex<float> ConstantQTransformResult::getNoteValueLinearInterpolation(uint64_t sampleNumber, int midiNoteNumber) const
     {
         return std::complex<float>(0.0f, 0.0f);
     }
