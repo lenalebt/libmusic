@@ -168,21 +168,23 @@ namespace music
         
         //should now be able to do some cqt.
         
-        //TODO: weights are missing. do we need them?
+        //TODO: weights are missing. do we need them? I think we would need them if we applied icqt.
         
         return cqt;
     }
     
-    ConstantQTransformResult* ConstantQTransform::apply(uint16_t* buffer, int sampleCount)
+    ConstantQTransformResult* ConstantQTransform::apply(float* buffer, int sampleCount)
     {
         assert(this->lowpassFilter != NULL);
         assert(this->fKernel != NULL);
         
         int zeroPadding = std::pow(2.0, octaveCount-1) * fftLen;
         
+        /*
         //we need to use std::complex<float> type to calculate the constant q transform.
         //this hurts in terms of memory usage, as we will occupy four times the memory
-        //plus a bit for zero padding, effectively meaning we use about 10MB/Minute
+        //plus a bit for zero padding, effectively meaning we use about 10MiB/minute of music
+        //in addition to the memory that is occupied by the original data.
         std::complex<float>* floatBuffer = new std::complex<float>[sampleCount + 2*zeroPadding];
         
         //copy input array to complex float array with zero padding (about 32kB zero padding for 8 octaves should be okay)
@@ -193,12 +195,105 @@ namespace music
             else
                 floatBuffer[i] = std::complex<float>(float(buffer[i+zeroPadding]) / 32768.0f, 0.0);
         }
+        */
+        
+        FFT fft;
+        //temporary fft data
+        std::complex<float>* fftData = new std::complex<float>[fftLen];
+        float* data = buffer;
+        float* fftSourceData;
+        bool deleteFFTSourceData = false;
+        
+        //apply cqt once per octave
+        for (int octave=octaveCount; octave > 0; octave--)
+        {
+            int overlap = fftLen - fftHop;
+            int fftlength=0;
+            //shift our window a bit. window has overlap.
+            for (int position=-zeroPadding; position < sampleCount + zeroPadding ;position+=overlap)
+            {
+                if (position<0)
+                {
+                    deleteFFTSourceData = true;
+                    fftSourceData = new float[fftLen];
+                    //TODO: Fill array, zero-pad it (->beginning).
+                }
+                else if (position > sampleCount)
+                {
+                    deleteFFTSourceData = true;
+                    fftSourceData = new float[fftLen];
+                    //TODO: Fill array, zero-pad it (->end).
+                }
+                else
+                {   //no zero padding needed: use old buffer array
+                    deleteFFTSourceData = false;
+                    fftSourceData = data + position;
+                }
+                
+                //apply FFT to input data.
+                fft.doFFT((kiss_fft_scalar*)(fftSourceData), fftLen, (kiss_fft_cpx*)(fftData), fftlength);
+                assert(fftlength == fftLen/2+1);
+                
+                if (deleteFFTSourceData)
+                    delete[] fftSourceData;
+                
+                //adjust fftData, as it only holds half of the data. the rest has to be computed.
+                //complex conjugate, etc...
+                int midPoint = fftLen/2;
+                for (int i=1; i<fftLen/2; i++)
+                {
+                    fftData[midPoint + i] = conj(fftData[midPoint - i]);
+                }
+                //up to here: calculated FFT of the input data, one frame.
+                
+                //map fftData to vector
+                //apply matrix multiplication with fKernel
+                //reorder the result matrix, save data
+            }
+            
+            if (octave)
+            {   //not the last octave...
+                //copy data to new array for filtering, if necessary
+                if (octave == octaveCount)
+                {
+                    data = new float[sampleCount];
+                    memcpy(data, buffer, sampleCount * sizeof(float));
+                }
+                
+                //TODO: idea: implement new filter variant which only calculates every second value.
+                //should speed it up 2x, and has better memory usage (can directly allocate half the
+                //memory size).
+                
+                lowpassFilter->apply(data, sampleCount);
+                
+                //change samplerate
+                float* newData = new float[sampleCount/2];
+                for (int i=0; i<sampleCount/2; i++)
+                {
+                    newData[i] = data[2*i];
+                }
+                delete[] data;
+                data = newData;
+            }
+            
+            zeroPadding /= 2;
+        }
         
         //TODO: Map buffer to a Eigen vector via Map<>, see
         // http://eigen.tuxfamily.org/dox/TutorialMapClass.html
+        //Eigen::Map<Eigen::Matrix<std::complex<float>, Eigen::Dynamic, 1> > bufferMap(floatBuffer);
         
         //then run over samples and calculate cqt.
         
         return NULL;
+    }
+    
+    std::complex<float> ConstantQTransformResult::getNoteValueNoInterpolation(uint64_t sampleNumber, int midiNoteNumber)
+    {
+        return std::complex<float>(0.0f, 0.0f);
+    }
+    std::complex<float> ConstantQTransformResult::getNoteValueLinearInterpolation(uint64_t sampleNumber, int midiNoteNumber)
+    {
+        return std::complex<float>(0.0f, 0.0f);
     }
 }
