@@ -217,13 +217,27 @@ namespace music
                 {
                     deleteFFTSourceData = true;
                     fftSourceData = new float[fftLen];
-                    //TODO: Fill array, zero-pad it as necessary (->beginning).
+                    //Fill array, zero-pad it as necessary (->beginning).
+                    for (int i=position; i<position+zeroPadding; i++)
+                    {
+                        if (i<0)
+                            fftSourceData[i-position] = 0.0;
+                        else
+                            fftSourceData[i-position] = data[i];
+                    }
                 }
-                else if (position > sampleCount)
+                else if (position > sampleCount - zeroPadding)
                 {
                     deleteFFTSourceData = true;
                     fftSourceData = new float[fftLen];
-                    //TODO: Fill array, zero-pad it as necessary (->end).
+                    //Fill array, zero-pad it as necessary (->end).
+                    for (int i=position; i<position+zeroPadding; i++)
+                    {
+                        if (i>sampleCount)
+                            fftSourceData[i-position] = 0.0;
+                        else
+                            fftSourceData[i-position] = data[i];
+                    }
                 }
                 else
                 {   //no zero padding needed: use old buffer array
