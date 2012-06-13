@@ -52,7 +52,7 @@ namespace music
         int maxOctave;      //highest octave Octave
         //array of matricies. we have one matrix for every octave.
         //the matricies are dense, with one row being an octave bin.    TODO: is that right?
-        Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >* octaveMatrix;
+        Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >** octaveMatrix;
     public:
         /**
          * @brief Returns the value of the constant Q transform at the given sample number

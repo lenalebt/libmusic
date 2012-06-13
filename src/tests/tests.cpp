@@ -230,6 +230,7 @@ namespace tests
         lowpassFilter = musicaccess::IIRFilter::createLowpassFilter(0.5);
         CHECK_OP(lowpassFilter, !=, NULL);
         
+        std::cerr << "creating constant q transform kernel..." << std::endl;
         cqt = music::ConstantQTransform::createTransform(lowpassFilter, 12, 50, 11025, 22050, 1.0, 0.0005, 0.25);
         CHECK_OP(cqt, !=, NULL);
         CHECK_OP(cqt->window<float>(20, 10), !=, 0.0);
@@ -255,6 +256,24 @@ namespace tests
         CHECK_EQ(cqt->getFFTHop(), 63);
         
         std::cerr << "fKernel:" << *(cqt->getFKernel()) << std::endl;
+        
+        musicaccess::SoundFile file;
+        CHECK(!file.isFileOpen());
+        CHECK(file.open("./testdata/test.mp3", true));
+        CHECK(file.isFileOpen());
+        
+        float* buffer = NULL;
+        buffer = new float[1424384+2];
+        CHECK(buffer != NULL);
+        
+        musicaccess::Resampler22kHzMono resampler;
+        int sampleCount = file.getSampleCount();
+        std::cerr << "resampling input file..." << std::endl;
+        resampler.resample(file.getSampleRate(), &buffer, sampleCount, file.getChannelCount());
+        
+        std::cerr << "applying constant q transform..." << std::endl;
+        music::ConstantQTransformResult* transformResult = cqt->apply(buffer, sampleCount);
+        CHECK(transformResult != NULL);
         
         return EXIT_SUCCESS;
     }
