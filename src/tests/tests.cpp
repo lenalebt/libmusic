@@ -266,6 +266,8 @@ namespace tests
         buffer = new float[1424384+2];
         CHECK(buffer != NULL);
         
+        CHECK_EQ_TYPE(file.readSamples(buffer, file.getSampleCount()), file.getSampleCount(), unsigned int);
+        
         musicaccess::Resampler22kHzMono resampler;
         int sampleCount = file.getSampleCount();
         std::cerr << "resampling input file..." << std::endl;
