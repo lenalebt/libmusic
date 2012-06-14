@@ -13,8 +13,6 @@ namespace music
         kiss_fft_cfg  cCfg[12];
         kiss_fftr_cfg riCfg[12];
         kiss_fft_cfg  ciCfg[12];
-        
-        int timeLength;
     public:
         FFT();
         ~FFT();
