@@ -271,6 +271,8 @@ namespace tests
         std::cerr << "resampling input file..." << std::endl;
         resampler.resample(file.getSampleRate(), &buffer, sampleCount, file.getChannelCount());
         
+        CHECK_OP(sampleCount, <, file.getSampleCount());
+        
         std::cerr << "applying constant q transform..." << std::endl;
         music::ConstantQTransformResult* transformResult = cqt->apply(buffer, sampleCount);
         CHECK(transformResult != NULL);
