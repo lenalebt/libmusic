@@ -140,7 +140,7 @@ namespace music
                     }
                     else
                     {
-                        (*tmpFKernel)(i, (bin-1)*cqt->atomNr+k) = 0.0;
+                        (*tmpFKernel)(i, (bin-1)*cqt->atomNr+k) = std::complex<kiss_fft_scalar>(0.0, 0.0);
                     }
                 }
             }
@@ -161,7 +161,7 @@ namespace music
         {
             for (int j=0; j<cqt->fftLen; j++)
             {
-                if ((*tmpFKernel)(j,i) != 0.0)
+                if ((*tmpFKernel)(j,i) != std::complex<kiss_fft_scalar>(0.0, 0.0))
                 {
                     std::complex<kiss_fft_scalar> value = (*tmpFKernel)(j,i);
                     value /= cqt->fftLen;
@@ -289,6 +289,20 @@ namespace music
                 for (int i=1; i<fftLen/2; i++)
                 {
                     fftData[midPoint + i] = conj(fftData[midPoint - i]);
+                    if (fftData[i]!=fftData[i])
+                    {
+                        std::cerr << std::endl << "nan detected here: window " << windowNumber << ", fftData[" << i << "]. fftData:" << std::endl;
+                        for (int i=0; i<fftLen; i++)
+                        {
+                            std::cerr << fftData[i] << " ";
+                        }
+                        std::cerr << "fftSourceData:" << std::endl;
+                        for (int i=0; i<fftLen; i++)
+                        {
+                            std::cerr << fftSourceData[i] << " ";
+                        }
+                        std::cerr << std::endl;
+                    }
                 }
                 //up to here: calculated FFT of the input data, one frame.
                 
@@ -356,15 +370,17 @@ namespace music
         //delete[] fftData;
         //delete[] fftSourceDataZeroPadMemory;
         
-        std::ofstream outstr("octave6.dat");
-        for (int i=0; i < transformResult->octaveMatrix[6]->rows(); i++)
+        /*
+        std::ofstream outstr("octave2.dat");
+        for (int i=0; i < transformResult->octaveMatrix[2]->rows(); i++)
         {
-            for (int j=0; j < transformResult->octaveMatrix[6]->cols(); j++)
+            for (int j=0; j < transformResult->octaveMatrix[2]->cols(); j++)
             {
-                outstr << abs((*transformResult->octaveMatrix[6])(i,j)) << " ";
+                outstr << abs((*transformResult->octaveMatrix[2])(i,j)) << " ";
             }
             outstr << std::endl;
         }
+        */
         
         return transformResult;
     }
