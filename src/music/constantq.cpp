@@ -8,6 +8,8 @@
 #include <iostream>
 #include <fstream>
 
+#define MAX_FFT_LENGTH 2048
+
 namespace music
 {
     ConstantQTransform::ConstantQTransform() :
@@ -134,11 +136,11 @@ namespace music
                 {
                     if (abs(spectralKernel[i]) >= threshold)
                     {
-                        (*tmpFKernel)(i, bin-1 + k*cqt->atomNr) = spectralKernel[i];
+                        (*tmpFKernel)(i, (bin-1)*cqt->atomNr+k) = spectralKernel[i];
                     }
                     else
                     {
-                        (*tmpFKernel)(i, bin-1 + k*cqt->atomNr) = 0.0;
+                        (*tmpFKernel)(i, (bin-1)*cqt->atomNr+k) = 0.0;
                     }
                 }
             }
@@ -147,6 +149,11 @@ namespace music
             
             delete[] spectralKernel;
         }
+        
+        std::ofstream outstr("tmpfkernel.dat");
+        outstr << "tmpFKernel" << std::endl << *tmpFKernel << std::endl;
+        
+        std::cerr << "tmpfkernel(" << tmpFKernel->rows() << "/" << tmpFKernel->cols() << ")" << std::endl;
         
         //copy the data from our tmpFKernel to our sparse fKernel.
         cqt->fKernel = new Eigen::SparseMatrix<std::complex<float> >(binsPerOctave * cqt->atomNr, cqt->fftLen);
@@ -288,11 +295,14 @@ namespace music
                 //map fft Data vector to an Eigen data type
                 Eigen::Map<Eigen::Matrix<std::complex<float>, Eigen::Dynamic, 1> > fftDataMap(fftData, fftLen);
                 
+                //std::cerr << "fftDataMap" << std::endl << fftDataMap << std::endl;
+                
                 //Calculate the transform: apply fKernel to fftData.
                 resultMatrix = *fKernel * fftDataMap;
                 //we get a matrix with (octaveCount*atomNr) x (1) elements.
                 
                 //std::cerr << "result(" << resultMatrix.rows() << ", " << resultMatrix.cols() << ")" << std::endl;
+                //std::cerr << resultMatrix << std::endl;
                 
                 //std::cerr << "reorder now..." << std::endl;
                 //TODO:reorder the result matrix, save data
@@ -346,12 +356,12 @@ namespace music
         //delete[] fftData;
         //delete[] fftSourceDataZeroPadMemory;
         
-        std::ofstream outstr("file.dat");
-        for (int i=0; i < transformResult->octaveMatrix[octaveCount]->rows(); i++)
+        std::ofstream outstr("octave6.dat");
+        for (int i=0; i < transformResult->octaveMatrix[6]->rows(); i++)
         {
-            for (int j=0; j < transformResult->octaveMatrix[octaveCount]->cols(); j++)
+            for (int j=0; j < transformResult->octaveMatrix[6]->cols(); j++)
             {
-                outstr << abs((*transformResult->octaveMatrix[octaveCount])(i,j)) << " ";
+                outstr << abs((*transformResult->octaveMatrix[6])(i,j)) << " ";
             }
             outstr << std::endl;
         }
