@@ -26,6 +26,10 @@ ELSEIF (CMAKE_BUILD_TYPE STREQUAL Profiling)
     ADD_DEFINITIONS(-DNDEBUG)
 ENDIF ()
 
+IF (DEBUG_LEVEL)
+    ADD_DEFINITIONS(-DDEBUG_LEVEL=${DEBUG_LEVEL})
+ENDIF()
+
 #here, you would set some compiler specific things
 IF ( CMAKE_COMPILER_IS_GNUCXX )
     MESSAGE ("Using Gnu g++ compiler...")
@@ -58,6 +62,9 @@ SET(
     #kissfft source files
     src/kissfft/kiss_fft.c
     src/kissfft/tools/kiss_fftr.c
+    
+    #parts of the test framework that are needed in between
+    src/tests/debug.cpp
     )
 
 #place header here
@@ -70,6 +77,9 @@ SET(
     #kissfft headers
     src/kissfft/kiss_fft.h
     src/kissfft/tools/kiss_fftr.h
+    
+    #parts of the test framework that are needed in between
+    src/tests/debug.hpp
     )
 
 #put all (possibly autocreated) headers and source files here

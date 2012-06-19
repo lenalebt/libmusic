@@ -1,5 +1,7 @@
 #include "constantq.hpp"
 
+#include "debug.hpp"
+
 //use for filtering
 #include <musicaccess.hpp>
 
@@ -7,6 +9,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 #define MAX_FFT_LENGTH 2048
 
@@ -234,22 +237,15 @@ namespace music
             int overlap = fftLen - fftHop;
             int fftlength=0;
             
-            std::cerr << "octave:" << octave << std::endl;
-            
             //TODO: need to set the sizes of the matrix correctly
             octaveResult = NULL;
             octaveResult = new Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >(binsPerOctave, ((sampleCount+2*zeroPadding)/fftHop + 1) * atomNr);
             assert(octaveResult != NULL);
             
-            std::cerr << "binsPerOctave=" << binsPerOctave << ", length=" << ((sampleCount+2*zeroPadding)/fftHop) * atomNr << std::endl;
-            
             int windowNumber=0;
             //shift our window a bit. window has overlap.
             for (int position=-zeroPadding; position < sampleCount + zeroPadding ;position+=fftHop)
             {
-                //std::cerr << "position:" << position << std::endl;
-                //std::cerr << "windowNumber:" << windowNumber << std::endl;
-                
                 if (position<0)
                 {   //zero-padding necessary, front
                     fftSourceData = fftSourceDataZeroPadMemory;
@@ -309,27 +305,18 @@ namespace music
                 //map fft Data vector to an Eigen data type
                 Eigen::Map<Eigen::Matrix<std::complex<float>, Eigen::Dynamic, 1> > fftDataMap(fftData, fftLen);
                 
-                //std::cerr << "fftDataMap" << std::endl << fftDataMap << std::endl;
-                
                 //Calculate the transform: apply fKernel to fftData.
                 resultMatrix = *fKernel * fftDataMap;
                 //we get a matrix with (octaveCount*atomNr) x (1) elements.
                 
-                //std::cerr << "result(" << resultMatrix.rows() << ", " << resultMatrix.cols() << ")" << std::endl;
-                //std::cerr << resultMatrix << std::endl;
-                
-                //std::cerr << "reorder now..." << std::endl;
                 //TODO:reorder the result matrix, save data
                 for (int bin=0; bin<binsPerOctave; bin++)
                 {
                     for (int i = 0; i < atomNr; i++)
                     {
-                        //std::cerr << "(bin*atomNr + i%atomNr=" << bin*atomNr + i%atomNr <<
-                        //    ", i/atomNr=" << i/atomNr << ")" << std::endl;
                         (*octaveResult)(bin, windowNumber*atomNr + i) = resultMatrix(bin*atomNr + i, 0);
                     }
                 }
-                //std::cerr << "reordered." << std::endl;
                 windowNumber++;
             }
             
@@ -370,17 +357,25 @@ namespace music
         //delete[] fftData;
         //delete[] fftSourceDataZeroPadMemory;
         
-        /*
-        std::ofstream outstr("octave2.dat");
-        for (int i=0; i < transformResult->octaveMatrix[2]->rows(); i++)
-        {
-            for (int j=0; j < transformResult->octaveMatrix[2]->cols(); j++)
+        #if DEBUG_LEVEL > 10
+            DEBUG_OUT("saving data to files...", 10);
+            for (int k=1; k<=octaveCount; k++)
             {
-                outstr << abs((*transformResult->octaveMatrix[2])(i,j)) << " ";
+                std::stringstream ss;
+                ss << "octave" << k << ".dat";
+                std::ofstream outstr(ss.str().c_str());
+                DEBUG_OUT("file " << ss.str(), 10);
+                for (int i=0; i < transformResult->octaveMatrix[k]->rows(); i++)
+                {
+                    for (int j=0; j < transformResult->octaveMatrix[k]->cols(); j++)
+                    {
+                        outstr << abs((*transformResult->octaveMatrix[k])(i,j)) << " ";
+                    }
+                    outstr << std::endl;
+                }
             }
-            outstr << std::endl;
-        }
-        */
+        #endif
+        
         
         return transformResult;
     }

@@ -227,7 +227,7 @@ namespace tests
         music::ConstantQTransform* cqt = NULL;
         musicaccess::IIRFilter* lowpassFilter = NULL;
         
-        lowpassFilter = musicaccess::IIRFilter::createLowpassFilter(0.5);
+        lowpassFilter = musicaccess::IIRFilter::createLowpassFilter(0.25);
         CHECK_OP(lowpassFilter, !=, NULL);
         
         std::cerr << "creating constant q transform kernel..." << std::endl;
