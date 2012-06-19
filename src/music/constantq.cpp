@@ -222,6 +222,7 @@ namespace music
         fftSourceDataZeroPadMemory = new float[fftLen];
         assert(fftSourceDataZeroPadMemory != NULL);
         
+        //get memory for results
         ConstantQTransformResult* transformResult = NULL;
         transformResult = new ConstantQTransformResult();
         assert(transformResult != NULL);
@@ -237,7 +238,6 @@ namespace music
             int overlap = fftLen - fftHop;
             int fftlength=0;
             
-            //TODO: need to set the sizes of the matrix correctly
             octaveResult = NULL;
             octaveResult = new Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >(binsPerOctave, ((sampleCount+2*zeroPadding)/fftHop + 1) * atomNr);
             assert(octaveResult != NULL);
@@ -309,7 +309,7 @@ namespace music
                 resultMatrix = *fKernel * fftDataMap;
                 //we get a matrix with (octaveCount*atomNr) x (1) elements.
                 
-                //TODO:reorder the result matrix, save data
+                //reorder the result matrix, save data
                 for (int bin=0; bin<binsPerOctave; bin++)
                 {
                     for (int i = 0; i < atomNr; i++)
@@ -353,11 +353,11 @@ namespace music
             }
         }
         
-        //TODO:has problems freeing the memory. why?
+        //TODO:has problems freeing the memory. why? without these lines, there is a memory leak.
         //delete[] fftData;
         //delete[] fftSourceDataZeroPadMemory;
         
-        #if DEBUG_LEVEL > 10
+        #if defined DEBUG_LEVEL && (DEBUG_LEVEL > 10)
             DEBUG_OUT("saving data to files...", 10);
             for (int k=1; k<=octaveCount; k++)
             {
@@ -387,5 +387,14 @@ namespace music
     std::complex<float> ConstantQTransformResult::getNoteValueLinearInterpolation(uint64_t sampleNumber, int midiNoteNumber) const
     {
         return std::complex<float>(0.0f, 0.0f);
+    }
+    
+    ConstantQTransformResult::~ConstantQTransformResult()
+    {
+        for (int i=0; i<octaveCount; i++)
+        {
+            delete octaveMatrix[i];
+        }
+        delete[] octaveMatrix;
     }
 }
