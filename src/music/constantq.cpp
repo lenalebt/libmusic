@@ -231,7 +231,7 @@ namespace music
         transformResult->octaveMatrix = new Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >*[octaveCount];
         
         //apply cqt once per octave
-        for (int octave=octaveCount; octave > 0; octave--)
+        for (int octave=octaveCount-1; octave >= 0; octave--)
         {
             //int overlap = fftLen - fftHop;        //needed in the matlab implementation, not needed here
             int fftlength=0;
@@ -304,7 +304,7 @@ namespace music
                 windowNumber++;
             }
             
-            transformResult->octaveMatrix[octave-1] = octaveResult;
+            transformResult->octaveMatrix[octave] = octaveResult;
             
             if (octave)
             {   //not the last octave...
@@ -346,6 +346,8 @@ namespace music
         transformResult->originalSamplingFrequency = this->fs;
         transformResult->originalSampleCount = sampleCount;
         transformResult->binsPerOctave = this->binsPerOctave;
+        transformResult->octaveCount = octaveCount;
+        transformResult->originalTimeLength = double(sampleCount)/this->fs;
         
         delete[] fftData;
         delete[] fftSourceDataZeroPadMemory;
@@ -381,10 +383,10 @@ namespace music
     std::complex<float> ConstantQTransformResult::getNoteValueNoInterpolation(float time, int octave, int bin) const
     {
         //int bin = (maxBinMidiNote - midiNoteNumber);
+        int pos = octaveMatrix[octave]->cols() * (time/originalTimeLength);
+        return (*octaveMatrix[octave])(bin, pos);
         
-        
-        
-        return std::complex<float>(0.0f, 0.0f);
+        //return std::complex<float>(0.0f, 0.0f);
     }
     std::complex<float> ConstantQTransformResult::getNoteValueLinearInterpolation(float time, int octave, int bin) const
     {

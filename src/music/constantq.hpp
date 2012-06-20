@@ -57,6 +57,7 @@ namespace music
         float minBinMidiNote;
         int originalSampleCount;
         int originalSamplingFrequency;
+        double originalTimeLength;
         
         int binsPerOctave;
     public:
