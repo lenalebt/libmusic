@@ -99,11 +99,12 @@ namespace music
     {
     private:
         int octaveCount;        //how many octaves are processed by this transform?
-        int fMin;
+        double fMin;
         double kernelfMin;
-        int fMax;
+        double fMax;
         int fs;
         int binsPerOctave;
+        double transpose;
         musicaccess::IIRFilter* lowpassFilter;
         double q;
         double Q;
@@ -141,7 +142,7 @@ namespace music
          * @brief Returns the frequency of the lowest tone that will be processed by this transform.
          * @return the frequency of the lowest tone
          */
-        int getFMin() const {return fMin;}
+        double getFMin() const {return fMin;}
         /**
          * @brief Returns the frequency of the lowest tone in the highest octave that will be processed by this transform.
          * @return the frequency of the lowest tone
@@ -151,7 +152,7 @@ namespace music
          * @brief Returns the frequency of the highest tone that will be processed by this transform.
          * @return the frequency of the highest tone
          */
-        int getFMax() const {return fMax;}
+        double getFMax() const {return fMax;}
         /**
          * @brief Returns the sampling frequency that can be processed by this transform.
          * @return the possible sampling frequency of the audio that will be processed.
@@ -188,6 +189,15 @@ namespace music
          * @todo write description
          */
         double getAtomHopFactor() const {return atomHopFactor;}
+        
+        /**
+         * @brief Returns the amount of transposing applied.
+         * 
+         * <code>0.0</code> means no transposing.
+         * 
+         * @return the amount of transposing applied
+         */
+        double getTranspose() const {return transpose;}
         
         /**
          * @brief Returns the number of atoms per FFT frame.
@@ -230,16 +240,23 @@ Spain, 2010.
          * 
          * @param binsPerOctave the number of frequency bins per octave. Typically, 12 will be used with western music.
          * @param fMin the minimal frequency in Hz that is of interest. This value will internally be recalculated such that we always take a look at whole octaves.
-         * @param fMax the maximal frequency in Hz that is of interest
+         * @param fMax the maximal frequency in Hz that is of interest. This frequency will be tied to the next lower valid note, with respect to the bin count.
          * @param fs the sampling frequency of the audio data that will be processed in Hz (typically 22050 Hz)
          * @param lowpassFilter a lowpassfilter that will be applied during the process. Make sure that this filter has a cutoff frequency of fs/2.
          * @param q the q value, which is kind of the "size" of a bin. I is defined as the quotient of the bin base frequency and its bandwidth, which should stay constant.
+         * @param transpose This value determines if the transform should transpose or change the pitch of the bins. If 
+         *       <code>transpose==0.0</code>, a standard pitch of a=440Hz is used.
+         *       <code>transpose==1.0</code> means transposing one semitone up.
          * @param threshold values in the CQT kernel smaller than this value will be vanished. use a larger value to gain accuracy, or a smaller value to gain speed.
+         * @param atomHopFactor
          * @return A Constant Q Transform kernel that can be applied to a piece of music via its apply() function.
          * 
-         * @todo implement
+         * @remarks If fMax would not be tied to the next lower valid note, the bins will not be
+         *      real musical notes. One note would appear in two neighbouring bins, making
+         *      accurate decisions impossible.
          */
-        static ConstantQTransform* createTransform(musicaccess::IIRFilter* lowpassFilter, int binsPerOctave=12, int fMin=40, int fMax=11025, int fs=22050, double q=1.0, double threshold=0.0005, double atomHopFactor=0.25);
+        static ConstantQTransform* createTransform(musicaccess::IIRFilter* lowpassFilter, int binsPerOctave=12, double fMin=20,
+                double fMax=11025, int fs=22050, double q=1.0, double transpose=0.0, double threshold=0.0005, double atomHopFactor=0.25);
         /**
          * @brief Apply this constant Q transform to a given sound buffer.
          * 
