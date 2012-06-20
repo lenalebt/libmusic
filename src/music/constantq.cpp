@@ -230,6 +230,8 @@ namespace music
         
         transformResult->octaveMatrix = new Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >*[octaveCount];
         
+        transformResult->originalDuration = double(sampleCount)/this->fs;
+        
         //apply cqt once per octave
         for (int octave=octaveCount-1; octave >= 0; octave--)
         {
@@ -347,7 +349,6 @@ namespace music
         transformResult->originalSampleCount = sampleCount;
         transformResult->binsPerOctave = this->binsPerOctave;
         transformResult->octaveCount = octaveCount;
-        transformResult->originalTimeLength = double(sampleCount)/this->fs;
         
         delete[] fftData;
         delete[] fftSourceDataZeroPadMemory;
@@ -383,7 +384,7 @@ namespace music
     std::complex<float> ConstantQTransformResult::getNoteValueNoInterpolation(float time, int octave, int bin) const
     {
         //int bin = (maxBinMidiNote - midiNoteNumber);
-        int pos = octaveMatrix[octave]->cols() * (time/originalTimeLength);
+        int pos = octaveMatrix[octave]->cols() * (time/originalDuration);
         return (*octaveMatrix[octave])(bin, pos);
         
         //return std::complex<float>(0.0f, 0.0f);

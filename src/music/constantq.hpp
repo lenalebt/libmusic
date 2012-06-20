@@ -57,7 +57,7 @@ namespace music
         float minBinMidiNote;
         int originalSampleCount;
         int originalSamplingFrequency;
-        double originalTimeLength;
+        double originalDuration;
         
         int binsPerOctave;
     public:
@@ -88,6 +88,10 @@ namespace music
          * @todo description does not match function parameters
          */
         std::complex<float> getNoteValueNoInterpolation(float time, int octave, int bin) const;
+        
+        double getOriginalDuration() const {return originalDuration;}
+        int getOctaveCount() const {return octaveCount;}
+        int getBinsPerOctave() const {return binsPerOctave;}
         
         friend class ConstantQTransform;
     };
