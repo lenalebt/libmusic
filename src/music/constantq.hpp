@@ -285,6 +285,8 @@ Spain, 2010.
         ConstantQTransformResult* apply(float* buffer, int sampleCount);
         
         friend int tests::testConstantQ();
+        
+        ~ConstantQTransform();
     };
 }
 #endif //CONSTANT_Q_HPP
