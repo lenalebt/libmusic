@@ -303,14 +303,6 @@ namespace music
                     for (int i = 0; i < atomNr; i++)
                     {
                         (*octaveResult)(bin, windowNumber*atomNr + i) = resultMatrix(bin*atomNr + i, 0);
-                        if (abs(resultMatrix(bin*atomNr + i, 0)) > 100.0f)
-                        {
-                            for (int i=0; i<fftLen; i++)
-                                std::cerr << fftSourceData[i] << " ";
-                            std::cerr << std::endl;
-                            //std::cerr << fftDataMap << std::endl;
-                            std::cerr << "position: " << position << std::endl;
-                        }
                     }
                 }
                 windowNumber++;
