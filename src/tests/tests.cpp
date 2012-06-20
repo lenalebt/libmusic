@@ -255,7 +255,7 @@ namespace tests
         CHECK_EQ(cqt->getFFTLength(), 128);
         CHECK_EQ(cqt->getFFTHop(), 63);
         
-        std::cerr << "fKernel:" << *(cqt->getFKernel()) << std::endl;
+        //std::cerr << "fKernel:" << *(cqt->getFKernel()) << std::endl;
         
         musicaccess::SoundFile file;
         CHECK(!file.isFileOpen());
@@ -268,12 +268,30 @@ namespace tests
         
         CHECK_EQ_TYPE(file.readSamples(buffer, file.getSampleCount()), file.getSampleCount(), unsigned int);
         
+        DEBUG_OUT("checking bounds of input data...", 0)
+        for (int i=0; i<file.getSampleCount(); i++)
+        {
+            if ((buffer[i] > 1.0) || (buffer[i] < -1.0))
+            {
+                CHECK(/*values out of bounds!*/ false);
+            }
+        }
+        
         musicaccess::Resampler22kHzMono resampler;
         int sampleCount = file.getSampleCount();
         std::cerr << "resampling input file..." << std::endl;
         resampler.resample(file.getSampleRate(), &buffer, sampleCount, file.getChannelCount());
         
         CHECK_OP(sampleCount, <, file.getSampleCount());
+        
+        DEBUG_OUT("checking bounds of resampled data...", 0)
+        for (int i=0; i<sampleCount; i++)
+        {
+            if ((buffer[i] > 1.0) || (buffer[i] < -1.0))
+            {
+                CHECK(/*values out of bounds!*/ false);
+            }
+        }
         
         std::cerr << "applying constant q transform..." << std::endl;
         music::ConstantQTransformResult* transformResult = cqt->apply(buffer, sampleCount);

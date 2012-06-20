@@ -22,11 +22,11 @@
 
 #ifndef NDEBUG
     #ifndef DEBUG_LEVEL
-        #define DEBUG_LEVEL 0
+        #define DEBUG_LEVEL 255
     #endif
 #else
     #ifndef DEBUG_LEVEL
-        #define DEBUG_LEVEL 255
+        #define DEBUG_LEVEL 0
     #endif
 #endif
 

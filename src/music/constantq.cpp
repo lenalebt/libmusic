@@ -77,17 +77,17 @@ namespace music
         
         cqt->fftHop = (last_center + atomHop) - first_center;
         
-        /*
-        std::cerr << "nkMax:" << cqt->nkMax << std::endl;
-        std::cerr << "ceil_nkMax_2:" << ceil_nkMax_2 << std::endl;
-        std::cerr << "nkMin:" << nkMin << std::endl;
-        std::cerr << "atomHop:" << atomHop << std::endl;
-        std::cerr << "first_center:" << first_center << std::endl;
-        std::cerr << "FFTLen:" << cqt->fftLen << std::endl;
-        std::cerr << "atomNr:" << cqt->atomNr << std::endl;
-        std::cerr << "last_center:" << last_center << std::endl;
-        std::cerr << "FFTHop:" << cqt->fftHop << std::endl;
-        */
+        
+        DEBUG_OUT("nkMax:" << cqt->nkMax, 10);
+        DEBUG_OUT("ceil_nkMax_2:" << ceil_nkMax_2, 10);
+        DEBUG_OUT("nkMin:" << nkMin, 10);
+        DEBUG_OUT("atomHop:" << atomHop, 10);
+        DEBUG_OUT("first_center:" << first_center, 10);
+        DEBUG_OUT("FFTLen:" << cqt->fftLen, 10);
+        DEBUG_OUT("atomNr:" << cqt->atomNr, 10);
+        DEBUG_OUT("last_center:" << last_center, 10);
+        DEBUG_OUT("FFTHop:" << cqt->fftHop, 10);
+        
         
         //TODO: Calculate spectral kernels for one octave
         Eigen::Matrix<std::complex<kiss_fft_scalar>, Eigen::Dynamic, Eigen::Dynamic>* tmpFKernel =
@@ -153,10 +153,12 @@ namespace music
             delete[] spectralKernel;
         }
         
-        std::ofstream outstr("tmpfkernel.dat");
-        outstr << "tmpFKernel" << std::endl << *tmpFKernel << std::endl;
-        
-        std::cerr << "tmpfkernel(" << tmpFKernel->rows() << "/" << tmpFKernel->cols() << ")" << std::endl;
+        #if DEBUG_LEVEL > 10
+            std::ofstream outstr("tmpfkernel.dat");
+            outstr << "tmpFKernel" << std::endl << *tmpFKernel << std::endl;
+            
+            DEBUG_OUT("tmpfkernel(" << tmpFKernel->rows() << "/" << tmpFKernel->cols() << ")", 10);
+        #endif
         
         //copy the data from our tmpFKernel to our sparse fKernel.
         cqt->fKernel = new Eigen::SparseMatrix<std::complex<float> >(binsPerOctave * cqt->atomNr, cqt->fftLen);
@@ -235,7 +237,7 @@ namespace music
         //apply cqt once per octave
         for (int octave=octaveCount; octave > 0; octave--)
         {
-            int overlap = fftLen - fftHop;
+            //int overlap = fftLen - fftHop;        //needed in the matlab implementation, not needed here
             int fftlength=0;
             
             octaveResult = NULL;
@@ -258,7 +260,7 @@ namespace music
                             fftSourceData[i-position] = data[i];
                     }
                 }
-                else if (position > sampleCount - zeroPadding)
+                else if (position > sampleCount - zeroPadding - fftLen)
                 {   //zero-padding necessary, back
                     fftSourceData = fftSourceDataZeroPadMemory;
                     //Fill array, zero-pad it as necessary (->end).
@@ -285,20 +287,6 @@ namespace music
                 for (int i=1; i<fftLen/2; i++)
                 {
                     fftData[midPoint + i] = conj(fftData[midPoint - i]);
-                    if (fftData[i]!=fftData[i])
-                    {
-                        std::cerr << std::endl << "nan detected here: window " << windowNumber << ", fftData[" << i << "]. fftData:" << std::endl;
-                        for (int i=0; i<fftLen; i++)
-                        {
-                            std::cerr << fftData[i] << " ";
-                        }
-                        std::cerr << "fftSourceData:" << std::endl;
-                        for (int i=0; i<fftLen; i++)
-                        {
-                            std::cerr << fftSourceData[i] << " ";
-                        }
-                        std::cerr << std::endl;
-                    }
                 }
                 //up to here: calculated FFT of the input data, one frame.
                 
@@ -315,6 +303,14 @@ namespace music
                     for (int i = 0; i < atomNr; i++)
                     {
                         (*octaveResult)(bin, windowNumber*atomNr + i) = resultMatrix(bin*atomNr + i, 0);
+                        if (abs(resultMatrix(bin*atomNr + i, 0)) > 100.0f)
+                        {
+                            for (int i=0; i<fftLen; i++)
+                                std::cerr << fftSourceData[i] << " ";
+                            std::cerr << std::endl;
+                            //std::cerr << fftDataMap << std::endl;
+                            std::cerr << "position: " << position << std::endl;
+                        }
                     }
                 }
                 windowNumber++;
@@ -354,10 +350,10 @@ namespace music
         }
         
         //TODO:has problems freeing the memory. why? without these lines, there is a memory leak.
-        //delete[] fftData;
-        //delete[] fftSourceDataZeroPadMemory;
+        delete[] fftData;
+        delete[] fftSourceDataZeroPadMemory;
         
-        #if defined DEBUG_LEVEL && (DEBUG_LEVEL > 10)
+        #if DEBUG_LEVEL > 10
             DEBUG_OUT("saving data to files...", 10);
             for (int k=1; k<=octaveCount; k++)
             {
