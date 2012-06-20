@@ -224,7 +224,7 @@ namespace music
         ConstantQTransformResult* transformResult = NULL;
         transformResult = new ConstantQTransformResult();
         assert(transformResult != NULL);
-        Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >* octaveResult;
+        Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >* octaveResult = NULL;
         
         Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic> resultMatrix;
         
@@ -262,7 +262,7 @@ namespace music
                     //Fill array, zero-pad it as necessary (->end).
                     for (int i=position; i<position+fftLen; i++)
                     {
-                        if (i>sampleCount)
+                        if (i>=sampleCount)
                             fftSourceData[i-position] = 0.0;
                         else
                             fftSourceData[i-position] = data[i];
@@ -304,7 +304,7 @@ namespace music
                 windowNumber++;
             }
             
-            transformResult->octaveMatrix[octave] = octaveResult;
+            transformResult->octaveMatrix[octave-1] = octaveResult;
             
             if (octave)
             {   //not the last octave...
@@ -337,13 +337,17 @@ namespace music
             }
         }
         
-        //TODO:has problems freeing the memory. why? without these lines, there is a memory leak.
+        transformResult->minBinMidiNote = (12*log2(this->fMin/440.0))+69+transpose;
+        transformResult->originalSamplingFrequency = this->fs;
+        transformResult->originalSampleCount = sampleCount;
+        transformResult->binsPerOctave = this->binsPerOctave;
+        
         delete[] fftData;
         delete[] fftSourceDataZeroPadMemory;
         
         #if DEBUG_LEVEL > 10
             DEBUG_OUT("saving data to files...", 10);
-            for (int k=1; k<=octaveCount; k++)
+            for (int k=0; k<octaveCount; k++)
             {
                 std::stringstream ss;
                 ss << "octave" << k << ".dat";
@@ -360,18 +364,18 @@ namespace music
             }
         #endif
         
-        
         return transformResult;
     }
     
-    std::complex<float> ConstantQTransformResult::getNoteValueNoInterpolation(uint64_t sampleNumber, int midiNoteNumber) const
+    std::complex<float> ConstantQTransformResult::getNoteValueNoInterpolation(float time, int octave, int bin) const
     {
+        //int bin = (maxBinMidiNote - midiNoteNumber);
         
         
         
         return std::complex<float>(0.0f, 0.0f);
     }
-    std::complex<float> ConstantQTransformResult::getNoteValueLinearInterpolation(uint64_t sampleNumber, int midiNoteNumber) const
+    std::complex<float> ConstantQTransformResult::getNoteValueLinearInterpolation(float time, int octave, int bin) const
     {
         return std::complex<float>(0.0f, 0.0f);
     }

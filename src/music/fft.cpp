@@ -18,7 +18,6 @@ namespace music
     }
     FFT::~FFT()
     {
-        /*
         for (int i=0; i<12; i++)
         {
             free(rCfg[i]);
@@ -27,7 +26,6 @@ namespace music
             free(riCfg[i]);
             free(ciCfg[i]);
         }
-        * */
     }
     void FFT::doFFT(const kiss_fft_scalar *timeData, int timeLength, kiss_fft_cpx *freqData, int& freqLength)
     {
