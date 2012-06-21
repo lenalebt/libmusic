@@ -240,7 +240,6 @@ namespace tests
         CHECK_EQ(cqt->log2(32), 5);
         CHECK_EQ(cqt->log2(256), 8);
         
-        
         CHECK_EQ(cqt->getBinsPerOctave(), 12);
         CHECK_EQ(cqt->getFMax(), 10548.081821211835631);
         //fMin will be recalculated
@@ -301,7 +300,7 @@ namespace tests
         CHECK(transformResult != NULL);
         
         CHECK_EQ(transformResult->getOriginalDuration(), 16.149433106575962);
-        
+        /*
         DEBUG_OUT("saving absolute values of the cqt transform result to file \"octaves.dat\"", 10);
         std::ofstream outstr("octaves.dat");
         for (int octave=transformResult->getOctaveCount()-1; octave>=0; octave--)
@@ -315,7 +314,7 @@ namespace tests
                 }
                 outstr << std::endl;
             }
-        }
+        }*/
         
         delete transformResult;
         //delete[] buffer;
