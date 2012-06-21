@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
     if (argc < 2)
     {
         std::cout << "you need to tell the program which test it should run." << std::endl;
-        std::cout << "call \"" << argv[0] << " testname\"" << std::endl;
+        std::cout << "call \"" << argv[0] << " testname [testargs]\"" << std::endl;
         return EXIT_FAILURE;
     }
     std::string testname(argv[1]);
@@ -30,6 +30,16 @@ int main(int argc, char *argv[])
         return tests::testConstantQ();
     else if (testname == "fft")
         return tests::testFFT();
+    else if (testname == "applyconstantq")
+    {
+        if (argc < 5)
+        {
+            std::cout << "this test needs extra parameters:" << std::endl;
+            std::cout << "call \"" << argv[0] << " applyconstantq filename binsperoctave q\"" << std::endl;
+            return EXIT_FAILURE;
+        }
+        return tests::applyConstantQ(argv[2], argv[3], argv[4]);
+    }
     else
     {
         std::cout << "test \"" << testname << "\" is unknown." << std::endl;
