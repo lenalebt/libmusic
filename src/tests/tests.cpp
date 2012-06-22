@@ -13,6 +13,7 @@
 #include <list>
 #include <limits>
 #include <fstream>
+#include <sstream>
 
 namespace tests
 {
@@ -355,6 +356,7 @@ namespace tests
         delete lowpassFilter;
         return EXIT_SUCCESS;
     }
+    
     int applyConstantQ(std::string filename, std::string bins, std::string q)
     {
         music::ConstantQTransform* cqt = NULL;
@@ -363,10 +365,27 @@ namespace tests
         lowpassFilter = musicaccess::IIRFilter::createLowpassFilter(0.25);
         CHECK_OP(lowpassFilter, !=, NULL);
         
+        std::stringstream qSS(q);
+        std::stringstream binsSS(bins);
+        
         double q_fact=2.0;
         int binsPerOctave=24;
         
-        DEBUG_OUT("creating constant q transform kernel...", 10);
+        qSS >> q_fact;
+        binsSS >> binsPerOctave;
+        
+        if (qSS.fail())
+        {
+            q_fact = 2.0;
+            DEBUG_OUT("Failed to read q. Using standard value of " << q_fact, 10);
+        }
+        if (binsSS.fail())
+        {
+            binsPerOctave = 24;
+            DEBUG_OUT("Failed to read binsPerOctave. Using standard value of " << binsPerOctave, 10);
+        }
+        
+        DEBUG_OUT("creating constant q transform kernel with q=" << q_fact << " and binsPerOctave=" << binsPerOctave << "...", 10);
         cqt = music::ConstantQTransform::createTransform(lowpassFilter, binsPerOctave, 25, 11025, 22050, q_fact, 0.0, 0.0005, 0.25);
         CHECK_OP(cqt, !=, NULL);
         
