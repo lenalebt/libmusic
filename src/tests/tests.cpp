@@ -452,52 +452,102 @@ namespace tests
             sumVec[i] = sum;
         }
         
-        DEBUG_OUT("calculating auto correlation of sum vector...", 15);
-        Eigen::VectorXf autoCorr(6000);
-        for (int shift=0; shift<6000; shift++)
+        DEBUG_OUT("estimating tempo for whole...", 10);
         {
-            double corr=0.0;
-            
-            for (int i=0; i<sumVec.rows(); i++)
+            DEBUG_OUT("calculating auto correlation of sum vector...", 15);
+            Eigen::VectorXf autoCorr(6000);
+            for (int shift=0; shift<6000; shift++)
             {
-                int shiftPos = i + shift;
-                corr += sumVec[i] * ((shiftPos >= sumVec.rows()) ? 0.0 : sumVec[shiftPos]);
+                double corr=0.0;
+                
+                for (int i=0; i<sumVec.rows(); i++)
+                {
+                    int shiftPos = i + shift;
+                    corr += sumVec[i] * ((shiftPos >= sumVec.rows()) ? 0.0 : sumVec[shiftPos]);
+                }
+                autoCorr[shift] = corr;
+                //std::cerr << corr << std::endl;
             }
-            autoCorr[shift] = corr;
-            //std::cerr << corr << std::endl;
-        }
-        
-        DEBUG_OUT("building derivation of cross correlation...", 15);
-        Eigen::VectorXf derivCorr(5999);
-        for (int shift=0; shift<5999; shift++)
-        {
-            derivCorr[shift] = autoCorr[shift+1] - autoCorr[shift];
-            //std::cerr << derivCorr[shift] << std::endl;
-        }
-        
-        DEBUG_OUT("looking for maxima...", 15);
-        std::vector<int> maxCorrPos;
-        for (int shift=1; shift<2999; shift++)
-        {
-            if ((sgn(derivCorr[shift]) == +1) && (sgn(derivCorr[shift-1]) == -1))
-            {   //change of sign in derivative from positive to negative! found max.
-                maxCorrPos.push_back(shift);
+            
+            DEBUG_OUT("building derivation of cross correlation...", 15);
+            Eigen::VectorXf derivCorr(5999);
+            for (int shift=0; shift<5999; shift++)
+            {
+                derivCorr[shift] = autoCorr[shift+1] - autoCorr[shift];
+                //std::cerr << derivCorr[shift] << std::endl;
             }
+            
+            DEBUG_OUT("looking for maxima...", 15);
+            std::vector<int> maxCorrPos;
+            for (int shift=1; shift<5998; shift++)
+            {
+                if ((sgn(derivCorr[shift]) == +1) && (sgn(derivCorr[shift-1]) == -1))
+                {   //change of sign in derivative from positive to negative! found max.
+                    maxCorrPos.push_back(shift);
+                }
+            }
+            DEBUG_OUT("calculating BPM mean and variance...", 15);
+            double bpmMean = 30.0/(double(maxCorrPos[maxCorrPos.size()-1])/maxCorrPos.size()*0.005);
+            double bpmVariance=0.0;
+            DEBUG_OUT("BPM mean: " << bpmMean, 15);
+            
+            int oldVal = *maxCorrPos.begin();
+            for (std::vector<int>::iterator it = maxCorrPos.begin()+1; it != maxCorrPos.end(); it++)
+            {
+                double val = 30.0/(double(*it - oldVal)*0.005) - bpmMean;
+                bpmVariance += val*val;
+                oldVal = *it;
+            }
+            bpmVariance /= maxCorrPos.size();
+            DEBUG_OUT("BPM variance: " << bpmVariance, 15);
         }
-        DEBUG_OUT("calculating BPM mean and variance...", 15);
-        double bpmMean = 30.0/(double(maxCorrPos[maxCorrPos.size()-1])/maxCorrPos.size()*0.005);
-        double bpmVariance=0.0;
-        DEBUG_OUT("BPM mean: " << bpmMean, 15);
         
-        int oldVal = *maxCorrPos.begin();
-        for (std::vector<int>::iterator it = maxCorrPos.begin()+1; it != maxCorrPos.end(); it++)
-        {
-            double val = 30.0/(double(*it - oldVal)*0.005) - bpmMean;
-            bpmVariance += val*val;
-            oldVal = *it;
+        DEBUG_OUT("estimating tempo of as vector...", 10);
+        for (int pos=0; pos<transformResult->getOriginalDuration()*100-1000; pos+=500)
+        {   //shift 5 seconds...
+            Eigen::VectorXf autoCorr(1000);
+            for (int shift=0; shift<1000; shift++)
+            {
+                double corr=0.0;
+                
+                for (int i=pos; i<pos+1000; i++)
+                {
+                    int shiftPos = i + shift;
+                    corr += sumVec[i] * ((shiftPos >= sumVec.rows()) ? 0.0 : sumVec[shiftPos]);
+                }
+                autoCorr[shift] = corr;
+                //std::cerr << corr << std::endl;
+            }
+            
+            Eigen::VectorXf derivCorr(999);
+            for (int shift=0; shift<999; shift++)
+            {
+                derivCorr[shift] = autoCorr[shift+1] - autoCorr[shift];
+                //std::cerr << derivCorr[shift] << std::endl;
+            }
+            
+            std::vector<int> maxCorrPos;
+            for (int shift=1; shift<998; shift++)
+            {
+                if ((sgn(derivCorr[shift]) == +1) && (sgn(derivCorr[shift-1]) == -1))
+                {   //change of sign in derivative from positive to negative! found max.
+                    maxCorrPos.push_back(shift);
+                }
+            }
+            double bpmMean = 30.0/(double(maxCorrPos[maxCorrPos.size()-1])/maxCorrPos.size()*0.005);
+            double bpmVariance=0.0;
+            DEBUG_OUT("BPM mean: " << bpmMean, 15);
+            
+            int oldVal = *maxCorrPos.begin();
+            for (std::vector<int>::iterator it = maxCorrPos.begin()+1; it != maxCorrPos.end(); it++)
+            {
+                double val = 30.0/(double(*it - oldVal)*0.005) - bpmMean;
+                bpmVariance += val*val;
+                oldVal = *it;
+            }
+            bpmVariance /= maxCorrPos.size();
+            DEBUG_OUT("BPM variance: " << bpmVariance, 15);
         }
-        bpmVariance /= maxCorrPos.size();
-        DEBUG_OUT("BPM variance: " << bpmVariance, 15);
         
         DEBUG_OUT("TODO: cancel out outliers, without them, estimation should be good.", 15);
         
