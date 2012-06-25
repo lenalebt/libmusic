@@ -69,9 +69,12 @@ namespace music
         float minBinMidiNote;
         int originalSampleCount;
         int originalSamplingFrequency;
+        int originalZeroPadding;
         double originalDuration;
         
         int binsPerOctave;
+        int fftLen;
+        int atomNr;
     public:
         ~ConstantQTransformResult();
         /**

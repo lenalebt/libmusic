@@ -14,6 +14,7 @@
 #include <limits>
 #include <fstream>
 #include <sstream>
+#include <vector>
 
 namespace tests
 {
@@ -357,6 +358,12 @@ namespace tests
         return EXIT_SUCCESS;
     }
     
+    template <typename T> int sgn(T val)
+    {
+        return (T(0) < val) - (val < T(0));
+    }
+
+    
     int applyConstantQ(std::string filename, std::string bins, std::string q)
     {
         music::ConstantQTransform* cqt = NULL;
@@ -420,19 +427,85 @@ namespace tests
         {
             for (int bin=transformResult->getBinsPerOctave()-1; bin >= 0; bin--)
             {
-                for (int i=0; i < 100*transformResult->getOriginalDuration(); i++)
+                for (int i=0; i < 200*transformResult->getOriginalDuration(); i++)
                 {
-                    double time = 0.01 * i;
+                    double time = 0.005 * i;
                     outstr << abs(transformResult->getNoteValueNoInterpolation(time, octave, bin)) << " ";
                 }
                 outstr << std::endl;
             }
         }
         
+        DEBUG_OUT("estimating tempo of song...", 10);
+        Eigen::VectorXf sumVec(transformResult->getOriginalDuration()*200);
+        int maxDuration = transformResult->getOriginalDuration()*200;
+        for (int i=0; i < maxDuration; i++)
+        {
+            double sum=0.0;
+            for (int octave=0; octave<transformResult->getOctaveCount(); octave++)
+            {
+                for (int bin=0; bin<transformResult->getBinsPerOctave(); bin++)
+                {
+                    sum += std::abs(transformResult->getNoteValueNoInterpolation(i*0.005, octave, bin));
+                }
+            }
+            sumVec[i] = sum;
+        }
+        
+        DEBUG_OUT("calculating auto correlation of sum vector...", 15);
+        Eigen::VectorXf autoCorr(6000);
+        for (int shift=0; shift<6000; shift++)
+        {
+            double corr=0.0;
+            
+            for (int i=0; i<sumVec.rows(); i++)
+            {
+                int shiftPos = i + shift;
+                corr += sumVec[i] * ((shiftPos >= sumVec.rows()) ? 0.0 : sumVec[shiftPos]);
+            }
+            autoCorr[shift] = corr;
+            //std::cerr << corr << std::endl;
+        }
+        
+        DEBUG_OUT("building derivation of cross correlation...", 15);
+        Eigen::VectorXf derivCorr(5999);
+        for (int shift=0; shift<5999; shift++)
+        {
+            derivCorr[shift] = autoCorr[shift+1] - autoCorr[shift];
+            //std::cerr << derivCorr[shift] << std::endl;
+        }
+        
+        DEBUG_OUT("looking for maxima...", 15);
+        std::vector<int> maxCorrPos;
+        for (int shift=1; shift<2999; shift++)
+        {
+            if ((sgn(derivCorr[shift]) == +1) && (sgn(derivCorr[shift-1]) == -1))
+            {   //change of sign in derivative from positive to negative! found max.
+                maxCorrPos.push_back(shift);
+            }
+        }
+        DEBUG_OUT("calculating BPM mean and variance...", 15);
+        double bpmMean = 30.0/(double(maxCorrPos[maxCorrPos.size()-1])/maxCorrPos.size()*0.005);
+        double bpmVariance=0.0;
+        DEBUG_OUT("BPM mean: " << bpmMean, 15);
+        
+        int oldVal = *maxCorrPos.begin();
+        for (std::vector<int>::iterator it = maxCorrPos.begin()+1; it != maxCorrPos.end(); it++)
+        {
+            double val = 30.0/(double(*it - oldVal)*0.005) - bpmMean;
+            bpmVariance += val*val;
+            oldVal = *it;
+        }
+        bpmVariance /= maxCorrPos.size();
+        DEBUG_OUT("BPM variance: " << bpmVariance, 15);
+        
+        DEBUG_OUT("TODO: cancel out outliers, without them, estimation should be good.", 15);
+        
         delete transformResult;
         //delete[] buffer;
         delete cqt;
         delete lowpassFilter;
+        
         return EXIT_SUCCESS;
     }
 }
