@@ -431,4 +431,57 @@ namespace music
         }
         delete[] octaveMatrix;
     }
+    
+    double ConstantQTransformResult::getBinMax(int octave, int bin) const
+    {
+        assert(octave < octaveCount);
+        assert(bin < binsPerOctave);
+        assert(bin >= 0);
+        assert(octave >= 0);
+        
+        double maxVal = std::numeric_limits<double>::min();
+        Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >* octaveBins = octaveMatrix[octave];
+        for (int i=0; i<octaveBins->cols(); i++)
+        {
+            double val = std::abs((*octaveBins)(bin, i));
+            if (maxVal < val)
+                maxVal = val;
+        }
+        return maxVal;
+    }
+    
+    double ConstantQTransformResult::getBinMin(int octave, int bin) const
+    {
+        assert(octave < octaveCount);
+        assert(bin < binsPerOctave);
+        assert(bin >= 0);
+        assert(octave >= 0);
+        
+        double minVal = std::numeric_limits<double>::max();
+        Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >* octaveBins = octaveMatrix[octave];
+        for (int i=0; i<octaveBins->cols(); i++)
+        {
+            double val = std::abs((*octaveBins)(bin, i));
+            if (minVal < val)
+                minVal = val;
+        }
+        return minVal;
+    }
+    
+    double ConstantQTransformResult::getBinMean(int octave, int bin) const
+    {
+        assert(octave < octaveCount);
+        assert(bin < binsPerOctave);
+        assert(bin >= 0);
+        assert(octave >= 0);
+        
+        double mean = 0.0;
+        Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >* octaveBins = octaveMatrix[octave];
+        for (int i=0; i<octaveBins->cols(); i++)
+        {
+            mean += std::abs((*octaveBins)(bin, i));
+        }
+        mean /= octaveBins->cols();
+        return mean;
+    }
 }

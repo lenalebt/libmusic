@@ -109,6 +109,10 @@ namespace music
         int getOctaveCount() const {return octaveCount;}
         int getBinsPerOctave() const {return binsPerOctave;}
         
+        double getBinMax(int octave, int bin) const;
+        double getBinMin(int octave, int bin) const;
+        double getBinMean(int octave, int bin) const;
+        
         friend class ConstantQTransform;
     };
     

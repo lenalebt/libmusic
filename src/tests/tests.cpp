@@ -457,12 +457,33 @@ namespace tests
         CHECK_OP(cqt, !=, NULL);
         
         std::queue<std::string> files;
-        files.push("testdata/test.mp3");
+        std::queue<double> minBPMs;
+        std::queue<double> maxBPMs;
+        files.push("testdata/test.mp3");    //92bpm
+        minBPMs.push(90);
+        maxBPMs.push(96);
+        files.push("sonne.mp3");    //198bpm
+        minBPMs.push(195);
+        maxBPMs.push(207);
+        files.push("deiche.mp3");   //190bpm
+        minBPMs.push(185);
+        maxBPMs.push(195);
+        files.push("allein_allein.mp3");    //132bpm
+        minBPMs.push(128);
+        maxBPMs.push(138);
+        files.push("imagine.mp3");  //67bpm
+        minBPMs.push(62);
+        maxBPMs.push(72);
         
         while (!files.empty())
         {
             std::string filename = files.front();
+            DEBUG_OUT("using file \"" << filename << "\"", 10);
             files.pop();
+            double minBPM = minBPMs.front();
+            minBPMs.pop();
+            double maxBPM = maxBPMs.front();
+            maxBPMs.pop();
             
             musicaccess::SoundFile file;
             CHECK(!file.isFileOpen());
@@ -491,15 +512,18 @@ namespace tests
             music::BPMEstimator bpmEst;
             bpmEst.estimateBPM(transformResult);
             
+            double bpmVariance = bpmEst.getBPMVariance();
+            DEBUG_OUT("BPM variance is " << bpmVariance << ", standard derivation: " << sqrt(bpmVariance), 10);
+            
             double bpmMean = bpmEst.getBPMMean();
             DEBUG_OUT("BPM mean is " << bpmMean, 10);
-            CHECK_OP(bpmMean, >, 90);
-            CHECK_OP(bpmMean, <, 95);
+            CHECK_OP(bpmMean, >, minBPM);
+            CHECK_OP(bpmMean, <, maxBPM);
             
             double bpmMedian = bpmEst.getBPMMedian();
             DEBUG_OUT("BPM median is " << bpmMedian, 10);
-            CHECK_OP(bpmMedian, >, 90);
-            CHECK_OP(bpmMedian, <, 95);
+            CHECK_OP(bpmMedian, >, minBPM);
+            CHECK_OP(bpmMedian, <, maxBPM);
             
             
             delete transformResult;

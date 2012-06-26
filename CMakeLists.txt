@@ -35,8 +35,9 @@ IF ( CMAKE_COMPILER_IS_GNUCXX )
     MESSAGE ("Using Gnu g++ compiler...")
     #gcc should be more pedantic.
     ADD_DEFINITIONS(-Wall -pedantic -Wno-long-long)
-    #allows usage of c++ comments without warnings
+    #allows usage of c++ comments from c without warnings
     SET(CMAKE_C_FLAGS -std=c99)
+    SET(CMAKE_CXX_FLAGS -Wno-conversion-null)
 ELSE ( MSVC )
     MESSAGE ("Using MS Visual Studio compiler...")
 ENDIF()
@@ -61,6 +62,7 @@ SET(
     
     #feature extraction
     src/music/feature_extraction/bpm.cpp
+    src/music/feature_extraction/chords.cpp
     
     #kissfft source files
     src/kissfft/kiss_fft.c
@@ -79,6 +81,7 @@ SET(
     
     #feature extraction
     src/music/feature_extraction/bpm.hpp
+    src/music/feature_extraction/chords.hpp
     
     #kissfft headers
     src/kissfft/kiss_fft.h
