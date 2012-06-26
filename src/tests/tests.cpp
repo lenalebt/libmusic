@@ -437,13 +437,15 @@ namespace tests
         }
         
         DEBUG_OUT("estimating tempo of song...", 10);
-        Eigen::VectorXf sumVec(transformResult->getOriginalDuration()*200);
         int maxDuration = transformResult->getOriginalDuration()*200;
+        Eigen::VectorXf sumVec(maxDuration);
         for (int i=0; i < maxDuration; i++)
         {
             double sum=0.0;
             for (int octave=0; octave<transformResult->getOctaveCount(); octave++)
             {
+                if ((octave >= 0) && (octave<5))
+                    continue;
                 for (int bin=0; bin<transformResult->getBinsPerOctave(); bin++)
                 {
                     sum += std::abs(transformResult->getNoteValueNoInterpolation(i*0.005, octave, bin));
@@ -451,8 +453,22 @@ namespace tests
             }
             sumVec[i] = sum;
         }
+        /*
+        Eigen::VectorXf sumVec2(maxDuration);
+        for (int i=0; i < maxDuration; i++)
+        {
+            double sum=0.0;
+            for (int j=0; j<5; j++)
+            {
+                sum += (i-j>=0) ? sumVec[i-j] : 0.0;
+            }
+            sum/=6;
+            sumVec2[i] = sum;
+        }
+        sumVec = sumVec2;
+        */
         
-        DEBUG_OUT("estimating tempo for whole...", 10);
+        DEBUG_OUT("estimating tempo for whole song...", 10);
         {
             DEBUG_OUT("calculating auto correlation of sum vector...", 15);
             Eigen::VectorXf autoCorr(6000);
@@ -486,8 +502,11 @@ namespace tests
                     maxCorrPos.push_back(shift);
                 }
             }
+            
+            std::vector<int> diffPosVector;
             DEBUG_OUT("calculating BPM mean and variance...", 15);
             double bpmMean = 30.0/(double(maxCorrPos[maxCorrPos.size()-1])/maxCorrPos.size()*0.005);
+            double bpmMedian=0.0;
             double bpmVariance=0.0;
             DEBUG_OUT("BPM mean: " << bpmMean, 15);
             
@@ -496,21 +515,29 @@ namespace tests
             {
                 double val = 30.0/(double(*it - oldVal)*0.005) - bpmMean;
                 bpmVariance += val*val;
+                diffPosVector.push_back(*it - oldVal);
+                //std::cerr << *it - oldVal << std::endl;
                 oldVal = *it;
+                //DEBUG_OUT("max found at " << *it, 30);
             }
+            
+            std::sort(diffPosVector.begin(), diffPosVector.end());
+            bpmMedian = 30.0/(diffPosVector[diffPosVector.size()/2]*0.005);
+            DEBUG_OUT("BPM median: " << bpmMedian, 15);
+            
             bpmVariance /= maxCorrPos.size();
             DEBUG_OUT("BPM variance: " << bpmVariance, 15);
         }
         
-        DEBUG_OUT("estimating tempo of as vector...", 10);
-        for (int pos=0; pos<transformResult->getOriginalDuration()*100-1000; pos+=500)
-        {   //shift 5 seconds...
-            Eigen::VectorXf autoCorr(1000);
-            for (int shift=0; shift<1000; shift++)
+        DEBUG_OUT("estimating tempo for parts of the song...", 10);
+        for (int pos=0; pos<transformResult->getOriginalDuration()*100-2000; pos+=1000)
+        {   //shift 10 seconds...
+            Eigen::VectorXf autoCorr(2000);
+            for (int shift=0; shift<2000; shift++)
             {
                 double corr=0.0;
                 
-                for (int i=pos; i<pos+1000; i++)
+                for (int i=pos; i<pos+2000; i++)
                 {
                     int shiftPos = i + shift;
                     corr += sumVec[i] * ((shiftPos >= sumVec.rows()) ? 0.0 : sumVec[shiftPos]);
@@ -519,15 +546,15 @@ namespace tests
                 //std::cerr << corr << std::endl;
             }
             
-            Eigen::VectorXf derivCorr(999);
-            for (int shift=0; shift<999; shift++)
+            Eigen::VectorXf derivCorr(1999);
+            for (int shift=0; shift<1999; shift++)
             {
                 derivCorr[shift] = autoCorr[shift+1] - autoCorr[shift];
                 //std::cerr << derivCorr[shift] << std::endl;
             }
             
             std::vector<int> maxCorrPos;
-            for (int shift=1; shift<998; shift++)
+            for (int shift=1; shift<1998; shift++)
             {
                 if ((sgn(derivCorr[shift]) == +1) && (sgn(derivCorr[shift-1]) == -1))
                 {   //change of sign in derivative from positive to negative! found max.
