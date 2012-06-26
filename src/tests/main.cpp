@@ -30,6 +30,8 @@ int main(int argc, char *argv[])
         return tests::testConstantQ();
     else if (testname == "fft")
         return tests::testFFT();
+    else if (testname == "estimatebpm")
+        return tests::testEstimateBPM();
     else if (testname == "applyconstantq")
     {
         if (argc < 5)

@@ -59,6 +59,9 @@ SET(
     src/music/constantq.cpp
     src/music/fft.cpp
     
+    #feature extraction
+    src/music/feature_extraction/bpm.cpp
+    
     #kissfft source files
     src/kissfft/kiss_fft.c
     src/kissfft/tools/kiss_fftr.c
@@ -73,6 +76,9 @@ SET(
     src/music.hpp
     src/music/constantq.hpp
     src/music/fft.hpp
+    
+    #feature extraction
+    src/music/feature_extraction/bpm.hpp
     
     #kissfft headers
     src/kissfft/kiss_fft.h
@@ -105,6 +111,7 @@ INCLUDE_DIRECTORIES(
     ${EIGEN3_INCLUDE_DIR}
     src/
     src/music
+    src/music/feature_extraction
     src/tests
     src/kissfft
     src/kissfft/tools
@@ -157,6 +164,7 @@ ADD_TEST(libmusicaccess            "musictests" "libmusicaccess")
 ADD_TEST(eigen                     "musictests" "eigen")
 ADD_TEST(constantq                 "musictests" "constantq")
 ADD_TEST(fft                       "musictests" "fft")
+ADD_TEST(estimatebpm               "musictests" "estimatebpm")
 
 ADD_EXECUTABLE(musictests
     ${music_TEST_SOURCES}
