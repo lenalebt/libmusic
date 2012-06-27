@@ -72,7 +72,7 @@ namespace music
         cqt->Q = q/(std::pow(2.0, 1.0/binsPerOctave) - 1);
         //calculate the length of the largest atom in samples
         cqt->nkMax = cqt->Q * double(fs) / double(cqt->kernelfMin) + 0.5;   //+0.5 for rounding
-        
+        //used in some formulas
         int ceil_nkMax_2 = std::ceil(double(cqt->nkMax)/2.0);
         
         //calculate the length of the shortest atom in samples
@@ -206,8 +206,10 @@ namespace music
         
         //how many zeros should be padded to the lowest octave?
         int zeroPadding = fftLen/2;
+        int maxBlock = fftLen * (1<<(octaveCount-1));
         
-        FFT fft;
+        
+        FFT fft;//
         //temporary fft data
         std::complex<float>* fftData = NULL;
         fftData = new std::complex<float>[fftLen];
@@ -229,8 +231,9 @@ namespace music
         Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic> resultMatrix;
         
         transformResult->octaveMatrix = new Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >*[octaveCount];
+        transformResult->lBlock = new int[octaveCount];
+        transformResult->rBlock = new int[octaveCount];
         
-        transformResult->originalDuration = double(sampleCount)/this->fs;
         transformResult->originalZeroPadding = zeroPadding;
         
         //apply cqt once per octave
@@ -240,7 +243,11 @@ namespace music
             int fftlength=0;
             
             //int lZeros = (zeroPadding << octave) - ((zeroPadding << octave)/fftHop)*fftHop; //zeros padded on the left (for this octave)
-            int lZeros = zeroPadding; //zeros padded on the left (for this octave)
+            //int lZeros = zeroPadding; //zeros padded on the left (for this octave)
+            int lZeros = (maxBlock)%(fftHop<<(octaveCount-octave+1)); //something with maxBlock
+            transformResult->lBlock[octave] = maxBlock / (fftHop<<(octaveCount-octave+1));
+            transformResult->rBlock[octave] = transformResult->lBlock[octave];
+            
             int rZeros = fftLen - (lZeros + sampleCount)%fftHop; //zeros padded on the right (for this octave)
             
             octaveResult = NULL;
@@ -351,7 +358,8 @@ namespace music
         
         transformResult->minBinMidiNote = (12*log2(this->fMin/440.0))+69+transpose;
         transformResult->originalSamplingFrequency = this->fs;
-        transformResult->originalSampleCount = sampleCount;
+        transformResult->originalSampleCount = sampleCount + 2*maxBlock;
+        transformResult->originalDuration = double(transformResult->originalSampleCount)/this->fs;
         transformResult->binsPerOctave = this->binsPerOctave;
         transformResult->octaveCount = this->octaveCount;
         transformResult->fftLen = fftLen;
@@ -398,12 +406,9 @@ namespace music
             DEBUG_OUT("tried to acces octave " << octave << ", we only have " << octaveCount << " octaves!", 10);
         }
         
-        int pos = octaveMatrix[octave]->cols() - atomNr*1.5;
-        //pos -= (1<<octave);
+        int pos = octaveMatrix[octave]->cols() + lBlock[octave] + rBlock[octave];
         pos *= (time/originalDuration);
-        pos += atomNr/2;   //first block was zero block
-        //pos -= atomNr;   //first block was zero block
-        //pos -= atomNr;   //last block was zero block
+        pos -= lBlock[octave];   //first block was zero block
         
         
         if (pos >= octaveMatrix[octave]->cols())

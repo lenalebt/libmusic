@@ -1,6 +1,8 @@
 #ifndef CHORDS_HPP
 #define CHORDS_HPP
 
+#include <string>
+
 //Holds one chord, e.g. c or A or D7.
 //add some similarity measure (zwei dur- oder zwei mollakkorde vergleichen, ...)
 class Chord

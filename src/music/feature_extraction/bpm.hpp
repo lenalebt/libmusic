@@ -11,6 +11,10 @@ namespace music
         double bpmMean;
         double bpmMedian;
         double bpmVariance;
+        
+        void estimateBPM1(ConstantQTransformResult* transformResult);
+        void estimateBPM2(ConstantQTransformResult* transformResult);
+        void estimateBPM3(ConstantQTransformResult* transformResult);
     protected:
         
     public:
