@@ -424,9 +424,9 @@ namespace tests
         {
             for (int bin=transformResult->getBinsPerOctave()-1; bin >= 0; bin--)
             {
-                for (int i=0; i < 200*transformResult->getOriginalDuration(); i++)
+                for (int i=0; i < 1000*transformResult->getOriginalDuration(); i++)
                 {
-                    double time = 0.005 * i;
+                    double time = 0.001 * i;
                     outstr << abs(transformResult->getNoteValueNoInterpolation(time, octave, bin)) << " ";
                 }
                 outstr << std::endl;

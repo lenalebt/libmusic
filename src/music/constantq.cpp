@@ -208,6 +208,9 @@ namespace music
         int zeroPadding = fftLen/2;
         int maxBlock = fftLen * (1<<(octaveCount-1));
         
+        std::cerr << "maxBlock: " << maxBlock << std::endl;
+        
+        int sampleCountWithBlock = sampleCount + 2*maxBlock;
         
         FFT fft;//
         //temporary fft data
@@ -231,8 +234,6 @@ namespace music
         Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic> resultMatrix;
         
         transformResult->octaveMatrix = new Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >*[octaveCount];
-        transformResult->lBlock = new int[octaveCount];
-        transformResult->rBlock = new int[octaveCount];
         
         transformResult->originalZeroPadding = zeroPadding;
         
@@ -242,21 +243,15 @@ namespace music
             int overlap = fftLen - fftHop;        //needed in the matlab implementation, not needed here
             int fftlength=0;
             
-            //int lZeros = (zeroPadding << octave) - ((zeroPadding << octave)/fftHop)*fftHop; //zeros padded on the left (for this octave)
-            //int lZeros = zeroPadding; //zeros padded on the left (for this octave)
-            int lZeros = (maxBlock)%(fftHop<<(octaveCount-octave+1)); //something with maxBlock
-            transformResult->lBlock[octave] = maxBlock / (fftHop<<(octaveCount-octave+1));
-            transformResult->rBlock[octave] = transformResult->lBlock[octave];
-            
-            int rZeros = fftLen - (lZeros + sampleCount)%fftHop; //zeros padded on the right (for this octave)
-            
             octaveResult = NULL;
-            octaveResult = new Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >(binsPerOctave, ((sampleCount+lZeros)/fftHop +1) * atomNr);
+            octaveResult = new Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >(binsPerOctave, sampleCountWithBlock / fftHop * atomNr);
             assert(octaveResult != NULL);
+            
+            std::cerr << -(maxBlock>>(octaveCount-octave-1)) << std::endl;
             
             int windowNumber=0;
             //shift our window a bit. window has overlap.
-            for (int position=-lZeros; position < sampleCount; position+=fftHop)
+            for (int position=-(maxBlock>>(octaveCount-octave-1)); position < sampleCountWithBlock-(maxBlock>>(octaveCount-octave-1))-fftHop; position+=fftHop)
             {
                 if (position<0)
                 {   //zero-padding necessary, front
@@ -270,7 +265,7 @@ namespace music
                             fftSourceData[i-position] = data[i];
                     }
                 }
-                else if (position > sampleCount - zeroPadding - fftLen)
+                else if (position > sampleCount - fftHop)
                 {   //zero-padding necessary, back
                     fftSourceData = fftSourceDataZeroPadMemory;
                     //Fill array, zero-pad it as necessary (->end).
@@ -317,6 +312,7 @@ namespace music
                 }
                 windowNumber++;
             }
+            std::cerr << "winNr: " << windowNumber << std::endl;
             
             transformResult->octaveMatrix[octave] = octaveResult;
             
@@ -343,11 +339,12 @@ namespace music
                 assert(newData != NULL);
                 for (int i=0; i<sampleCount/2; i++)
                 {
-                    newData[i] = data[2*i];
+                    newData[i] = data[2*i +1];
                 }
                 delete[] data;
                 data = newData;
                 sampleCount /= 2;
+                sampleCountWithBlock /= 2;
             }
             else
             {
@@ -406,10 +403,8 @@ namespace music
             DEBUG_OUT("tried to acces octave " << octave << ", we only have " << octaveCount << " octaves!", 10);
         }
         
-        int pos = octaveMatrix[octave]->cols() + lBlock[octave] + rBlock[octave];
+        int pos = octaveMatrix[octave]->cols();
         pos *= (time/originalDuration);
-        pos -= lBlock[octave];   //first block was zero block
-        
         
         if (pos >= octaveMatrix[octave]->cols())
         {
