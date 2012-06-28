@@ -10,7 +10,7 @@ namespace music
     
     void BPMEstimator::estimateBPM(ConstantQTransformResult* transformResult)
     {
-        estimateBPM3(transformResult);
+        estimateBPM1(transformResult);
     }
     void BPMEstimator::estimateBPM3(ConstantQTransformResult* transformResult)
     {

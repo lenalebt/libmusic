@@ -267,8 +267,9 @@ namespace music
         int maxBlock = fftLen * (1<<(octaveCount-1));
         
         int sampleCountWithBlock = sampleCount + 2*maxBlock;
+        int originalSampleCount = sampleCount;
         
-        FFT fft;//
+        FFT fft;
         //temporary fft data
         std::complex<float>* fftData = NULL;
         fftData = new std::complex<float>[fftLen];
@@ -410,12 +411,22 @@ namespace music
         
         transformResult->minBinMidiNote = (12*log2(this->fMin/440.0))+69+transpose;
         transformResult->originalSamplingFrequency = this->fs;
-        transformResult->originalSampleCount = sampleCount + 2*maxBlock;
+        transformResult->originalSampleCount = originalSampleCount;
+        transformResult->sampleCount = originalSampleCount + 2*maxBlock;
         transformResult->originalDuration = double(transformResult->originalSampleCount)/this->fs;
+        transformResult->duration = double(transformResult->sampleCount)/this->fs;
+        transformResult->timeFactor = transformResult->duration / transformResult->originalDuration;
         transformResult->binsPerOctave = this->binsPerOctave;
         transformResult->octaveCount = this->octaveCount;
         transformResult->fftLen = fftLen;
         transformResult->atomNr = atomNr;
+        
+        int droppedSamples = ((emptyHops<<(octaveCount-1)) - emptyHops - 1) * atomHop + firstCenter;
+        
+        transformResult->timeBefore = double(maxBlock)/this->fs - double(droppedSamples)/this->fs;
+        //transformResult->timeBefore = double(droppedSamples)/this->fs - transformResult->duration * double(transformResult->drop[octaveCount-1])/double(transformResult->octaveMatrix[octaveCount-1]->cols());
+        
+        transformResult->timeAfter = double(maxBlock)/this->fs;
         
         delete[] fftData;
         delete[] fftSourceDataZeroPadMemory;
@@ -458,9 +469,13 @@ namespace music
             DEBUG_OUT("tried to acces octave " << octave << ", we only have " << octaveCount << " octaves!", 10);
         }
         
+        //time *= timeFactor;
+        time += timeBefore;
+        
         int pos = octaveMatrix[octaveCount-1]->cols();
         pos >>= octaveCount - octave - 1;
-        pos *= (time/originalDuration);
+        pos *= (time/duration);
+        //pos *= (time/originalDuration);
         pos += drop[octave] + 1;
         
         if (pos >= octaveMatrix[octave]->cols())
