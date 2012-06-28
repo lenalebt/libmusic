@@ -29,7 +29,10 @@ namespace music
         fftHop(64),
         fftLen(128),
         atomNr(7),
+        atomHop(0),
         nkMax(0),
+        firstCenter(0),
+        lastCenter(0),
         fKernel(NULL)
     {
         
@@ -78,27 +81,27 @@ namespace music
         //calculate the length of the shortest atom in samples
         int nkMin = cqt->Q * double(fs) / (double(cqt->kernelfMin) * std::pow(2.0, double(binsPerOctave-1)/double(binsPerOctave))) + 0.5;    //+0.5 for rounding
         
-        int atomHop = nkMin * atomHopFactor + 0.5;
+        cqt->atomHop = nkMin * atomHopFactor + 0.5;
         
-        int first_center = atomHop * std::ceil(double(ceil_nkMax_2)/atomHop);
+        cqt->firstCenter = cqt->atomHop * std::ceil(double(ceil_nkMax_2)/cqt->atomHop);
         
-        cqt->fftLen = pow(2.0, int(log2(first_center + ceil_nkMax_2))+1);    //the nextpow2 thing
+        cqt->fftLen = pow(2.0, int(log2(cqt->firstCenter + ceil_nkMax_2))+1);    //the nextpow2 thing
         
-        cqt->atomNr = std::floor(double(cqt->fftLen - ceil_nkMax_2 - first_center) / atomHop)+1;
+        cqt->atomNr = std::floor(double(cqt->fftLen - ceil_nkMax_2 - cqt->firstCenter) / cqt->atomHop)+1;
         
-        int last_center = first_center + (cqt->atomNr-1) * atomHop;
+        cqt->lastCenter = cqt->firstCenter + (cqt->atomNr-1) * cqt->atomHop;
         
-        cqt->fftHop = (last_center + atomHop) - first_center;
+        cqt->fftHop = (cqt->lastCenter + cqt->atomHop) - cqt->firstCenter;
         
         
         DEBUG_OUT("nkMax:" << cqt->nkMax, 10);
         DEBUG_OUT("ceil_nkMax_2:" << ceil_nkMax_2, 10);
         DEBUG_OUT("nkMin:" << nkMin, 10);
-        DEBUG_OUT("atomHop:" << atomHop, 10);
-        DEBUG_OUT("first_center:" << first_center, 10);
+        DEBUG_OUT("atomHop:" << cqt->atomHop, 10);
+        DEBUG_OUT("first_center:" << cqt->firstCenter, 10);
         DEBUG_OUT("FFTLen:" << cqt->fftLen, 10);
         DEBUG_OUT("atomNr:" << cqt->atomNr, 10);
-        DEBUG_OUT("last_center:" << last_center, 10);
+        DEBUG_OUT("last_center:" << cqt->lastCenter, 10);
         DEBUG_OUT("FFTHop:" << cqt->fftHop, 10);
         
         
@@ -128,7 +131,7 @@ namespace music
             //set temporal kernels. they are shifted versions of tmpTemporalKernel.
             for (int k=0; k<cqt->atomNr; k++)
             {
-                int atomOffset = first_center-(nk/2+(nk&1));
+                int atomOffset = cqt->firstCenter-(nk/2+(nk&1));
                 
                 //initialize memory of temporal kernel to 0.0+0.0*i
                 for (int i=0; i<cqt->fftLen; i++)
@@ -139,7 +142,7 @@ namespace music
                 //fill temporal kernel
                 for (int i=0; i<nk; i++)
                 {
-                    temporalKernel[(k*atomHop) + i + atomOffset] = tmpTemporalKernel[i];
+                    temporalKernel[(k*cqt->atomHop) + i + atomOffset] = tmpTemporalKernel[i];
                 }
                 
                 //get spectral kernel from temporal kernel
@@ -300,8 +303,11 @@ namespace music
         Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic> resultMatrix;
         
         transformResult->octaveMatrix = new Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >*[octaveCount];
+        transformResult->drop = new int[octaveCount];
         
         transformResult->originalZeroPadding = zeroPadding;
+        
+        int emptyHops = firstCenter / atomHop;
         
         //apply cqt once per octave
         for (int octave=octaveCount-1; octave >= 0; octave--)
@@ -309,12 +315,15 @@ namespace music
             int overlap = fftLen - fftHop;        //needed in the matlab implementation, not needed here
             int fftlength=0;
             
+            transformResult->drop[octave] = (emptyHops<<(octave)) - emptyHops;
+            DEBUG_OUT("drop[" << octave << "] = " << transformResult->drop[octave], 10);
+            
             octaveResult = NULL;
             octaveResult = new Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >(binsPerOctave, sampleCountWithBlock / fftHop * atomNr);
             assert(octaveResult != NULL);
             
-            std::cerr << -(maxBlock>>(octaveCount-octave-1)) << std::endl;
-            std::cerr << octaveResult->cols() << std::endl;
+            //std::cerr << -(maxBlock>>(octaveCount-octave-1)) << std::endl;
+            //std::cerr << octaveResult->cols() << std::endl;
             
             int windowNumber=0;
             //shift our window a bit. window has overlap.
@@ -324,7 +333,7 @@ namespace music
                     fftSourceData = data + position;
                 else
                 {
-                    std::cerr << "müp" << octave << std::endl;
+                    //std::cerr << "müp" << octave << std::endl;
                     fftSourceData = fftSourceDataZeroPadMemory;
                     for (int i=position; i<position+fftLen; i++)
                     {
@@ -335,12 +344,14 @@ namespace music
                     }
                 }
                 
+                /*
                 if (octave==0)
                 {
                     for (int i=0; i<fftLen; i++)
                         std::cerr << fftSourceData[i] << " ";
                     std::cerr << std::endl << std::endl;
                 }
+                * */
                 
                 //apply FFT to input data.
                 fft.doFFT((kiss_fft_scalar*)(fftSourceData), fftLen, (kiss_fft_cpx*)(fftData), fftlength);
@@ -362,9 +373,9 @@ namespace music
                 resultMatrix = *fKernel * fftDataMap;
                 //we get a matrix with (octaveCount*atomNr) x (1) elements.
                 
-                if (octave==0)
+                //if (octave==0)
                     //std::cerr << resultMatrix << std::endl << std::endl;
-                    std::cerr << fftDataMap << std::endl << std::endl;
+                    //std::cerr << fftDataMap << std::endl << std::endl;
                 
                 //reorder the result matrix, save data
                 for (int bin=0; bin<binsPerOctave; bin++)
@@ -469,6 +480,7 @@ namespace music
         
         int pos = octaveMatrix[octave]->cols();
         pos *= (time/originalDuration);
+        pos += drop[octave];
         
         if (pos >= octaveMatrix[octave]->cols())
         {
