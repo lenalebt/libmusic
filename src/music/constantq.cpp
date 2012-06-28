@@ -152,7 +152,9 @@ namespace music
                 {
                     if (abs(spectralKernel[i]) >= threshold)
                     {
-                        (*tmpFKernel)(i, (bin-1)*cqt->atomNr+k) = spectralKernel[i];
+                        std::complex<kiss_fft_scalar> val = spectralKernel[i];
+                        val /= cqt->fftLen;
+                        (*tmpFKernel)(i, (bin-1)*cqt->atomNr+k) = val;
                     }
                     else
                     {
@@ -166,14 +168,58 @@ namespace music
             delete[] spectralKernel;
         }
         
-        #if DEBUG_LEVEL > 10
-            std::ofstream outstr("tmpfkernel.dat");
-            outstr << "tmpFKernel" << std::endl << *tmpFKernel << std::endl;
-            
-            DEBUG_OUT("tmpfkernel(" << tmpFKernel->rows() << "/" << tmpFKernel->cols() << ")", 10);
-        #endif
+        DEBUG_OUT("normalizing magnitudes of kernel...", 15);
+        //now normalize the magnitudes of the kernel
+        int maxAPos=-1;
+        int maxBPos=-1;
+        {
+            double maxA=-std::numeric_limits<double>::max();
+            double maxB=-std::numeric_limits<double>::max();
+            for (int i=0; i<tmpFKernel->rows(); i++)
+            {
+                if (std::abs((*tmpFKernel)(i,0)) > maxA)
+                {
+                    maxA=std::abs((*tmpFKernel)(i,0));
+                    maxAPos=i;
+                }
+                if (std::abs((*tmpFKernel)(i,tmpFKernel->cols()-1)) > maxB)
+                {
+                    maxB=std::abs((*tmpFKernel)(i,tmpFKernel->cols()-1));
+                    maxBPos=i;
+                }
+            }
+            DEBUG_OUT("maxAPos+1=" << maxAPos+1 << ", value=" << (*tmpFKernel)(maxAPos,0), 30);
+            DEBUG_OUT("maxBPos+1=" << maxBPos+1 << ", value=" << (*tmpFKernel)(maxBPos,tmpFKernel->cols()-1), 30);
+        }
+        
+        Eigen::VectorXd weightVec(maxBPos - maxAPos - 2*int(1.0/q) + 1);
+        for (int j=maxAPos + 1.0/q; j<=maxBPos - 1.0/q; j++)
+        {
+            double sum=0.0;
+            for (int i=0; i<tmpFKernel->cols(); i++)
+            {
+                std::complex<float> val = (*tmpFKernel)(j,i);
+                sum += std::abs(val*std::conj(val));
+            }
+            DEBUG_OUT("weightVec[" << j-(maxAPos + 1.0/q) << "] = " << sum, 30);
+            weightVec[j-(maxAPos + 1.0/q)] = sum;
+        }
+        
+        DEBUG_OUT("calculating weight from weight vector...", 20);
+        double weight = 0.0;
+        {
+            double mean=0.0;
+            for (int i=0; i<weightVec.size(); i++)
+            {
+                mean += fabs(weightVec[i]);
+            }
+            mean /= weightVec.size();
+            weight = sqrt(double(cqt->fftHop) / double(cqt->fftLen) * 1.0/mean);
+        }
+        DEBUG_OUT("weight = " << weight, 20);
         
         //copy the data from our tmpFKernel to our sparse fKernel.
+        //also complex conjugate it.
         cqt->fKernel = new Eigen::SparseMatrix<std::complex<float> >(binsPerOctave * cqt->atomNr, cqt->fftLen);
         for (int i=0; i<binsPerOctave * cqt->atomNr; i++)
         {
@@ -182,20 +228,29 @@ namespace music
                 if ((*tmpFKernel)(j,i) != std::complex<kiss_fft_scalar>(0.0, 0.0))
                 {
                     std::complex<kiss_fft_scalar> value = (*tmpFKernel)(j,i);
-                    value /= cqt->fftLen;
+                    value *= weight;
                     cqt->fKernel->insert(i, j) = std::conj(value);
                 }
             }
         }
         delete tmpFKernel;
         
-        //comment in to see the sparse conjugate fKernel on the console.
-        //std::cerr << "fKernel:" << *cqt->fKernel << std::endl;
+        #if DEBUG_LEVEL > 30
+        {
+            DEBUG_OUT("writing fkernel.csv with transform kernel...", 30)
+            std::ofstream kernelstr("fkernel.csv");
+            for (int i=0; i<cqt->getFKernel()->rows(); i++)
+            {
+                for (int j=0; j<cqt->getFKernel()->cols(); j++)
+                {
+                    kernelstr << (cqt->getFKernel()->coeff(i,j)) << ";";
+                }
+                kernelstr << std::endl;
+            }
+        }
+        #endif
         
         //should now be able to do some cqt.
-        
-        //TODO: weights are missing. do we need them? I think we would need them if we applied icqt.
-        
         return cqt;
     }
     
@@ -218,7 +273,18 @@ namespace music
         fftData = new std::complex<float>[fftLen];
         assert(fftData != NULL);
         
-        float* data = buffer;
+        float* data = new float[sampleCountWithBlock];
+        for (int i=0; i<sampleCountWithBlock; i++)
+        {
+            if (i < maxBlock)
+                data[i] = 0.0;
+            else if (i >= maxBlock + sampleCount)
+                data[i] = 0.0;
+            else
+                data[i] = buffer[i-maxBlock];
+        }
+        sampleCount = sampleCountWithBlock;
+        
         float* fftSourceData=NULL;
         //used to calculate the fft with zero padding
         float* fftSourceDataZeroPadMemory=NULL;
@@ -248,38 +314,32 @@ namespace music
             assert(octaveResult != NULL);
             
             std::cerr << -(maxBlock>>(octaveCount-octave-1)) << std::endl;
+            std::cerr << octaveResult->cols() << std::endl;
             
             int windowNumber=0;
             //shift our window a bit. window has overlap.
-            for (int position=-(maxBlock>>(octaveCount-octave-1)); position < sampleCountWithBlock-(maxBlock>>(octaveCount-octave-1))-fftHop; position+=fftHop)
+            for (int position=0; position < sampleCountWithBlock-fftHop; position+=fftHop)
             {
-                if (position<0)
-                {   //zero-padding necessary, front
-                    fftSourceData = fftSourceDataZeroPadMemory;
-                    //Fill array, zero-pad it as necessary (->beginning).
-                    for (int i=position; i<position+fftLen; i++)
-                    {
-                        if (i<0)
-                            fftSourceData[i-position] = 0.0;
-                        else
-                            fftSourceData[i-position] = data[i];
-                    }
-                }
-                else if (position > sampleCount - fftHop)
-                {   //zero-padding necessary, back
-                    fftSourceData = fftSourceDataZeroPadMemory;
-                    //Fill array, zero-pad it as necessary (->end).
-                    for (int i=position; i<position+fftLen; i++)
-                    {
-                        if (i>=sampleCount)
-                            fftSourceData[i-position] = 0.0;
-                        else
-                            fftSourceData[i-position] = data[i];
-                    }
-                }
-                else
-                {   //no zero padding needed: use old buffer array
+                if (position + fftLen < sampleCountWithBlock)
                     fftSourceData = data + position;
+                else
+                {
+                    std::cerr << "müp" << octave << std::endl;
+                    fftSourceData = fftSourceDataZeroPadMemory;
+                    for (int i=position; i<position+fftLen; i++)
+                    {
+                        if (i<sampleCountWithBlock)
+                            fftSourceData[i-position] = data[i];
+                        else
+                            fftSourceData[i-position] = 0.0;
+                    }
+                }
+                
+                if (octave==0)
+                {
+                    for (int i=0; i<fftLen; i++)
+                        std::cerr << fftSourceData[i] << " ";
+                    std::cerr << std::endl << std::endl;
                 }
                 
                 //apply FFT to input data.
@@ -301,6 +361,10 @@ namespace music
                 //Calculate the transform: apply fKernel to fftData.
                 resultMatrix = *fKernel * fftDataMap;
                 //we get a matrix with (octaveCount*atomNr) x (1) elements.
+                
+                if (octave==0)
+                    //std::cerr << resultMatrix << std::endl << std::endl;
+                    std::cerr << fftDataMap << std::endl << std::endl;
                 
                 //reorder the result matrix, save data
                 for (int bin=0; bin<binsPerOctave; bin++)
@@ -339,7 +403,7 @@ namespace music
                 assert(newData != NULL);
                 for (int i=0; i<sampleCount/2; i++)
                 {
-                    newData[i] = data[2*i +1];
+                    newData[i] = data[2*i];
                 }
                 delete[] data;
                 data = newData;

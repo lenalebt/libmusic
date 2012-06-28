@@ -291,7 +291,7 @@ namespace tests
         
         musicaccess::SoundFile file;
         CHECK(!file.isFileOpen());
-        CHECK(file.open("./testdata/test.mp3", true));
+        CHECK(file.open("./drums.wav", true));
         CHECK(file.isFileOpen());
         
         float* buffer = NULL;
