@@ -266,8 +266,6 @@ namespace music
         int zeroPadding = fftLen/2;
         int maxBlock = fftLen * (1<<(octaveCount-1));
         
-        std::cerr << "maxBlock: " << maxBlock << std::endl;
-        
         int sampleCountWithBlock = sampleCount + 2*maxBlock;
         
         FFT fft;//
@@ -316,14 +314,11 @@ namespace music
             int fftlength=0;
             
             transformResult->drop[octave] = (emptyHops<<(octave)) - emptyHops;
-            DEBUG_OUT("drop[" << octave << "] = " << transformResult->drop[octave], 10);
+            DEBUG_OUT("drop[" << octave << "] = " << transformResult->drop[octave], 12);
             
             octaveResult = NULL;
             octaveResult = new Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >(binsPerOctave, sampleCountWithBlock / fftHop * atomNr);
             assert(octaveResult != NULL);
-            
-            //std::cerr << -(maxBlock>>(octaveCount-octave-1)) << std::endl;
-            //std::cerr << octaveResult->cols() << std::endl;
             
             int windowNumber=0;
             //shift our window a bit. window has overlap.
@@ -333,7 +328,6 @@ namespace music
                     fftSourceData = data + position;
                 else
                 {
-                    //std::cerr << "müp" << octave << std::endl;
                     fftSourceData = fftSourceDataZeroPadMemory;
                     for (int i=position; i<position+fftLen; i++)
                     {
@@ -343,15 +337,6 @@ namespace music
                             fftSourceData[i-position] = 0.0;
                     }
                 }
-                
-                /*
-                if (octave==0)
-                {
-                    for (int i=0; i<fftLen; i++)
-                        std::cerr << fftSourceData[i] << " ";
-                    std::cerr << std::endl << std::endl;
-                }
-                * */
                 
                 //apply FFT to input data.
                 fft.doFFT((kiss_fft_scalar*)(fftSourceData), fftLen, (kiss_fft_cpx*)(fftData), fftlength);
@@ -373,10 +358,6 @@ namespace music
                 resultMatrix = *fKernel * fftDataMap;
                 //we get a matrix with (octaveCount*atomNr) x (1) elements.
                 
-                //if (octave==0)
-                    //std::cerr << resultMatrix << std::endl << std::endl;
-                    //std::cerr << fftDataMap << std::endl << std::endl;
-                
                 //reorder the result matrix, save data
                 for (int bin=0; bin<binsPerOctave; bin++)
                 {
@@ -387,7 +368,6 @@ namespace music
                 }
                 windowNumber++;
             }
-            std::cerr << "winNr: " << windowNumber << std::endl;
             
             transformResult->octaveMatrix[octave] = octaveResult;
             

@@ -314,7 +314,6 @@ namespace tests
             }
         }
         
-        
         musicaccess::Resampler22kHzMono resampler;
         //int sampleCount = file.getSampleCount();
         DEBUG_OUT("resampling input file...", 10);
