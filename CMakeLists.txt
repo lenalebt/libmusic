@@ -171,6 +171,7 @@ ADD_TEST(constantq                 "musictests" "constantq")
 ADD_TEST(fft                       "musictests" "fft")
 ADD_TEST(estimatebpm               "musictests" "estimatebpm")
 ADD_TEST(perbinstatistics          "musictests" "perbinstatistics")
+ADD_TEST(pertimeslicestatistics    "musictests" "pertimeslicestatistics")
 
 ADD_EXECUTABLE(musictests
     ${music_TEST_SOURCES}

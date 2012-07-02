@@ -632,4 +632,77 @@ namespace tests
         
         return EXIT_SUCCESS;
     }
+    
+    int testPerTimeSliceStatistics()
+    {
+        DEBUG_OUT("testing statistics per time slice (max, min, mean, variance, sum).", 10);
+        
+        music::ConstantQTransform* cqt = NULL;
+        musicaccess::IIRFilter* lowpassFilter = NULL;
+        
+        lowpassFilter = musicaccess::IIRFilter::createLowpassFilter(0.25);
+        CHECK_OP(lowpassFilter, !=, NULL);
+        
+        double q=1.0;
+        int bins=12;
+        
+        DEBUG_OUT("creating constant q transform kernel...", 15);
+        cqt = music::ConstantQTransform::createTransform(lowpassFilter, bins, 25, 11025, 22050, q, 0.0, 0.0005, 0.25);
+        
+        musicaccess::SoundFile file;
+        CHECK(!file.isFileOpen());
+        CHECK(file.open("./testdata/test.mp3", true));
+        CHECK(file.isFileOpen());
+        
+        float* buffer = NULL;
+        buffer = new float[file.getSampleCount()];
+        CHECK(buffer != NULL);
+        
+        int sampleCount = file.readSamples(buffer, file.getSampleCount());
+        //estimated size might not be accurate!
+        CHECK_OP(sampleCount, >=, 0.9*file.getSampleCount());
+        CHECK_OP(sampleCount, <=, 1.1*file.getSampleCount());
+        
+        musicaccess::Resampler22kHzMono resampler;
+        //int sampleCount = file.getSampleCount();
+        DEBUG_OUT("resampling input file...", 15);
+        resampler.resample(file.getSampleRate(), &buffer, sampleCount, file.getChannelCount());
+        
+        CHECK_OP(sampleCount, <, file.getSampleCount());
+        
+        DEBUG_OUT("applying constant q transform...", 15);
+        music::ConstantQTransformResult* transformResult = cqt->apply(buffer, sampleCount);
+        CHECK(transformResult != NULL);
+        
+        music::PerTimeSliceStatistics perTimeSliceStatistics(transformResult, 0.005);
+        int elementCount = transformResult->getOriginalDuration() / 0.005;
+        
+        DEBUG_OUT("calculate mean, min, max and sum vectors...", 11);
+        perTimeSliceStatistics.calculateMeanMinMaxSum(true);
+        DEBUG_OUT("calculate variance vectors...", 11);
+        perTimeSliceStatistics.calculateVariance();
+        
+        //DEBUG_OUT("mean vector:" << std::endl << *perTimeSliceStatistics.getMeanVector() << std::endl, 15)
+        CHECK_EQ(perTimeSliceStatistics.getMeanVector()->size(), elementCount);
+        
+        //DEBUG_OUT("min vector:" << std::endl << *perTimeSliceStatistics.getMinVector() << std::endl, 15)
+        CHECK_EQ(perTimeSliceStatistics.getMinVector()->size(), elementCount);
+        
+        //DEBUG_OUT("max vector:" << std::endl << *perTimeSliceStatistics.getMaxVector() << std::endl, 15)
+        CHECK_EQ(perTimeSliceStatistics.getMaxVector()->size(), elementCount);
+        
+        //DEBUG_OUT("variance vector:" << std::endl << *perTimeSliceStatistics.getVarianceVector() << std::endl, 15)
+        CHECK_EQ(perTimeSliceStatistics.getVarianceVector()->size(), elementCount);
+        
+        //DEBUG_OUT("sum vector:" << std::endl << *perTimeSliceStatistics.getSumVector() << std::endl, 15)
+        CHECK_EQ(perTimeSliceStatistics.getSumVector()->size(), elementCount);
+        
+        CHECK_EQ((*perTimeSliceStatistics.getMeanVector())(107), 0.00939059);
+        CHECK_EQ((*perTimeSliceStatistics.getMaxVector())(107), 0.497691);
+        CHECK_EQ((*perTimeSliceStatistics.getMinVector())(107), 0);
+        CHECK_EQ((*perTimeSliceStatistics.getVarianceVector())(107), 0.000500919549636);
+        CHECK_EQ((*perTimeSliceStatistics.getSumVector())(107), 0.000500919549636);
+        
+        return EXIT_SUCCESS;
+    }
 }

@@ -112,6 +112,7 @@ namespace music
         varianceVector(NULL),
         minVector(NULL),
         maxVector(NULL),
+        sumVector(NULL),
         
         timeResolution(timeResolution)
     {
@@ -119,24 +120,47 @@ namespace music
         assert(timeResolution > 0.0);
     }
     
-    void PerTimeSliceStatistics::calculateMeanMinMax()
+    void PerTimeSliceStatistics::calculateSum()
     {
-        meanVector = new Eigen::VectorXd(transformResult->getOctaveCount() * transformResult->getBinsPerOctave());
-        minVector = new Eigen::VectorXd(transformResult->getOctaveCount() * transformResult->getBinsPerOctave());
-        maxVector = new Eigen::VectorXd(transformResult->getOctaveCount() * transformResult->getBinsPerOctave());
+        int binsPerOctave = transformResult->getBinsPerOctave();
+        int octaveCount = transformResult->getOctaveCount();
         
-        for (int octave=0; octave<transformResult->getOctaveCount(); octave++)
+        int elementCount = transformResult->getOriginalDuration() / timeResolution;
+        sumVector = new Eigen::VectorXd(elementCount);
+        
+        for (int i=0; i < elementCount; i++)
         {
-            const Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >* octaveMatrix = transformResult->getOctaveMatrix(octave);
-            for (int bin=0; bin<transformResult->getBinsPerOctave(); bin++)
+            double sum=0.0;
+            for (int octave=0; octave<octaveCount; octave++)
             {
-                double mean = 0.0;
-                double min = std::numeric_limits<double>::max();
-                double max = -std::numeric_limits<double>::max();
-                for (int i=0; i<octaveMatrix->cols(); i++)
+                for (int bin=0; bin<binsPerOctave; bin++)
                 {
-                    double val = std::abs((*octaveMatrix)(bin, i));
-                    
+                    sum += std::abs(transformResult->getNoteValueNoInterpolation(i*timeResolution, octave, bin));
+                }
+            }
+            (*sumVector)[i] = sum;
+        }
+    }
+    void PerTimeSliceStatistics::calculateMeanMinMaxSum(bool calculateSum)
+    {
+        int binsPerOctave = transformResult->getBinsPerOctave();
+        int octaveCount = transformResult->getOctaveCount();
+        
+        int elementCount = transformResult->getOriginalDuration() / timeResolution;
+        meanVector = new Eigen::VectorXd(elementCount);
+        minVector = new Eigen::VectorXd(elementCount);
+        maxVector = new Eigen::VectorXd(elementCount);
+        
+        for (int i=0; i<elementCount; i++)
+        {
+            double mean = 0.0;
+            double min = std::numeric_limits<double>::max();
+            double max = -std::numeric_limits<double>::max();
+            for (int octave=0; octave<octaveCount; octave++)
+            {
+                for (int bin=0; bin<binsPerOctave; bin++)
+                {
+                    double val = std::abs(transformResult->getNoteValueNoInterpolation(i*timeResolution, octave, bin));
                     mean += val;
                     
                     if (val < min)
@@ -145,42 +169,44 @@ namespace music
                     if (val > max)
                         max = val;
                 }
-                mean /= octaveMatrix->cols();
-                
-                int pos = octave*transformResult->getBinsPerOctave() + bin;
-                (*meanVector)(pos) = mean;
-                (*minVector)(pos) = min;
-                (*maxVector)(pos) = max;
             }
+            (*meanVector)(i) = mean;
+            (*minVector)(i) = min;
+            (*maxVector)(i) = max;
         }
+        
+        if (calculateSum && (sumVector != NULL))
+        {
+            sumVector = new Eigen::VectorXd(elementCount);
+            *sumVector = *meanVector;
+        }
+        
+        (*meanVector) /= binsPerOctave * octaveCount;
     }
     
     void PerTimeSliceStatistics::calculateVariance()
     {
         if (meanVector == NULL)
-            calculateMeanMinMax();
+            calculateMeanMinMaxSum(false);
         
-        varianceVector = new Eigen::VectorXd(transformResult->getOctaveCount() * transformResult->getBinsPerOctave());
-        for (int octave=0; octave<transformResult->getOctaveCount(); octave++)
+        int binsPerOctave = transformResult->getBinsPerOctave();
+        int octaveCount = transformResult->getOctaveCount();
+        
+        int elementCount = transformResult->getOriginalDuration() / timeResolution;
+        varianceVector = new Eigen::VectorXd(elementCount);
+        for (int i=0; i<elementCount; i++)
         {
-            const Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >* octaveMatrix = transformResult->getOctaveMatrix(octave);
-            for (int bin=0; bin<transformResult->getBinsPerOctave(); bin++)
+            double variance = 0.0;
+            for (int octave=0; octave<octaveCount; octave++)
             {
-                int pos = octave*transformResult->getBinsPerOctave() + bin;
-                
-                double mean = (*meanVector)(pos);
-                double variance = 0.0;
-                for (int i=0; i<octaveMatrix->cols(); i++)
+                for (int bin=0; bin<binsPerOctave; bin++)
                 {
-                    double val = std::abs((*octaveMatrix)(bin, i)) - mean;
-                    
+                    double val = std::abs(transformResult->getNoteValueNoInterpolation(i*timeResolution, octave, bin)) - (*meanVector)[octave*binsPerOctave + bin];
                     variance += val*val;
                 }
-                variance /= octaveMatrix->cols();
-                
-                
-                (*varianceVector)(pos) = variance;
             }
+            (*varianceVector)(i) = variance;
         }
+        (*varianceVector) /= binsPerOctave * octaveCount;
     }
 }

@@ -34,6 +34,8 @@ int main(int argc, char *argv[])
         return tests::testEstimateBPM();
     else if (testname == "perbinstatistics")
         return tests::testPerBinStatistics();
+    else if (testname == "pertimeslicestatistics")
+        return tests::testPerTimeSliceStatistics();
     else if (testname == "applyconstantq")
     {
         if (argc < 5)
