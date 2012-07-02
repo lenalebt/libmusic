@@ -9,6 +9,7 @@
 
 #include "constantq.hpp"
 #include "fft.hpp"
+#include "feature_extraction_helper.hpp"
 
 #include "bpm.hpp"
 
@@ -466,9 +467,12 @@ namespace tests
         files.push("testdata/metronom-80.mp3");    //80bpm
         minBPMs.push(75);
         maxBPMs.push(85);
+        
+        
         files.push("testdata/metronom-180.mp3");    //180bpm
         minBPMs.push(175);
         maxBPMs.push(185);
+        
         files.push("testdata/drums-80-4_4-8th_hihat.mp3");    //80bpm
         minBPMs.push(75);
         maxBPMs.push(85);
@@ -558,6 +562,73 @@ namespace tests
         
         delete cqt;
         delete lowpassFilter;
+        
+        return EXIT_FAILURE;
+    }
+    
+    int testPerBinStatistics()
+    {
+        DEBUG_OUT("testing statistics per bin (max, min, mean, variance).", 10);
+        
+        music::ConstantQTransform* cqt = NULL;
+        musicaccess::IIRFilter* lowpassFilter = NULL;
+        
+        lowpassFilter = musicaccess::IIRFilter::createLowpassFilter(0.25);
+        CHECK_OP(lowpassFilter, !=, NULL);
+        
+        double q=1.0;
+        int bins=12;
+        
+        DEBUG_OUT("creating constant q transform kernel...", 15);
+        cqt = music::ConstantQTransform::createTransform(lowpassFilter, bins, 25, 11025, 22050, q, 0.0, 0.0005, 0.25);
+        
+        musicaccess::SoundFile file;
+        CHECK(!file.isFileOpen());
+        CHECK(file.open("./testdata/test.mp3", true));
+        CHECK(file.isFileOpen());
+        
+        float* buffer = NULL;
+        buffer = new float[file.getSampleCount()];
+        CHECK(buffer != NULL);
+        
+        int sampleCount = file.readSamples(buffer, file.getSampleCount());
+        //estimated size might not be accurate!
+        CHECK_OP(sampleCount, >=, 0.9*file.getSampleCount());
+        CHECK_OP(sampleCount, <=, 1.1*file.getSampleCount());
+        
+        musicaccess::Resampler22kHzMono resampler;
+        //int sampleCount = file.getSampleCount();
+        DEBUG_OUT("resampling input file...", 15);
+        resampler.resample(file.getSampleRate(), &buffer, sampleCount, file.getChannelCount());
+        
+        CHECK_OP(sampleCount, <, file.getSampleCount());
+        
+        DEBUG_OUT("applying constant q transform...", 15);
+        music::ConstantQTransformResult* transformResult = cqt->apply(buffer, sampleCount);
+        CHECK(transformResult != NULL);
+        
+        music::PerBinStatistics perBinStatistics(transformResult);
+        DEBUG_OUT("calculate mean, min and max vectors...", 11);
+        perBinStatistics.calculateMeanMinMax();
+        DEBUG_OUT("calculate variance vectors...", 11);
+        perBinStatistics.calculateVariance();
+        
+        DEBUG_OUT("mean vector:" << std::endl << *perBinStatistics.getMeanVector() << std::endl, 15)
+        CHECK_EQ(perBinStatistics.getMeanVector()->size(), 108);
+        
+        DEBUG_OUT("min vector:" << std::endl << *perBinStatistics.getMinVector() << std::endl, 15)
+        CHECK_EQ(perBinStatistics.getMinVector()->size(), 108);
+        
+        DEBUG_OUT("max vector:" << std::endl << *perBinStatistics.getMaxVector() << std::endl, 15)
+        CHECK_EQ(perBinStatistics.getMaxVector()->size(), 108);
+        
+        DEBUG_OUT("variance vector:" << std::endl << *perBinStatistics.getVarianceVector() << std::endl, 15)
+        CHECK_EQ(perBinStatistics.getVarianceVector()->size(), 108);
+        
+        CHECK_EQ((*perBinStatistics.getMeanVector())(107), 0.00939059);
+        CHECK_EQ((*perBinStatistics.getMaxVector())(107), 0.497691);
+        CHECK_EQ((*perBinStatistics.getMinVector())(107), 0);
+        CHECK_EQ((*perBinStatistics.getVarianceVector())(107), 0.000500919549636);
         
         return EXIT_SUCCESS;
     }
