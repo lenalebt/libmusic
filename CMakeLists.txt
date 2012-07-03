@@ -170,12 +170,14 @@ ADD_TEST(eigen                     "musictests" "eigen")
 ADD_TEST(constantq                 "musictests" "constantq")
 ADD_TEST(fft                       "musictests" "fft")
 ADD_TEST(estimatebpm               "musictests" "estimatebpm")
+ADD_TEST(estimatechords            "musictests" "estimatechords")
 ADD_TEST(perbinstatistics          "musictests" "perbinstatistics")
 ADD_TEST(pertimeslicestatistics    "musictests" "pertimeslicestatistics")
 
 ADD_EXECUTABLE(musictests
     ${music_TEST_SOURCES}
     )
+SET_TARGET_PROPERTIES(musictests PROPERTIES COMPILE_FLAGS -DBUILD_TESTS)
 #tell the linker which libs need to be linked
 TARGET_LINK_LIBRARIES(musictests
     ${MUSICACCESS_LIBRARIES}

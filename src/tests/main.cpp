@@ -32,6 +32,8 @@ int main(int argc, char *argv[])
         return tests::testFFT();
     else if (testname == "estimatebpm")
         return tests::testEstimateBPM();
+    else if (testname == "estimatechords")
+        return tests::testEstimateChords();
     else if (testname == "perbinstatistics")
         return tests::testPerBinStatistics();
     else if (testname == "pertimeslicestatistics")
