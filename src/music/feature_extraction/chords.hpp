@@ -15,8 +15,9 @@ namespace music
     {
     private:
         Eigen::VectorXd chord;  //if a note is within this chord, or not
-    protected:
         
+    protected:
+        std::string getNoteName(int i);
     public:
         std::string getChordAsString();
         bool hasNote(int note);
