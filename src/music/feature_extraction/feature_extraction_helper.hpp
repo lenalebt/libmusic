@@ -28,6 +28,7 @@ namespace music
         Eigen::VectorXd* maxVector;
     public:
         PerBinStatistics(ConstantQTransformResult* transformResult);
+        ~PerBinStatistics();
         
         /**
          * @brief Calculates the mean, maximum and minimum values per bin.
@@ -75,6 +76,7 @@ namespace music
         double timeResolution;
     public:
         PerTimeSliceStatistics(ConstantQTransformResult* transformResult, double timeResolution=0.005);
+        ~PerTimeSliceStatistics();
         
         void calculateSum();
         /**
