@@ -32,7 +32,8 @@ namespace music
         ConstantQTransformResult* transformResult;
         double timeResolution;
     protected:
-        
+        Chord* estimateChord1(double fromTime, double toTime);
+        Chord* estimateChord2(double fromTime, double toTime);
     public:
         ChordEstimator(ConstantQTransformResult* transformResult, double timeResolution = 0.005);
         Chord* estimateChord(double fromTime, double toTime);
