@@ -744,8 +744,8 @@ namespace tests
         
         musicaccess::SoundFile file;
         CHECK(!file.isFileOpen());
-        CHECK(file.open("./testdata/major-d-guitar.mp3", true));
-        //CHECK(file.open("./sonne.mp3", true));
+        //CHECK(file.open("./testdata/major-c-guitar.mp3", true));
+        CHECK(file.open("./sonne.mp3", true));
         CHECK(file.isFileOpen());
         
         float* buffer = NULL;

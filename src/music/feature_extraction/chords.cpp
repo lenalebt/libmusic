@@ -25,6 +25,7 @@ namespace music
             case 10:    return std::string("D#");
             case 11:    return std::string("E");
         }
+        return std::string("n/a");
     }
     ChordEstimator::ChordEstimator(ConstantQTransformResult* transformResult, double timeResolution) :
         transformResult(transformResult),
@@ -36,7 +37,7 @@ namespace music
     {
         return estimateChord2(fromTime, toTime);
     }
-    Chord* ChordEstimator::estimateChord1(double fromTime, double toTime)
+    Chord* ChordEstimator::estimateChord2(double fromTime, double toTime)
     {
         if (fromTime < 0.0)
             fromTime = 0.0;
@@ -97,42 +98,27 @@ namespace music
             {
                 //multiplication is faster than division
                 chroma[bin] *= maxValReciprocal;
-                noteList.push_back(std::pair<double, int>(chroma[bin], bin));
                 assert(chroma[bin] <= 1.0);
             }
         }
-        std::sort(noteList.begin(), noteList.end());
-        chord->chord = chroma;
         
-        bool* baseChord = new bool[binsPerOctave];
-        for (int i=0; i<binsPerOctave; i++)
-            baseChord[i] = false;
-        baseChord[noteList[binsPerOctave-1].second] = true;
-        baseChord[noteList[binsPerOctave-2].second] = true;
-        baseChord[noteList[binsPerOctave-3].second] = true;
-        if (noteList[binsPerOctave-4].first > (noteList[binsPerOctave-3].first/noteList[binsPerOctave-2].first)*noteList[binsPerOctave-3].first)
-            baseChord[noteList[binsPerOctave-4].second] = true;
-        
-        for (int i=0; i<binsPerOctave; i++)
-            std::cerr << baseChord[i] << " ";
-        std::cerr << std::endl;
+        std::vector<std::pair<double, int> > chordLikelihood(2*binsPerOctave);
         
         for (int i=0; i<binsPerOctave; i++)
         {
-            if (baseChord[i] && baseChord[(i+4)%binsPerOctave] && baseChord[(i+7)%binsPerOctave])
-            {
-                std::cerr << "found chord: major " << chord->getNoteName(i) << std::endl;
-            }
-            if (baseChord[i] && baseChord[(i+3)%binsPerOctave] && baseChord[(i+7)%binsPerOctave])
-            {
-                std::cerr << "found chord: minor " << chord->getNoteName(i) << std::endl;
-            }
+            chordLikelihood[i]               = std::pair<double,int>(chroma[i] + chroma[(i+4)%binsPerOctave] + chroma[(i+7)%binsPerOctave], i);
+            chordLikelihood[i+binsPerOctave] = std::pair<double,int>(chroma[i] + chroma[(i+3)%binsPerOctave] + chroma[(i+7)%binsPerOctave], i + binsPerOctave);
+        }
+        std::sort(chordLikelihood.begin(), chordLikelihood.end());
+        
+        for (int i=0; i<2*binsPerOctave; i++)
+        {
+            std::cerr << ((chordLikelihood[i].second<binsPerOctave) ? "major " : "minor ") << chord->getNoteName(chordLikelihood[i].second%12) << ": " << chordLikelihood[i].first << std::endl;
         }
         
-        delete baseChord;
         return chord;
     }
-    Chord* ChordEstimator::estimateChord2(double fromTime, double toTime)
+    Chord* ChordEstimator::estimateChord1(double fromTime, double toTime)
     {
         if (fromTime < 0.0)
             fromTime = 0.0;
@@ -169,7 +155,7 @@ namespace music
             {
                 double binSum = 0.0;
                 //double val = 0.0;
-                for (int octave=0+1; octave<octaveCount-3; octave++)
+                for (int octave=0; octave<octaveCount; octave++)
                 {
                     //val = std::abs(transformResult->getNoteValueNoInterpolation(i*timeResolution, octave, bin));
                     binSum += std::abs(transformResult->getNoteValueNoInterpolation(i*timeResolution, octave, bin));
