@@ -311,7 +311,7 @@ namespace music
         //apply cqt once per octave
         for (int octave=octaveCount-1; octave >= 0; octave--)
         {
-            int overlap = fftLen - fftHop;        //needed in the matlab implementation, not needed here
+            //int overlap = fftLen - fftHop;        //needed in the matlab implementation, not needed here
             int fftlength=0;
             
             transformResult->drop[octave] = (emptyHops<<(octave)) - emptyHops;

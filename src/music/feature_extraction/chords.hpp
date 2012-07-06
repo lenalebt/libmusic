@@ -11,6 +11,10 @@ namespace music
 {
     //Holds one chord, e.g. c or A or D7.
     //add some similarity measure (zwei dur- oder zwei mollakkorde vergleichen, ...)
+    /**
+     * @todo Doku schreiben
+     * @todo Implementierung überdenken
+     */
     class ChordHypothesis
     {
     private:

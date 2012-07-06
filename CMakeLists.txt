@@ -183,6 +183,7 @@ ADD_TEST(fft                       "musictests" "fft")
 ADD_TEST(estimatebpm               "musictests" "estimatebpm")
 ADD_TEST(estimatechords            "musictests" "estimatechords")
 ADD_TEST(estimatetimbre            "musictests" "estimatetimbre")
+ADD_TEST(calculatedynamicrange     "musictests" "calculatedynamicrange")
 ADD_TEST(perbinstatistics          "musictests" "perbinstatistics")
 ADD_TEST(pertimeslicestatistics    "musictests" "pertimeslicestatistics")
 

@@ -36,6 +36,8 @@ int main(int argc, char *argv[])
         return tests::testEstimateChords();
     else if (testname == "estimatetimbre")
         return tests::testEstimateTimbre();
+    else if (testname == "calculatedynamicrange")
+        return tests::testCalculateDynamicRange();
     else if (testname == "perbinstatistics")
         return tests::testPerBinStatistics();
     else if (testname == "pertimeslicestatistics")
