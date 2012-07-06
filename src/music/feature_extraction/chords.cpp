@@ -11,9 +11,29 @@
 
 namespace music
 {
+    ChordHypothesis::ChordHypothesis(int binsPerOctave) :
+        hypothesis(2*binsPerOctave),
+        normalizedChroma(binsPerOctave),
+        chromaMean(0.0),
+        chromaVariance(0.0)
+        
+    {
+        
+    }
+    
+    std::string ChordHypothesis::getMaxHypothesisAsString()
+    {
+        std::string chordname("");
+        if (hypothesis[hypothesis.size()-1].second/(hypothesis.size()/2) == 0)
+            chordname += "major ";
+        else if (hypothesis[hypothesis.size()-1].second/(hypothesis.size()/2) == 1)
+            chordname += "minor ";
+        chordname += getNoteName(hypothesis[hypothesis.size()-1].second);
+        return chordname;
+    }
     std::string ChordHypothesis::getNoteName(int i)
     {
-        switch (i)
+        switch (i%12)
         {
             case 0:     return std::string("F");
             case 1:     return std::string("F#");
@@ -118,7 +138,7 @@ namespace music
         
         int binsPerOctave = transformResult->getBinsPerOctave();
         int octaveCount = transformResult->getOctaveCount();
-        ChordHypothesis* chordHypothesis = new ChordHypothesis();
+        ChordHypothesis* chordHypothesis = new ChordHypothesis(binsPerOctave);
         
         /* TODO:
          * -rechne binsumme aus, sodass 12 bins bleiben (einer pro ton). nimm
@@ -134,7 +154,7 @@ namespace music
         Eigen::VectorXd chroma(binsPerOctave);
         for (int bin=0; bin < binsPerOctave; bin++)
         {
-            chroma[bin] = 0.0;
+            chordHypothesis->normalizedChroma[bin] = 0.0;
         }
         int maxElement = (toTime - fromTime) / timeResolution + fromTime / timeResolution;
         for (int i = fromTime / timeResolution; i < maxElement; i++)
@@ -148,7 +168,7 @@ namespace music
                     //val = std::abs(transformResult->getNoteValueNoInterpolation(i*timeResolution, octave, bin));
                     binSum += std::abs(transformResult->getNoteValueNoInterpolation(i*timeResolution, octave, bin));
                 }
-                chroma[bin] += binSum;
+                chordHypothesis->normalizedChroma[bin] += binSum;
             }
         }
         
@@ -159,27 +179,22 @@ namespace music
             //find largest value in magnitude
             for (int bin=0; bin < binsPerOctave; bin++)
             {
-                if (fabs(chroma[bin]) > maxVal)
-                    maxVal = fabs(chroma[bin]);
+                if (fabs(chordHypothesis->normalizedChroma[bin]) > maxVal)
+                    maxVal = fabs(chordHypothesis->normalizedChroma[bin]);
             }
-            double maxValReciprocal = 1.0 / maxVal;
-            for (int bin=0; bin < binsPerOctave; bin++)
+            if (maxVal != 0.0)
             {
-                //multiplication is faster than division
-                chroma[bin] *= maxValReciprocal;
-                assert(chroma[bin] <= 1.0);
+                double maxValReciprocal = 1.0 / maxVal;
+                for (int bin=0; bin < binsPerOctave; bin++)
+                {
+                    //multiplication is faster than division
+                    chordHypothesis->normalizedChroma[bin] *= maxValReciprocal;
+                    assert(chordHypothesis->normalizedChroma[bin] <= 1.0);
+                }
             }
         }
         
-        chordHypothesis->hypothesis.resize(2*binsPerOctave);
-        for (int i=0; i<binsPerOctave; i++)
-        {
-            chordHypothesis->hypothesis[i]               = std::pair<double,int>((chroma[i] + chroma[(i+4)%binsPerOctave] + chroma[(i+7)%binsPerOctave]), i);
-            chordHypothesis->hypothesis[i+binsPerOctave] = std::pair<double,int>((chroma[i] + chroma[(i+3)%binsPerOctave] + chroma[(i+7)%binsPerOctave]), i + binsPerOctave);
-        }
-        std::sort(chordHypothesis->hypothesis.begin(), chordHypothesis->hypothesis.end());
-        
-        
+        chordHypothesis->createHypothesis();
         
         return chordHypothesis;
     }
@@ -280,6 +295,16 @@ namespace music
         return chord;
     }
     
+    void ChordHypothesis::createHypothesis()
+    {
+        for (int i=0; i<normalizedChroma.size(); i++)
+        {
+            hypothesis[i]               = std::pair<double,int>((normalizedChroma[i] + normalizedChroma[(i+4)%normalizedChroma.size()] + normalizedChroma[(i+7)%normalizedChroma.size()]), i);
+            hypothesis[i+normalizedChroma.size()] = std::pair<double,int>((normalizedChroma[i] + normalizedChroma[(i+3)%normalizedChroma.size()] + normalizedChroma[(i+7)%normalizedChroma.size()]), i + normalizedChroma.size());
+        }
+        std::sort(hypothesis.begin(), hypothesis.end());
+    }
+    
     std::ostream& operator<<(std::ostream& os, const ChordHypothesis& chordHypothesis)
     {
         os << "chord: ";
@@ -288,7 +313,7 @@ namespace music
             os << colors::ConsoleColors::green();
             if (chordHypothesis.hypothesis[i].second/(chordHypothesis.hypothesis.size()/2) == 0)
                 os << "major ";
-            if (chordHypothesis.hypothesis[i].second/(chordHypothesis.hypothesis.size()/2) == 1)
+            else if (chordHypothesis.hypothesis[i].second/(chordHypothesis.hypothesis.size()/2) == 1)
                 os << "minor ";
             os << std::setw(2) << ChordHypothesis::getNoteName(chordHypothesis.hypothesis[i].second%12) << colors::ConsoleColors::defaultText() << ": " << std::setw(7) << chordHypothesis.hypothesis[i].first << " ";
         }

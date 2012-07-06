@@ -21,8 +21,11 @@ namespace music
         
     protected:
         static std::string getNoteName(int i);
+        void createHypothesis();
     public:
+        ChordHypothesis(int binsPerOctave=12);
         
+        std::string getMaxHypothesisAsString();
         
         friend std::ostream& operator<<(std::ostream& os, const ChordHypothesis& chord);
         friend class ChordEstimator;

@@ -12,6 +12,7 @@ namespace tests
     int applyConstantQ(std::string filename, std::string bins, std::string q);
     int testEstimateBPM();
     int testEstimateChords();
+    int testEstimateTimbre();
     int testPerBinStatistics();
     int testPerTimeSliceStatistics();
 }
