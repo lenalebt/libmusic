@@ -21,6 +21,10 @@
 #include <vector>
 #include <queue>
 
+#include "console_colors.hpp"
+
+using namespace colors;
+
 namespace tests
 {
     int testLibMusicAccess()
@@ -744,8 +748,8 @@ namespace tests
         
         musicaccess::SoundFile file;
         CHECK(!file.isFileOpen());
-        //CHECK(file.open("./testdata/major-c-guitar.mp3", true));
-        CHECK(file.open("./sonne.mp3", true));
+        //CHECK(file.open("./testdata/test.mp3", true));
+        CHECK(file.open("./goodbye.mp3", true));
         CHECK(file.isFileOpen());
         
         float* buffer = NULL;
@@ -770,14 +774,15 @@ namespace tests
         
         std::ofstream chordstr("chords.dat");
         
-        music::ChordEstimator chordEstimator(transformResult);
+        music::ChordEstimator chordEstimator(transformResult, 0.05);
         for (double time=0.0; time<transformResult->getOriginalDuration(); time += 0.5)
         {
-            music::Chord* chord = chordEstimator.estimateChord(time, time + 0.5);
+            music::ChordHypothesis* chord = chordEstimator.estimateChord(time, time + 0.5);
         
-            DEBUG_OUT("chord at time " << time << ":" << std::endl << *chord, 10);
-            chordstr << *chord << std::endl << std::flush;
+            DEBUG_OUT(ConsoleColors::yellow() << "chord at time " << time << ":" << std::endl << ConsoleColors::defaultText() << *chord, 10);
+            chordstr << *chord << ConsoleColors::defaultText() << std::endl << std::flush;
         }
+        
         
         
         

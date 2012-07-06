@@ -11,7 +11,7 @@
 #include "debug.hpp"
 
 #define CHECK_EQ(a,b)           if (!check_equality(LINESTR(a,b), a, b)) return EXIT_FAILURE;
-#define CHECK_OP(a,op,b)        std::cerr << std::left << std::setw(TEST_PASSED_MSG_WIDTH) << LINESTR_OP(a,op,b) << " - " << std::flush; if (!(a op b)) {std::cerr << "failed!" << std::endl << "\t" << a << " " << std::string(QUOTEME(op)) << " " << b << " ?"<< std::endl; return EXIT_FAILURE;} else {std::cerr << "passed!" << std::endl;}
+#define CHECK_OP(a,op,b)        std::cerr << std::left << std::setw(TEST_PASSED_MSG_WIDTH) << LINESTR_OP(a,op,b) << " - " << std::flush; if (!(a op b)) {std::cerr << colors::ConsoleColors::red() << colors::ConsoleColors::bold() << "failed!" << colors::ConsoleColors::defaultText() << std::endl << "\t" << a << " " << std::string(QUOTEME(op)) << " " << b << " ?"<< std::endl; return EXIT_FAILURE;} else {std::cerr << colors::ConsoleColors::green() << "passed!" << colors::ConsoleColors::defaultText() << std::endl;}
 #define CHECK_EQ_TYPE(a,b,type) if (!check_equality<type, type >(LINESTR(a,b), a, b)) return EXIT_FAILURE;
 #define CHECK(a)                if (!check_equality(LINESTR(a,true), a, true)) return EXIT_FAILURE;
 
@@ -45,12 +45,12 @@ namespace tests
         std::cerr << std::left << std::setw(TEST_PASSED_MSG_WIDTH) << message << " - " << std::flush;
         if (a==b)
         {
-            std::cerr << "passed!" << std::endl;
+            std::cerr << colors::ConsoleColors::green() << "passed!" << colors::ConsoleColors::defaultText() << std::endl;
             return true;
         }
         else
         {
-            std::cerr << "failed!" << std::endl;
+            std::cerr << colors::ConsoleColors::red() << colors::ConsoleColors::bold() << "failed!" << colors::ConsoleColors::defaultText() << std::endl;
             std::cerr << "\tValue A: " << std::fixed << std::setprecision(15) << a << std::endl;
             std::cerr << "\tValue B: " << std::fixed << std::setprecision(15) << b << std::endl;
             return false;
@@ -62,12 +62,12 @@ namespace tests
         std::cerr << std::left << std::setw(TEST_PASSED_MSG_WIDTH) << message << " - " << std::flush;
         if ((a == b) || (fabs((a / b) - 1) < DOUBLE_EQUALITY_BARRIER))
         {
-            std::cerr << "passed!" << std::endl;
+            std::cerr << colors::ConsoleColors::green() << "passed!" << colors::ConsoleColors::defaultText() << std::endl;
             return true;
         }
         else
         {
-            std::cerr << "failed!" << std::endl;
+            std::cerr << colors::ConsoleColors::red() << colors::ConsoleColors::bold() << "failed!" << colors::ConsoleColors::defaultText() << std::endl;
             std::cerr << "\tValue A: " << std::fixed << std::setprecision(15) << a << std::endl;
             std::cerr << "\tValue B: " << std::fixed << std::setprecision(15) << b << std::endl;
             return false;
@@ -78,12 +78,12 @@ namespace tests
         std::cerr << std::left << std::setw(TEST_PASSED_MSG_WIDTH) << message << " - " << std::flush;
         if ((a == b) || (fabs((a / b) - 1) < FLOAT_EQUALITY_BARRIER))
         {
-            std::cerr << "passed!" << std::endl;
+            std::cerr << colors::ConsoleColors::green() << "passed!" << colors::ConsoleColors::defaultText() << std::endl;
             return true;
         }
         else
         {
-            std::cerr << "failed!" << std::endl;
+            std::cerr << colors::ConsoleColors::red() << colors::ConsoleColors::bold() << "failed!" << colors::ConsoleColors::defaultText() << std::endl;
             std::cerr << "\tValue A: " << std::fixed << std::setprecision(15) << a << std::endl;
             std::cerr << "\tValue B: " << std::fixed << std::setprecision(15) << b << std::endl;
             return false;
