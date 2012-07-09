@@ -45,9 +45,41 @@ namespace music
          */
         void calculateVariance();
         
+        /**
+         * @brief Returns the mean vector with the means per time slice.
+         * 
+         * @remarks Do not delete the pointer returned by this function.
+         *      The class will delete the pointer upon destruction.
+         * 
+         * @return the mean vector with the means per time slice
+         */
         const Eigen::VectorXd* getMeanVector() const            {return meanVector;}
+        /**
+         * @brief Returns the max vector with the maximum values per time slice.
+         * 
+         * @remarks Do not delete the pointer returned by this function.
+         *      The class will delete the pointer upon destruction.
+         * 
+         * @return the max vector with the maximum values per time slice.
+         */
         const Eigen::VectorXd* getMaxVector() const             {return maxVector;}
+        /**
+         * @brief Returns the min vector with the minimum per time slice.
+         * 
+         * @remarks Do not delete the pointer returned by this function.
+         *      The class will delete the pointer upon destruction.
+         * 
+         * @return the min vector with the minimums per time slice
+         */
         const Eigen::VectorXd* getMinVector() const             {return minVector;}
+        /**
+         * @brief Returns the variance vector with the variances per time slice.
+         * 
+         * @remarks Do not delete the pointer returned by this function.
+         *      The class will delete the pointer upon destruction.
+         * 
+         * @return the variance vector with the variances per time slice
+         */
         const Eigen::VectorXd* getVarianceVector() const        {return varianceVector;}
     };
     
@@ -101,10 +133,50 @@ namespace music
          */
         void calculateVariance();
         
+        /**
+         * @brief Returns the mean vector with the means per time slice.
+         * 
+         * @remarks Do not delete the pointer returned by this function.
+         *      The class will delete the pointer upon destruction.
+         * 
+         * @return the mean vector with the means per time slice
+         */
         const Eigen::VectorXd* getMeanVector() const            {return meanVector;}
+        /**
+         * @brief Returns the max vector with the maximum values per time slice.
+         * 
+         * @remarks Do not delete the pointer returned by this function.
+         *      The class will delete the pointer upon destruction.
+         * 
+         * @return the max vector with the maximum values per time slice.
+         */
         const Eigen::VectorXd* getMaxVector() const             {return maxVector;}
+        /**
+         * @brief Returns the min vector with the minimum per time slice.
+         * 
+         * @remarks Do not delete the pointer returned by this function.
+         *      The class will delete the pointer upon destruction.
+         * 
+         * @return the min vector with the minimums per time slice
+         */
         const Eigen::VectorXd* getMinVector() const             {return minVector;}
+        /**
+         * @brief Returns the variance vector with the variances per time slice.
+         * 
+         * @remarks Do not delete the pointer returned by this function.
+         *      The class will delete the pointer upon destruction.
+         * 
+         * @return the variance vector with the variances per time slice
+         */
         const Eigen::VectorXd* getVarianceVector() const        {return varianceVector;}
+        /**
+         * @brief Returns the sum vector with the sums per time slice.
+         * 
+         * @remarks Do not delete the pointer returned by this function.
+         *      The class will delete the pointer upon destruction.
+         * 
+         * @return the sum vector with the sums per time slice
+         */
         const Eigen::VectorXd* getSumVector() const             {return sumVector;}
     };
 }
