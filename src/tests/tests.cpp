@@ -1007,18 +1007,20 @@ namespace tests
         //if only one bin is used, the second parameter is one and the following is 0.0.
         //the sum of parameter 2 and 3 is always 1.0.
         //if two bins are used for an overtone, put the percentage in parameters 2 and 3.
+        //got percentages through cent scale, matlab command: 2.^((1:7201-1)/1200)
+        //and then lookup...
         std::vector<std::pair<int, std::pair<double, double> > > overtones;
         overtones.push_back(std::pair<int, std::pair<double, double> >( 0, std::pair<double, double>(1.00, 0.00)));
         overtones.push_back(std::pair<int, std::pair<double, double> >(12, std::pair<double, double>(1.00, 0.00)));
         overtones.push_back(std::pair<int, std::pair<double, double> >(19, std::pair<double, double>(0.98, 0.02)));
         overtones.push_back(std::pair<int, std::pair<double, double> >(24, std::pair<double, double>(1.00, 0.00)));
-        overtones.push_back(std::pair<int, std::pair<double, double> >(28, std::pair<double, double>(0.05, 0.95)));
-        overtones.push_back(std::pair<int, std::pair<double, double> >(31, std::pair<double, double>(0.98, 0.02)));
-        overtones.push_back(std::pair<int, std::pair<double, double> >(33, std::pair<double, double>(0.40, 0.60)));
+        overtones.push_back(std::pair<int, std::pair<double, double> >(28, std::pair<double, double>(0.13, 0.87)));
+        overtones.push_back(std::pair<int, std::pair<double, double> >(31, std::pair<double, double>(0.97, 0.03)));
+        overtones.push_back(std::pair<int, std::pair<double, double> >(33, std::pair<double, double>(0.31, 0.69)));
         overtones.push_back(std::pair<int, std::pair<double, double> >(36, std::pair<double, double>(1.00, 0.00)));
-        overtones.push_back(std::pair<int, std::pair<double, double> >(38, std::pair<double, double>(0.99, 0.01)));
-        overtones.push_back(std::pair<int, std::pair<double, double> >(39, std::pair<double, double>(0.05, 0.95)));
-        overtones.push_back(std::pair<int, std::pair<double, double> >(41, std::pair<double, double>(0.55, 0.45)));
+        overtones.push_back(std::pair<int, std::pair<double, double> >(38, std::pair<double, double>(0.96, 0.04)));
+        overtones.push_back(std::pair<int, std::pair<double, double> >(39, std::pair<double, double>(0.13, 0.87)));
+        overtones.push_back(std::pair<int, std::pair<double, double> >(41, std::pair<double, double>(0.52, 0.48)));
         
         std::ofstream timbredata("timbredata.dat", std::ios_base::app);
         
