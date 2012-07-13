@@ -15,9 +15,15 @@ namespace music
     
     void BPMEstimator::estimateBPM(ConstantQTransformResult* transformResult)
     {
-        estimateBPM1(transformResult);
+        //estimateBPM1(transformResult);
+        estimateBPM5(transformResult);
     }
     
+    void BPMEstimator::estimateBPM5(ConstantQTransformResult* transformResult)
+    {
+        //method from "Joint Beat&Tatum Tracking from Music Signals"
+        
+    }
     void BPMEstimator::estimateBPM1(ConstantQTransformResult* transformResult)
     {
         DEBUG_OUT("estimating tempo of song...", 10);

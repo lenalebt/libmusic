@@ -490,9 +490,91 @@ namespace music
         
         return (*octaveMatrix[octave])(bin, pos);
     }
+    std::complex<float> ConstantQTransformResult::getNoteValueMean(float time, int octave, int bin, float preDuration) const
+    {
+        if (time <= 0.0f)
+            return 0.0f;
+        
+        if (octave >= octaveCount)
+        {
+            DEBUG_OUT("tried to acces octave " << octave << ", we only have " << octaveCount << " octaves!", 10);
+        }
+        
+        //time *= timeFactor;
+        time += timeBefore;
+        double preTime = time - preDuration;
+        
+        int pos = octaveMatrix[octaveCount-1]->cols();
+        pos >>= octaveCount - octave - 1;
+        pos *= (time/duration);
+        //pos *= (time/originalDuration);
+        pos += drop[octave] + 1;
+        
+        int prePos;
+        if (preTime <= 0.0)
+        {
+            prePos=0;
+        }
+        else
+        {
+            prePos = octaveMatrix[octaveCount-1]->cols();
+            prePos >>= octaveCount - octave - 1;
+            prePos *= (preTime/duration);
+            prePos += drop[octave] + 1;
+        }
+        
+        float mean=0.0f;
+        
+        assert(pos < octaveMatrix[octave]->cols());
+        
+        for (int i=prePos; i<=pos)
+        {
+            mean += (*octaveMatrix[octave])(bin, i);
+        }
+        mean /= pos-prePos;
+        
+        return mean;
+    }
     std::complex<float> ConstantQTransformResult::getNoteValueLinearInterpolation(float time, int octave, int bin) const
     {
-        return std::complex<float>(0.0f, 0.0f);
+        /*if (time <= 0.0f)
+            return std::complex<float>(0.0f, 0.0f);
+        
+        if (octave >= octaveCount)
+        {
+            DEBUG_OUT("tried to acces octave " << octave << ", we only have " << octaveCount << " octaves!", 10);
+        }
+        
+        //time *= timeFactor;
+        time += timeBefore;
+        
+        int pos = octaveMatrix[octaveCount-1]->cols();
+        pos >>= octaveCount - octave - 1;
+        double dblPos = pos;
+        pos *= (time/duration);
+        dblPos *= (time/duration);
+        //pos *= (time/originalDuration);
+        pos += drop[octave] + 1;
+        dblPos += drop[octave] + 1;
+        
+        double percent = dblPos - pos;
+        
+        if (pos + 1 >= octaveMatrix[octave]->cols())
+        {
+            return (*octaveMatrix[octave])(bin, pos);
+        }
+        else if (pos >= octaveMatrix[octave]->cols())
+        {
+            DEBUG_OUT("too large pos: " << pos, 25);
+            return std::complex<float>(0.0f, 0.0f);
+        } else if (pos < 0)
+        {
+            DEBUG_OUT("too small pos: " << pos, 25);
+            return std::complex<float>(0.0f, 0.0f);
+        }
+        
+        
+        return (1.0-percent)*(*octaveMatrix[octave])(bin, pos) + percent*(*octaveMatrix[octave])(bin, pos+1);*/
     }
     
     ConstantQTransformResult::~ConstantQTransformResult()

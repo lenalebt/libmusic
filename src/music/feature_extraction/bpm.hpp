@@ -20,6 +20,7 @@ namespace music
         void estimateBPM2(ConstantQTransformResult* transformResult);
         void estimateBPM3(ConstantQTransformResult* transformResult);
         void estimateBPM4(ConstantQTransformResult* transformResult);
+        void estimateBPM5(ConstantQTransformResult* transformResult);
     protected:
         
     public:

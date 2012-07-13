@@ -91,8 +91,8 @@ namespace music
          * 
          * 
          * @param time the time in seconds
-         * @param midiNoteNumber the number of the midi note you want to get.
-         * @see \ref midinote_scale
+         * @param octave
+         * @param bin
          * @return the value of the constant Q transform at a given sample number
          * @todo description does not match function parameters
          * @todo timing is not right: lower octaves get squeezed (they are too short)
@@ -106,12 +106,28 @@ namespace music
          * It just takes the value of the transform that is before the given time value.
          * 
          * @param time the time in seconds
-         * @param midiNoteNumber the number of the midi note you want to get.
-         * @see \ref midinote_scale
+         * @param octave
+         * @param bin
          * @return the value of the constant Q transform at a given sample number
          * @todo description does not match function parameters
          */
         std::complex<float> getNoteValueNoInterpolation(float time, int octave, int bin) const;
+        
+        /**
+         * @brief Returns the value of the constant Q transform at the given time slot
+         *      and does not interpolate.
+         * 
+         * Calculates the mean of a time slot and returns that.
+         * 
+         * @param time the time in seconds
+         * @param octave
+         * @param bin
+         * @param preDuration The time before the moment given in <code>time</code> that will be taken into account
+         *      when calculating the mean.
+         * @return the value of the constant Q transform at a given sample number
+         * @todo description does not match function parameters
+         */
+        float getNoteValueMean(float time, int octave, int bin, float preDuration) const;
         
         double getOriginalDuration() const {return originalDuration;}
         int getOctaveCount() const {return octaveCount;}
