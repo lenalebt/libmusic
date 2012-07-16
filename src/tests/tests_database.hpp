@@ -3,7 +3,7 @@
 
 namespace tests
 {
-    
+    int testSQLiteDatabaseConnection();
 }
 
 #endif  //TESTS_DATABASE_HPP

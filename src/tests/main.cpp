@@ -7,6 +7,8 @@
 
 #include "tests.hpp"
 #include "tests_feature_extraction.hpp"
+#include "tests_classifier.hpp"
+#include "tests_database.hpp"
 #include "testframework.hpp"
 
 
@@ -31,6 +33,8 @@ int main(int argc, char *argv[])
         return tests::testConstantQ();
     else if (testname == "fft")
         return tests::testFFT();
+    else if (testname == "sqlitedatabaseconnection")
+        return tests::testSQLiteDatabaseConnection();
     else if (testname == "estimatebpm")
         return tests::testEstimateBPM();
     else if (testname == "estimatechords")
