@@ -23,6 +23,10 @@ namespace tests
         CHECK(conn->open("test.db"));
         CHECK(conn->isDBOpen());
         
+        
+        
+        CHECK(conn->close());
+        
         return EXIT_SUCCESS;
     }
 }

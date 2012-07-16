@@ -72,6 +72,7 @@ SET(
     #database
     src/music/database/databaseconnection.cpp
     src/music/database/sqlitedatabaseconnection.cpp
+    src/music/database/databaseentities.cpp
     
     #console colors
     src/tools/console_colors.cpp
@@ -101,6 +102,7 @@ SET(
     #database
     src/music/database/databaseconnection.hpp
     src/music/database/sqlitedatabaseconnection.hpp
+    src/music/database/databaseentities.hpp
     
     #console colors
     src/tools/console_colors.hpp
