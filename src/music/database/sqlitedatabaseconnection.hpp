@@ -45,6 +45,9 @@ namespace music
         bool isDBOpen();
         bool beginTransaction();
         bool endTransaction();
+        
+        bool addSong(Song* song);
+        bool addSongFeatures(SongFeatures* features);
     };
 }
 #endif //SQLITEDATABASECONNECTION_HPP

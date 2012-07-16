@@ -74,8 +74,9 @@ SET(
     src/music/database/sqlitedatabaseconnection.cpp
     src/music/database/databaseentities.cpp
     
-    #console colors
+    #tools
     src/tools/console_colors.cpp
+    src/tools/stringhelper.cpp
     
     #kissfft source files
     src/kissfft/kiss_fft.c
@@ -104,8 +105,9 @@ SET(
     src/music/database/sqlitedatabaseconnection.hpp
     src/music/database/databaseentities.hpp
     
-    #console colors
+    #tools
     src/tools/console_colors.hpp
+    src/tools/stringhelper.hpp
     
     #kissfft headers
     src/kissfft/kiss_fft.h
@@ -196,6 +198,7 @@ TARGET_LINK_LIBRARIES(music
 #add unit tests here
 ENABLE_TESTING()
 ADD_TEST(basename                  "musictests" "basename")
+ADD_TEST(stringhelper              "musictests" "stringhelper")
 ADD_TEST(libmusicaccess            "musictests" "libmusicaccess")
 ADD_TEST(eigen                     "musictests" "eigen")
 ADD_TEST(constantq                 "musictests" "constantq")
