@@ -28,6 +28,8 @@ namespace music
         bool _dbOpen;
         sqlite3* _db;
         
+        sqlite3_stmt* _getLastInsertRowIDStatement;
+        
         /**
          * @brief Creates the needed tables in the database file.
          * 
@@ -37,6 +39,7 @@ namespace music
          */
         bool createTables();
         bool execCreateTableStatement(std::string statement);
+        long getLastInsertRowID();
     public:
         SQLiteDatabaseConnection();
         ~SQLiteDatabaseConnection();

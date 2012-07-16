@@ -9,7 +9,8 @@ namespace music
 {
     SQLiteDatabaseConnection::SQLiteDatabaseConnection() :
         _dbOpen(false),
-        _db(NULL)
+        _db(NULL),
+        _getLastInsertRowIDStatement(NULL)
     {
         
     }
@@ -19,6 +20,8 @@ namespace music
             close();
         
         //TODO: close prepared statements, if any
+        if (_getLastInsertRowIDStatement != NULL)
+            sqlite3_finalize(_getLastInsertRowIDStatement);
     }
     
     bool SQLiteDatabaseConnection::open(std::string dbConnectionString)
@@ -177,8 +180,47 @@ namespace music
         return true;
     }
     
+    long SQLiteDatabaseConnection::getLastInsertRowID()
+    {
+        long retVal=0;
+        int rc;
+        
+        if (_getLastInsertRowIDStatement == NULL)
+        {
+            DEBUG_OUT("Prepare statement: \"SELECT last_insert_rowid();\"", 30);
+            rc = sqlite3_prepare_v2(_db, "SELECT last_insert_rowid();", -1, &_getLastInsertRowIDStatement, NULL);
+            if (rc != SQLITE_OK)
+            {
+                DEBUG_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
+                return -1;
+            }
+        }
+        
+        while ((rc = sqlite3_step(_getLastInsertRowIDStatement)) != SQLITE_DONE)
+        {
+            //TODO: handle errors.
+            
+            retVal = sqlite3_column_int64(_getLastInsertRowIDStatement, 0);
+        }
+        
+        if (rc != SQLITE_DONE)
+        {
+            DEBUG_OUT("Failed to execute statement: \"SELECT last_insert_rowid();\". Resultcode: " << rc, 10);
+            return -1;
+        }
+        
+        rc = sqlite3_reset(_getLastInsertRowIDStatement);
+        if(rc != SQLITE_OK)
+        {
+            DEBUG_OUT("Failed to reset statement: \"SELECT last_insert_rowid();\". Resultcode: " << rc, 10);
+        }
+        
+        return retVal;
+    }
+    
     bool SQLiteDatabaseConnection::addSong(Song* song)
     {
+        
         return false;
     }
     

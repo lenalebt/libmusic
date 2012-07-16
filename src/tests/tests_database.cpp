@@ -34,7 +34,7 @@ namespace tests
         dir = opendir("./testdata/");
         CHECK(dir != NULL);
         
-        DEBUG_OUT("searching for files in testdata directory...", 10);
+        DEBUG_OUT("searching for files in directory \"./testdata/\"...", 10);
         while ((ent = readdir (dir)) != NULL)
         {
             std::string filename(ent->d_name);
@@ -43,6 +43,11 @@ namespace tests
             if (endsWith(loweredFilename, ".mp3"))
             {
                 DEBUG_OUT("adding file to database: \"" << filename << "\"", 15);
+                music::Song* song = new music::Song(filename);
+                
+                CHECK(conn->addSong(song));
+                
+                delete song;
             }
             else
             {

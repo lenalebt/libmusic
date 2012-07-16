@@ -473,8 +473,19 @@ namespace tests
         CHECK_EQ(str, "hAllO'!§$%&/()=?");
         toupper(str);
         CHECK_EQ(str, "HALLO'!§$%&/()=?");
+        toupper(str);
+        CHECK_EQ(str, "HALLO'!§$%&/()=?");
         tolower(str);
         CHECK_EQ(str, "hallo'!§$%&/()=?");
+        tolower(str);
+        CHECK_EQ(str, "hallo'!§$%&/()=?");
+        
+        str = "%";
+        CHECK_EQ(str, "%");
+        toupper(str);
+        CHECK_EQ(str, "%");
+        tolower(str);
+        CHECK_EQ(str, "%");
         
         return EXIT_SUCCESS;
     }
