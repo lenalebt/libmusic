@@ -164,7 +164,7 @@ namespace music
                 {
                     for (int bin=0; bin<binsPerOctave; bin++)
                     {
-                        sum += std::abs(transformResult->getNoteValueNoInterpolation(i*timeResolution, octave, bin));
+                        sum += transformResult->getNoteValueMean(i*timeResolution, octave, bin, timeResolution);
                     }
                 }
                 (*sumVector)[i] = sum;
@@ -199,7 +199,7 @@ namespace music
             {
                 for (int bin=0; bin<binsPerOctave; bin++)
                 {
-                    double val = std::abs(transformResult->getNoteValueNoInterpolation(i*timeResolution, octave, bin));
+                    double val = transformResult->getNoteValueMean(i*timeResolution, octave, bin, timeResolution);
                     mean += val;
                     
                     if (val < min)
@@ -240,7 +240,7 @@ namespace music
             {
                 for (int bin=0; bin<binsPerOctave; bin++)
                 {
-                    double val = std::abs(transformResult->getNoteValueNoInterpolation(i*timeResolution, octave, bin)) - (*meanVector)[octave*binsPerOctave + bin];
+                    double val = transformResult->getNoteValueMean(i*timeResolution, octave, bin, timeResolution) - (*meanVector)[octave*binsPerOctave + bin];
                     variance += val*val;
                 }
             }
