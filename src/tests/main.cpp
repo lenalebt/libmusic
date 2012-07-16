@@ -6,6 +6,7 @@
 #include <cctype>
 
 #include "tests.hpp"
+#include "tests_feature_extraction.hpp"
 #include "testframework.hpp"
 
 

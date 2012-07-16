@@ -118,6 +118,7 @@ SET(
     music_TEST_SOURCES
     ${music_SOURCES}
     src/tests/tests.cpp
+    src/tests/tests_feature_extraction.cpp
     src/tests/testframework.cpp
     src/tests/main.cpp
     )
@@ -126,6 +127,7 @@ SET(
     music_TEST_HEADERS
     ${music_HEADERS}
     src/tests/tests.hpp
+    src/tests/tests_feature_extraction.hpp
     src/tests/testframework.hpp
     src/tests/main.hpp
     )    

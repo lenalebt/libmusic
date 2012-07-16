@@ -81,7 +81,13 @@ namespace music
         std::list<std::string> statements;
         
         //create list of create table statements
-        statements.push_back("CREATE TABLE IF NOT EXISTS test(id INTEGER PRIMARY KEY, name VARCHAR);");
+        statements.push_back("CREATE TABLE IF NOT EXISTS song(songID INTEGER PRIMARY KEY, artist VARCHAR, title VARCHAR, album VARCHAR, tracknr INTEGER, filename VARCHAR, genre VARCHAR, featureID INTEGER NOT NULL);");
+        statements.push_back("CREATE TABLE IF NOT EXISTS features(featureID INTEGER PRIMARY KEY, length FLOAT, tempo FLOAT, dynamicrange FLOAT);");
+        statements.push_back("CREATE TABLE IF NOT EXISTS category(categoryID INTEGER PRIMARY KEY, categoryName VARCHAR);");
+        statements.push_back("CREATE TABLE IF NOT EXISTS categoryDescription(categoryDescriptionID INTEGER PRIMARY KEY, categoryID INTEGER NOT NULL);");
+        
+        statements.push_back("CREATE TABLE IF NOT EXISTS categoryExample(categoryID INTEGER NOT NULL, songID INTEGER NOT NULL, PRIMARY KEY(categoryID, songID));");
+        statements.push_back("CREATE TABLE IF NOT EXISTS categoryMembership(categoryID INTEGER NOT NULL, songID INTEGER NOT NULL, score FLOAT, PRIMARY KEY(categoryID, songID));");
         
         //execute statements within transaction
         retVal = retVal && this->beginTransaction();
