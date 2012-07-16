@@ -120,6 +120,7 @@ SET(
     src/tests/tests.cpp
     src/tests/tests_feature_extraction.cpp
     src/tests/tests_classifier.cpp
+    src/tests/tests_database.cpp
     src/tests/testframework.cpp
     src/tests/main.cpp
     )
@@ -130,6 +131,7 @@ SET(
     src/tests/tests.hpp
     src/tests/tests_feature_extraction.hpp
     src/tests/tests_classifier.hpp
+    src/tests/tests_database.hpp
     src/tests/testframework.hpp
     src/tests/main.hpp
     )    
