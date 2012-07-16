@@ -474,7 +474,7 @@ namespace tests
         std::queue<double> minBPMs;
         std::queue<double> maxBPMs;
         
-        files.push("testdata/rhythm-metronom-80.mp3");    //80bpm
+        /*files.push("testdata/rhythm-metronom-80.mp3");    //80bpm
         minBPMs.push(75);
         maxBPMs.push(85);
         files.push("testdata/rhythm-metronom-180.mp3");    //180bpm
@@ -498,7 +498,7 @@ namespace tests
         
         files.push("testdata/test.mp3");    //92bpm
         minBPMs.push(90);
-        maxBPMs.push(96);
+        maxBPMs.push(96);*/
         files.push("sonne.mp3");    //198bpm
         minBPMs.push(195);
         maxBPMs.push(207);
@@ -839,7 +839,6 @@ namespace tests
         files <<  "./testdata/chord-minor-b-keyboard.mp3";
         chords << "b";
         
-        #if 0
         while (!files.empty())
         {
             std::string filename = files.front();
@@ -887,7 +886,7 @@ namespace tests
                 //chordstr << *chord << ConsoleColors::defaultText() << std::endl << std::flush;
             //}
         }
-        #endif
+        
         std::queue<std::pair<std::string, std::vector<std::pair<double, std::string> > > > data;
         std::vector<std::pair<double, std::string> > times;
         
@@ -1043,22 +1042,22 @@ namespace tests
                 for (int bin=0; bin < transformResult->getBinsPerOctave(); bin++)
                 {
                     int pos = octave*transformResult->getBinsPerOctave() + bin;
-                    vec[pos] = (std::abs(transformResult->getNoteValueNoInterpolation(time, octave, bin)) +
-                            std::abs(transformResult->getNoteValueNoInterpolation(time-0.010, octave, bin)) +
-                            std::abs(transformResult->getNoteValueNoInterpolation(time-0.020, octave, bin)) +
-                            std::abs(transformResult->getNoteValueNoInterpolation(time-0.030, octave, bin)) +
-                            std::abs(transformResult->getNoteValueNoInterpolation(time-0.040, octave, bin)) +
-                            std::abs(transformResult->getNoteValueNoInterpolation(time-0.050, octave, bin)) +
-                            std::abs(transformResult->getNoteValueNoInterpolation(time-0.060, octave, bin)) +
-                            std::abs(transformResult->getNoteValueNoInterpolation(time-0.070, octave, bin)) +
-                            std::abs(transformResult->getNoteValueNoInterpolation(time-0.080, octave, bin)) +
-                            std::abs(transformResult->getNoteValueNoInterpolation(time-0.090, octave, bin)) +
-                            std::abs(transformResult->getNoteValueNoInterpolation(time-0.100, octave, bin)) +
-                            std::abs(transformResult->getNoteValueNoInterpolation(time-0.110, octave, bin)) +
-                            std::abs(transformResult->getNoteValueNoInterpolation(time-0.120, octave, bin)) +
-                            std::abs(transformResult->getNoteValueNoInterpolation(time-0.130, octave, bin)) +
-                            std::abs(transformResult->getNoteValueNoInterpolation(time-0.140, octave, bin)) +
-                            std::abs(transformResult->getNoteValueNoInterpolation(time-0.150, octave, bin)))
+                    vec[pos] = (std::abs(transformResult->getNoteValueMean(time, octave, bin, 1.0/32.0)) +
+                            std::abs(transformResult->getNoteValueMean(time-0.010, octave, bin, 1.0/32.0)) +
+                            std::abs(transformResult->getNoteValueMean(time-0.020, octave, bin, 1.0/32.0)) +
+                            std::abs(transformResult->getNoteValueMean(time-0.030, octave, bin, 1.0/32.0)) +
+                            std::abs(transformResult->getNoteValueMean(time-0.040, octave, bin, 1.0/32.0)) +
+                            std::abs(transformResult->getNoteValueMean(time-0.050, octave, bin, 1.0/32.0)) +
+                            std::abs(transformResult->getNoteValueMean(time-0.060, octave, bin, 1.0/32.0)) +
+                            std::abs(transformResult->getNoteValueMean(time-0.070, octave, bin, 1.0/32.0)) +
+                            std::abs(transformResult->getNoteValueMean(time-0.080, octave, bin, 1.0/32.0)) +
+                            std::abs(transformResult->getNoteValueMean(time-0.090, octave, bin, 1.0/32.0)) +
+                            std::abs(transformResult->getNoteValueMean(time-0.100, octave, bin, 1.0/32.0)) +
+                            std::abs(transformResult->getNoteValueMean(time-0.110, octave, bin, 1.0/32.0)) +
+                            std::abs(transformResult->getNoteValueMean(time-0.120, octave, bin, 1.0/32.0)) +
+                            std::abs(transformResult->getNoteValueMean(time-0.130, octave, bin, 1.0/32.0)) +
+                            std::abs(transformResult->getNoteValueMean(time-0.140, octave, bin, 1.0/32.0)) +
+                            std::abs(transformResult->getNoteValueMean(time-0.150, octave, bin, 1.0/32.0)))
                             /16.0;
                     sortVec[pos] = std::pair<double, int>(vec[pos], pos);
                 }
