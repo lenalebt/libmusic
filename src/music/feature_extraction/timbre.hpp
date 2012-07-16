@@ -6,6 +6,7 @@ namespace music
     /**
      * @todo Doku schreiben
      * @todo Implementierung überdenken
+     * @ingroup feature_extraction
      */
     class TimbreEstimation
     {
@@ -20,6 +21,7 @@ namespace music
     /**
      * @todo Doku schreiben
      * @todo Implementierung überdenken
+     * @ingroup feature_extraction
      */
     class TimbreEstimator
     {

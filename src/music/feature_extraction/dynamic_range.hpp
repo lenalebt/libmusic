@@ -16,6 +16,7 @@ namespace music
      * RMS and mean correspond to signals with a higher dynamic range.
      * 
      * @author Lena Brueder
+     * @ingroup feature_extraction
      * @date 2012-07-06
      */
     class DynamicRangeCalculator

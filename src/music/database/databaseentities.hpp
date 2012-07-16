@@ -5,12 +5,37 @@
 
 namespace music
 {
+    
+    /**
+     * @brief This class is a database value object for the features of a song
+     *      that were extracted from the signal,
+     *      such as tempo, length, dynamic range, ...
+     * 
+     * @remarks Use this object to store data in a database.
+     * 
+     * @ingroup database
+     * @author Lena Brueder
+     * @date 2012-07-16
+     */
+    class SongFeatures
+    {
+    private:
+        double length;
+        double tempo;
+        double dynamicrange;
+    protected:
+        
+    public:
+        
+    };
+    
     /**
      * @brief This is a database value object for a song and its properties
      *      that are no features that were extracted from the signal.
      * 
      * @remarks Use this object to store data in a database.
      * 
+     * @ingroup database
      * @author Lena Brueder
      * @date 2012-07-16
      */
@@ -49,17 +74,7 @@ namespace music
         int getTrackNumber() const                      {return tracknr;}
         
         void setSongFeatures(SongFeatures* features)    {this->features = features;}
-        SongFeatures* getSongFeatures() const           {return songFeatures;}
-        
-    };
-    
-    class SongFeatures
-    {
-    private:
-        
-    protected:
-        
-    public:
+        SongFeatures* getSongFeatures() const           {return features;}
         
     };
 }

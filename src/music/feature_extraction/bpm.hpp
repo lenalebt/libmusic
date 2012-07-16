@@ -8,6 +8,7 @@ namespace music
     /**
      * @todo Doku schreiben
      * @todo Implementierung überdenken/überarbeiten
+     * @ingroup feature_extraction
      */
     class BPMEstimator
     {

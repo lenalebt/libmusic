@@ -3,8 +3,19 @@
 
 #include <string>
 
+/**
+ * @brief The color namespace contains all classes and functions related to color output on the console
+ */
 namespace colors
 {
+    /**
+     * @brief This class is for colors on the console.
+     * 
+     * @todo Documentation
+     * 
+     * @author Lena Brueder
+     * @date 2012-07-16
+     */
     class ConsoleColors
     {
     private:
