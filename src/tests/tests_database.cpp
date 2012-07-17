@@ -7,6 +7,8 @@
 #include <iostream>
 #include "stringhelper.hpp"
 
+#include <unistd.h>
+
 namespace tests
 {
     int testSQLiteDatabaseConnection()
@@ -16,6 +18,10 @@ namespace tests
         CHECK(conn == NULL)
         conn = new music::SQLiteDatabaseConnection();
         CHECK(conn != NULL);
+        
+        //TODO: delete file "test.db"
+        DEBUG_OUT("removing file \"test.db\"...", 10);
+        unlink("test.db");  //POSIX standard call
         
         CHECK(!conn->isDBOpen());
         CHECK(conn->open("test.db"));
@@ -28,7 +34,7 @@ namespace tests
         CHECK(conn->isDBOpen());
         
         //TODO: try to add all files from the test directory to the database
-        DIR* dir = NULL;
+        DIR* dir = NULL;        //POSIX standard calls
         CHECK(dir == NULL);
         struct dirent *ent;
         dir = opendir("./testdata/");
