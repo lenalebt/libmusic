@@ -37,17 +37,17 @@ namespace music
          *      This string is database dependend, take a look at the implementation
          *      for details.
          * 
-         * @return if the operation failed, or not.
+         * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
          */
         virtual bool open(std::string dbConnectionString)=0;
         /**
          * @brief Closes the database connection.
-         * @return if the operation failed, or not.
+         * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
          */
         virtual bool close()=0;
         /**
          * @brief Returns, if the database is opened - or not.
-         * @return if the database is opened
+         * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
          */
         virtual bool isDBOpen()=0;
         
@@ -58,7 +58,7 @@ namespace music
         virtual bool beginTransaction()=0;
         /**
          * @brief Tells the database backend to close a transaction.
-         * @return if the operation failed
+         * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
          */
         virtual bool endTransaction()=0;
         
@@ -68,17 +68,32 @@ namespace music
          * @brief Adds a song to the database.
          * 
          * If the ID of the song was below 0, it will be set by the
-         * database to a value that has not been used. The value will be
-         * set in <code>song</code>.
+         * database to a value that is not used in the table. The value will be
+         * set in <code>song</code>, so you can find it afterwards there
+         * (call getID()).
          * 
          * @remarks This function may change the contents of the parameter.
          * @param song The song that will be saved in the database. The ID
          *      of the song may and will be altered by the database if
          *      it is below 0. Otherwise it will not be touched.
-         * @return 
+         * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
          */
-        virtual bool addSong(Song* song)=0;
-        virtual bool addSongFeatures(SongFeatures* features)=0;
+        virtual bool addSong(Song& song)=0;
+        /**
+         * @brief Adds features of a song to the database.
+         * 
+         * If the ID of the features was below 0, it will be set by the
+         * database to a value that is not used in the table. The value will be
+         * set in <code>features</code>, so you can find it afterwards there
+         * (call getID()).
+         * 
+         * @remarks This function may change the contents of the parameter.
+         * @param song The song that will be saved in the database. The ID
+         *      of the song may and will be altered by the database if
+         *      it is below 0. Otherwise it will not be touched.
+         * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
+         */
+        virtual bool addSongFeatures(SongFeatures& features)=0;
     };
 }
 #endif  //DATABASECONNECTION_HPP

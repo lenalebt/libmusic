@@ -8,6 +8,7 @@ namespace music
         artist(""),
         title(""),
         genre(""),
+        album(""),
         tracknr(-1),
         features(NULL)
     {
