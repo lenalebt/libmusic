@@ -77,17 +77,17 @@ namespace music
          * @brief Reads the genre ID by name.
          * @return the genre ID, or -1 if the read failed.
          */
-        id_datatype getGenreIDByName(std::string genreName);
+        bool getGenreIDByName(std::string genreName, id_datatype& genreID);
         /**
          * @brief Reads the album ID by name.
          * @return the album ID, or -1 if the read failed.
          */
-        id_datatype getAlbumIDByName(std::string albumName);
+        bool getAlbumIDByName(std::string albumName, id_datatype& albumID);
         /**
          * @brief Reads the artist ID by name.
          * @return the artist ID, or -1 if the read failed.
          */
-        id_datatype getArtistIDByName(std::string artistName);
+        bool getArtistIDByName(std::string artistName, id_datatype& artistID);
     };
 }
 #endif //SQLITEDATABASECONNECTION_HPP

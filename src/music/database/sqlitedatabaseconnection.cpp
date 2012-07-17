@@ -344,13 +344,29 @@ namespace music
         }
         
         //first take a look if the genre can be found, so we don't need to save it another time
+        id_datatype genreID = getGenreIDByName(genreName);
+        if (genreID != -1)
+        {
+            id = genreID;
+            return true;
+        }
         
         return false;
     }
     
-    SQLiteDatabaseConnection::id_datatype SQLiteDatabaseConnection::getGenreIDByName(std::string genreName)
+    bool SQLiteDatabaseConnection::addOrGetAlbum(id_datatype& id, std::string albumName)
     {
-        id_datatype genreID = -1;
+        return false;
+    }
+    
+    bool SQLiteDatabaseConnection::addOrGetArtist(id_datatype& id, std::string artistName)
+    {
+        return false;
+    }
+    
+    bool SQLiteDatabaseConnection::getGenreIDByName(std::string genreName, SQLiteDatabaseConnection::id_datatype& genreID)
+    {
+        genreID = -1;
         int rc;
         
         if (_getGenreByNameStatement == NULL)
@@ -377,26 +393,28 @@ namespace music
             else
             {
                 ERROR_OUT("Failed to read data from database. Resultcode: " << rc, 10);
-                return -1;
+                return false;
             }
         }
         
         if (rc != SQLITE_DONE)
         {
             ERROR_OUT("Failed to execute statement. Resultcode: " << rc, 10);
+            return false;
         }
         
         rc = sqlite3_reset(_getGenreByNameStatement);
         if (rc != SQLITE_OK)
         {
             ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
+            return false;
         }
         
-        return genreID;
+        return true;
     }
-    SQLiteDatabaseConnection::id_datatype SQLiteDatabaseConnection::getAlbumIDByName(std::string albumName)
+     SQLiteDatabaseConnection::getAlbumIDByName(std::string albumName, SQLiteDatabaseConnection::id_datatype albumID)
     {
-        id_datatype albumID = -1;
+        albumID = -1;
         int rc;
         
         if (_getAlbumByNameStatement == NULL)
@@ -422,26 +440,28 @@ namespace music
             else
             {
                 ERROR_OUT("Failed to read data from database. Resultcode: " << rc, 10);
-                return -1;
+                return false;
             }
         }
         
         if (rc != SQLITE_DONE)
         {
             ERROR_OUT("Failed to execute statement. Resultcode: " << rc, 10);
+            return false;
         }
         
         rc = sqlite3_reset(_getAlbumByNameStatement);
         if (rc != SQLITE_OK)
         {
             ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
+            return false;
         }
         
-        return albumID;
+        return true;
     }
-    SQLiteDatabaseConnection::id_datatype SQLiteDatabaseConnection::getArtistIDByName(std::string artistName)
+    SQLiteDatabaseConnection::getArtistIDByName(std::string artistName, SQLiteDatabaseConnection::id_datatype)
     {
-        id_datatype artistID = -1;
+        artistID = -1;
         int rc;
         
         if (_getArtistByNameStatement == NULL)
@@ -468,31 +488,23 @@ namespace music
             else
             {
                 ERROR_OUT("Failed to read data from database. Resultcode: " << rc, 10);
-                return -1;
+                return false;
             }
         }
         
         if (rc != SQLITE_DONE)
         {
             ERROR_OUT("Failed to execute statement. Resultcode: " << rc, 10);
+            return false;
         }
         
         rc = sqlite3_reset(_getArtistByNameStatement);
         if (rc != SQLITE_OK)
         {
             ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
+            return false;
         }
         
-        return artistID;
-    }
-    
-    bool SQLiteDatabaseConnection::addOrGetAlbum(id_datatype& id, std::string albumName)
-    {
-        return false;
-    }
-    
-    bool SQLiteDatabaseConnection::addOrGetArtist(id_datatype& id, std::string artistName)
-    {
-        return false;
+        return true;
     }
 }
