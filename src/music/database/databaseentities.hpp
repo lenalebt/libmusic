@@ -55,6 +55,7 @@ namespace music
         std::string artist;
         std::string title;
         std::string genre;
+        std::string album;
         int tracknr;
         
         SongFeatures* features;
@@ -78,6 +79,9 @@ namespace music
         
         void setGenre(std::string genre)                {this->genre = genre;}
         std::string getGenre() const                    {return genre;}
+        
+        void setAlbum(std::string album)                {this->album = album;}
+        std::string getAlbum() const                    {return album;}
         
         void setTrackNumber(int trackNumber)            {this->tracknr = trackNumber;}
         int getTrackNumber() const                      {return tracknr;}
