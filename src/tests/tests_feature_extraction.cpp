@@ -311,11 +311,11 @@ namespace tests
         //DEBUG_OUT("sum vector:" << std::endl << *perTimeSliceStatistics.getSumVector() << std::endl, 15)
         CHECK_EQ(perTimeSliceStatistics.getSumVector()->size(), elementCount);
         
-        CHECK_EQ((*perTimeSliceStatistics.getMeanVector())(500), 0.043865344641846);
+        CHECK_EQ((*perTimeSliceStatistics.getMeanVector())(500), 0.053265187215638);
         CHECK_EQ((*perTimeSliceStatistics.getMaxVector())(500), 0.372837632894516);
-        CHECK_EQ((*perTimeSliceStatistics.getMinVector())(500), 0.000052119550674);
-        CHECK_EQ((*perTimeSliceStatistics.getVarianceVector())(500), 0.006538470780168);
-        CHECK_EQ((*perTimeSliceStatistics.getSumVector())(500), 4.737457221319346);
+        CHECK_EQ((*perTimeSliceStatistics.getMinVector())(500), 0.001221419661306);
+        CHECK_EQ((*perTimeSliceStatistics.getVarianceVector())(500), 0.008187203212054);
+        CHECK_EQ((*perTimeSliceStatistics.getSumVector())(500), 5.752640219288878);
         
         return EXIT_SUCCESS;
     }
