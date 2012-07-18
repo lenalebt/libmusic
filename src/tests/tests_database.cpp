@@ -69,6 +69,7 @@ namespace tests
                 recording->setTitle("unknownTitle");
                 
                 CHECK(conn->addRecording(*recording));
+                CHECK_OP(recording->getID(), !=, -1);
                 
                 recording->setGenre("");
                 recording->setAlbum("");
@@ -77,7 +78,11 @@ namespace tests
                 recording->setTrackNumber(10);
                 recording->setTitle("");
                 
+                CHECK_OP(recording->getID(), !=, -1);
                 CHECK(conn->getRecordingByID(*recording));
+                CHECK_OP(recording->getID(), !=, -1);
+                CHECK(conn->getRecordingByID(*recording, true));
+                CHECK_OP(recording->getID(), !=, -1);
                 
                 CHECK_OP(recording->getAlbum(), ==, std::string("unknownAlbum"));
                 
@@ -126,6 +131,9 @@ namespace tests
         category->setCategoryName("");
         category->setID(1);
         CHECK(conn->getCategoryByID(*category));
+        CHECK_OP(category->getID(), !=, -1);
+        CHECK(conn->getCategoryByID(*category, true));
+        CHECK_OP(category->getID(), !=, -1);
         CHECK_EQ(category->getCategoryName(), std::string("rock music"));
         
         closedir (dir);
