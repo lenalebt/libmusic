@@ -77,6 +77,7 @@ SET(
     #tools
     src/tools/console_colors.cpp
     src/tools/stringhelper.cpp
+    src/tools/tuple.cpp
     
     #kissfft source files
     src/kissfft/kiss_fft.c
@@ -108,6 +109,7 @@ SET(
     #tools
     src/tools/console_colors.hpp
     src/tools/stringhelper.hpp
+    src/tools/tuple.hpp
     
     #kissfft headers
     src/kissfft/kiss_fft.h

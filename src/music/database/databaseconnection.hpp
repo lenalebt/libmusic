@@ -98,6 +98,8 @@ namespace music
         virtual bool addRecordingFeatures(databaseentities::RecordingFeatures& features)=0;
         
         virtual bool getRecordingByID(databaseentities::Recording& recording, bool readFeatures=false)=0;
+        
+        virtual bool addCategory(databaseentities::Category& category)=0;
     };
 }
 #endif  //DATABASECONNECTION_HPP

@@ -3,6 +3,8 @@
 
 #include <string>
 #include <Eigen/Dense>
+#include <list>
+#include "tuple.hpp"
 
 namespace music
 {
@@ -27,9 +29,8 @@ namespace music
         private:
             
         protected:
-            Eigen::VectorXd timbre;
-            double starttime;
-            double endtime;
+            //starttime, enttime, timbre vector
+            std::list<triple<double, double, Eigen::VectorXd> > timbreList;
         public:
             
         };
@@ -153,6 +154,7 @@ namespace music
         protected:
             
         public:
+            Category();
             void setID(id_datatype id)                      {this->id = id;}
             id_datatype getID()                             {return id;}
         };
