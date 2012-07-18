@@ -2,7 +2,7 @@
 
 namespace music
 {
-    Song::Song() :
+    Recording::Recording() :
         id(-1),
         filename(""),
         artist(""),
@@ -15,7 +15,7 @@ namespace music
         
     }
     
-    Song::Song(std::string filename) :
+    Recording::Recording(std::string filename) :
         id(-1),
         filename(filename),
         artist(""),
@@ -27,7 +27,7 @@ namespace music
         
     }
     
-    SongFeatures::SongFeatures() :
+    RecordingFeatures::RecordingFeatures() :
         id(-1)
     {
         
