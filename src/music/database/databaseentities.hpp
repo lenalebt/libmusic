@@ -79,7 +79,7 @@ namespace music
             id_datatype id;
             double length;
             double tempo;
-            double dynamicrange;
+            double dynamicRange;
         protected:
             
         public:
@@ -87,8 +87,17 @@ namespace music
              */
             RecordingFeatures();
             
-            void setID(id_datatype id)             {this->id = id;}
-            id_datatype getID() const              {return id;}
+            void setID(id_datatype id)                {this->id = id;}
+            id_datatype getID() const                 {return id;}
+            
+            void setLength(double length)             {this->length = length;}
+            double getLength() const                  {return length;}
+            
+            void setTempo(double tempo)               {this->tempo = tempo;}
+            double getTempo() const                   {return tempo;}
+            
+            void setDynamicRange(double dynamicRange) {this->dynamicRange = dynamicRange;}
+            double getDynamicRange() const            {return dynamicRange;}
         };
         
         /**
