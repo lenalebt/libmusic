@@ -273,9 +273,9 @@ namespace music
         return true;
     }
     
-    SQLiteDatabaseConnection::id_datatype SQLiteDatabaseConnection::getLastInsertRowID()
+    databaseentities::id_datatype SQLiteDatabaseConnection::getLastInsertRowID()
     {
-        id_datatype retVal=0;
+        databaseentities::id_datatype retVal=0;
         int rc;
         
         if (_getLastInsertRowIDStatement == NULL)
@@ -326,10 +326,10 @@ namespace music
         }
         //TODO: save data, set ID
         
-        id_datatype genreID=-1;
-        id_datatype albumID=-1;
-        id_datatype artistID=-1;
-        id_datatype featuresID=-1;
+        databaseentities::id_datatype genreID=-1;
+        databaseentities::id_datatype albumID=-1;
+        databaseentities::id_datatype artistID=-1;
+        databaseentities::id_datatype featuresID=-1;
         
         DEBUG_OUT("saving genre, album and artist...", 35);
         bool success;
@@ -399,12 +399,12 @@ namespace music
         return false;
     }
     
-    bool SQLiteDatabaseConnection::addOrGetGenre(id_datatype& id, std::string genreName)
+    bool SQLiteDatabaseConnection::addOrGetGenre(databaseentities::id_datatype& id, std::string genreName)
     {
         int rc;
         
         //first take a look if the genre can be found, so we don't need to save it another time
-        id_datatype genreID;
+        databaseentities::id_datatype genreID;
         bool success = getGenreIDByName(genreID, genreName);
         //could not read data. error!
         if (!success)
@@ -455,12 +455,12 @@ namespace music
         return true;
     }
     
-    bool SQLiteDatabaseConnection::addOrGetAlbum(id_datatype& id, std::string albumName)
+    bool SQLiteDatabaseConnection::addOrGetAlbum(databaseentities::id_datatype& id, std::string albumName)
     {
         int rc;
         
         //first take a look if the album can be found, so we don't need to save it another time
-        id_datatype albumID;
+        databaseentities::id_datatype albumID;
         bool success = getAlbumIDByName(albumID, albumName);
         //could not read data. error!
         if (!success)
@@ -511,12 +511,12 @@ namespace music
         return true;
     }
     
-    bool SQLiteDatabaseConnection::addOrGetArtist(id_datatype& id, std::string artistName)
+    bool SQLiteDatabaseConnection::addOrGetArtist(databaseentities::id_datatype& id, std::string artistName)
     {
         int rc;
         
         //first take a look if the artist can be found, so we don't need to save it another time
-        id_datatype artistID;
+        databaseentities::id_datatype artistID;
         bool success = getArtistIDByName(artistID, artistName);
         //could not read data. error!
         if (!success)
@@ -567,7 +567,7 @@ namespace music
         return true;
     }
     
-    bool SQLiteDatabaseConnection::getGenreIDByName(SQLiteDatabaseConnection::id_datatype& genreID, std::string genreName)
+    bool SQLiteDatabaseConnection::getGenreIDByName(databaseentities::id_datatype& genreID, std::string genreName)
     {
         genreID = -1;
         int rc;
@@ -615,7 +615,7 @@ namespace music
         
         return true;
     }
-    bool SQLiteDatabaseConnection::getAlbumIDByName(SQLiteDatabaseConnection::id_datatype& albumID, std::string albumName)
+    bool SQLiteDatabaseConnection::getAlbumIDByName(databaseentities::id_datatype& albumID, std::string albumName)
     {
         albumID = -1;
         int rc;
@@ -662,7 +662,7 @@ namespace music
         
         return true;
     }
-    bool SQLiteDatabaseConnection::getArtistIDByName(SQLiteDatabaseConnection::id_datatype& artistID, std::string artistName)
+    bool SQLiteDatabaseConnection::getArtistIDByName(databaseentities::id_datatype& artistID, std::string artistName)
     {
         artistID = -1;
         int rc;
@@ -712,9 +712,11 @@ namespace music
     
     bool SQLiteDatabaseConnection::getRecordingByID(databaseentities::Recording& recording, bool readFeatures)
     {
-        id_datatype recordingID = recording.getID();
-        if (recordingID == -1)
-            return false;
+        databaseentities::id_datatype recordingID = recording.getID();
+        recording.setID(-1);    //set ID to -1. If the element is not found, this is what the user will see later on.
+        
+        if (recordingID == -1)  //will not find entry if id==-1
+            return true;
         
         int rc;
         
@@ -731,7 +733,6 @@ namespace music
         //bind parameters
         sqlite3_bind_int64(_getRecordingByIDStatement, 1, recordingID);
         
-        //read data (ideally one line)
         while ((rc = sqlite3_step(_getRecordingByIDStatement)) != SQLITE_DONE)
         {
             if (rc == SQLITE_ROW)
