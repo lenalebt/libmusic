@@ -119,6 +119,15 @@ namespace tests
         rec.setID(1);
         CHECK(conn->getRecordingByID(rec));
         
+        DEBUG_OUT("testing now everything about categories...", 10);
+        music::databaseentities::Category* category = new music::databaseentities::Category();
+        category->setCategoryName("rock music");
+        CHECK(conn->addCategory(*category));
+        category->setCategoryName("");
+        category->setID(1);
+        CHECK(conn->getCategoryByID(*category));
+        CHECK_EQ(category->getCategoryName(), std::string("rock music"));
+        
         closedir (dir);
         
         CHECK(conn->close());

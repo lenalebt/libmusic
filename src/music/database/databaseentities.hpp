@@ -119,6 +119,7 @@ namespace music
         public:
             Recording();
             Recording(std::string filename);
+            ~Recording();
             
             void setID(id_datatype id)                      {this->id = id;}
             id_datatype getID() const                       {return id;}
@@ -146,18 +147,39 @@ namespace music
             
         };
         
+        class CategoryDescription
+        {
+        private:
+            id_datatype id;
+        protected:
+            
+        public:
+            CategoryDescription();
+            void setID(id_datatype id)                      {this->id = id;}
+            id_datatype getID()                             {return id;}
+        };
+        
         class Category
         {
         private:
             id_datatype id;
             std::string categoryName;
+            CategoryDescription* categoryDescription;
         protected:
             
         public:
             Category();
+            ~Category();
             void setID(id_datatype id)                      {this->id = id;}
             id_datatype getID()                             {return id;}
+            
+            void setCategoryName(std::string categoryName)  {this->categoryName = categoryName;}
+            std::string getCategoryName()                   {return categoryName;}
+            
+            void setCategoryDescription(CategoryDescription* categoryDescription) {this->categoryDescription = categoryDescription;}
+            CategoryDescription* getCategoryDescription()                         {return categoryDescription;}
         };
+        
     }
 }
 #endif  //DATABASEENTITIES_HPP
