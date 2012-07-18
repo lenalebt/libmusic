@@ -311,7 +311,7 @@ namespace music
         return retVal;
     }
     
-    bool SQLiteDatabaseConnection::addRecording(Recording& recording)
+    bool SQLiteDatabaseConnection::addRecording(databaseentities::Recording& recording)
     {
         DEBUG_OUT("saving new recording...", 30);
         int rc;
@@ -394,7 +394,7 @@ namespace music
         return true;
     }
     
-    bool SQLiteDatabaseConnection::addRecordingFeatures(RecordingFeatures& recording)
+    bool SQLiteDatabaseConnection::addRecordingFeatures(databaseentities::RecordingFeatures& recording)
     {
         return false;
     }
@@ -710,7 +710,7 @@ namespace music
         return true;
     }
     
-    bool SQLiteDatabaseConnection::getRecordingByID(Recording& recording, bool readFeatures)
+    bool SQLiteDatabaseConnection::getRecordingByID(databaseentities::Recording& recording, bool readFeatures)
     {
         id_datatype recordingID = recording.getID();
         if (recordingID == -1)

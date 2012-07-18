@@ -80,7 +80,7 @@ namespace music
          *      it is below 0. Otherwise it will not be touched.
          * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
          */
-        virtual bool addRecording(Recording& recording)=0;
+        virtual bool addRecording(databaseentities::Recording& recording)=0;
         /**
          * @brief Adds features of a recording to the database.
          * 
@@ -96,9 +96,9 @@ namespace music
          *      it is below 0. Otherwise it will not be touched.
          * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
          */
-        virtual bool addRecordingFeatures(RecordingFeatures& features)=0;
+        virtual bool addRecordingFeatures(databaseentities::RecordingFeatures& features)=0;
         
-        virtual bool getRecordingByID(Recording& recording, bool readFeatures=false)=0;
+        virtual bool getRecordingByID(databaseentities::Recording& recording, bool readFeatures=false)=0;
     };
 }
 #endif  //DATABASECONNECTION_HPP

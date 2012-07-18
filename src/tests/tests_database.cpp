@@ -50,7 +50,7 @@ namespace tests
             if (endsWith(loweredFilename, ".mp3"))
             {
                 DEBUG_OUT("adding file to database: \"" << filename << "\"", 15);
-                music::Recording* recording = new music::Recording(filename);
+                music::databaseentities::Recording* recording = new music::databaseentities::Recording(filename);
                 recording->setGenre("unknownGenre");
                 
                 if (contains(filename, "chord"))
