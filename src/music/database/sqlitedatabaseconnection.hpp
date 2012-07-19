@@ -41,7 +41,9 @@ namespace music
         bool addRecordingFeatures(databaseentities::RecordingFeatures& recordingFeatures);
         
         bool getRecordingByID(databaseentities::Recording& recording, bool readFeatures=false);
+        bool updateRecordingByID(databaseentities::Recording& recording, bool updateFeatures=false);
         bool getRecordingFeaturesByID(databaseentities::RecordingFeatures& recordingFeatures);
+        bool updateRecordingFeaturesByID(databaseentities::RecordingFeatures& recordingFeatures);
         
         bool addCategory(databaseentities::Category& category);
         bool getCategoryByID(databaseentities::Category& category, bool readDescription=false);
@@ -56,9 +58,11 @@ namespace music
         sqlite3_stmt* _getLastInsertRowIDStatement;
         
         sqlite3_stmt* _saveRecordingStatement;
+        sqlite3_stmt* _updateRecordingByIDStatement;
         sqlite3_stmt* _getRecordingByIDStatement;
         
         sqlite3_stmt* _saveRecordingFeaturesStatement;
+        sqlite3_stmt* _updateRecordingFeaturesStatement;
         sqlite3_stmt* _getRecordingFeaturesByIDStatement;
         
         sqlite3_stmt* _saveArtistStatement;

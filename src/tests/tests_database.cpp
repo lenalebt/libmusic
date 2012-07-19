@@ -51,7 +51,7 @@ namespace tests
             {
                 DEBUG_OUT("adding file to database: \"" << filename << "\"", 15);
                 music::databaseentities::Recording* recording = new music::databaseentities::Recording(filename);
-                recording->setAlbum("unknownAlbum");
+                recording->setAlbum("unknownAlbummmm");
                 
                 if (contains(filename, "chord"))
                     recording->setGenre("chord");
@@ -70,6 +70,7 @@ namespace tests
                 
                 CHECK(conn->addRecording(*recording));
                 CHECK_OP(recording->getID(), !=, -1);
+                CHECK(recording->getRecordingFeatures() != NULL);
                 
                 recording->setGenre("");
                 recording->setAlbum("");
@@ -81,10 +82,12 @@ namespace tests
                 CHECK_OP(recording->getID(), !=, -1);
                 CHECK(conn->getRecordingByID(*recording));
                 CHECK_OP(recording->getID(), !=, -1);
+                CHECK(recording->getRecordingFeatures() == NULL);
                 CHECK(conn->getRecordingByID(*recording, true));
                 CHECK_OP(recording->getID(), !=, -1);
+                CHECK(recording->getRecordingFeatures() != NULL);
                 
-                CHECK_OP(recording->getAlbum(), ==, std::string("unknownAlbum"));
+                CHECK_OP(recording->getAlbum(), ==, std::string("unknownAlbummmm"));
                 
                 //The semicolons are missing because of the definition of the macro CHECK_OP
                 //which has a block inside. Placing a semicolon here leads to compile-time
@@ -104,6 +107,29 @@ namespace tests
                 CHECK_OP(recording->getFilename(), ==, filename);
                 CHECK_OP(recording->getTrackNumber(), ==, 17);
                 CHECK_OP(recording->getTitle(), ==, std::string("unknownTitle"));
+                
+                
+                recording->setAlbum("unknownAlbumm");
+                CHECK_OP(recording->getAlbum(), ==, std::string("unknownAlbumm"));
+                CHECK(conn->updateRecordingByID(*recording));
+                recording->setAlbum("lalalala");
+                
+                CHECK(conn->getRecordingByID(*recording, true));
+                CHECK_OP(recording->getAlbum(), ==, std::string("unknownAlbumm"));
+                
+                recording->setAlbum("unknownAlbum");
+                CHECK_OP(recording->getAlbum(), ==, std::string("unknownAlbum"));
+                CHECK(recording->getRecordingFeatures() != NULL);
+                recording->getRecordingFeatures()->setLength(25.0);
+                CHECK_EQ(recording->getRecordingFeatures()->getLength(), 25.0);
+                recording->getRecordingFeatures()->setTempo(80.0);
+                CHECK_EQ(recording->getRecordingFeatures()->getTempo(), 80.0);
+                CHECK(conn->updateRecordingByID(*recording, true));
+                recording->setAlbum("lalalala");
+                
+                CHECK(conn->getRecordingByID(*recording, true));
+                CHECK_OP(recording->getAlbum(), ==, std::string("unknownAlbum"));
+                
                 
                 delete recording;
             }
@@ -132,9 +158,23 @@ namespace tests
         category->setID(1);
         CHECK(conn->getCategoryByID(*category));
         CHECK_OP(category->getID(), !=, -1);
+        CHECK(category->getCategoryDescription() == NULL);
         CHECK(conn->getCategoryByID(*category, true));
         CHECK_OP(category->getID(), !=, -1);
+        CHECK(category->getCategoryDescription() != NULL);
         CHECK_EQ(category->getCategoryName(), std::string("rock music"));
+        
+        category->setCategoryName("classical music");
+        CHECK(conn->addCategory(*category));
+        category->setCategoryName("");
+        category->setID(2);
+        CHECK(conn->getCategoryByID(*category));
+        CHECK_OP(category->getID(), !=, -1);
+        CHECK(category->getCategoryDescription() == NULL);
+        CHECK(conn->getCategoryByID(*category, true));
+        CHECK_OP(category->getID(), !=, -1);
+        CHECK(category->getCategoryDescription() != NULL);
+        CHECK_EQ(category->getCategoryName(), std::string("classical music"));
         
         closedir (dir);
         

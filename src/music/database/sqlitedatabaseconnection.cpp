@@ -11,32 +11,34 @@ namespace music
         _dbOpen(false),
         _db(NULL),
         
-        _getLastInsertRowIDStatement(NULL),
+        _getLastInsertRowIDStatement            (NULL),
         
-        _saveRecordingStatement     (NULL),
-        _getRecordingByIDStatement  (NULL),
+        _saveRecordingStatement                 (NULL),
+        _updateRecordingByIDStatement           (NULL),
+        _getRecordingByIDStatement              (NULL),
         
-        _saveRecordingFeaturesStatement    (NULL),
-        _getRecordingFeaturesByIDStatement (NULL),
+        _saveRecordingFeaturesStatement         (NULL),
+        _updateRecordingFeaturesStatement       (NULL),
+        _getRecordingFeaturesByIDStatement      (NULL),
         
-        _saveArtistStatement        (NULL),
-        _getArtistByIDStatement     (NULL),
-        _getArtistByNameStatement   (NULL),
+        _saveArtistStatement                    (NULL),
+        _getArtistByIDStatement                 (NULL),
+        _getArtistByNameStatement               (NULL),
         
-        _saveAlbumStatement         (NULL),
-        _getAlbumByIDStatement      (NULL),
-        _getAlbumByNameStatement    (NULL),
+        _saveAlbumStatement                     (NULL),
+        _getAlbumByIDStatement                  (NULL),
+        _getAlbumByNameStatement                (NULL),
         
-        _saveGenreStatement         (NULL),
-        _getGenreByIDStatement      (NULL),
-        _getGenreByNameStatement    (NULL),
+        _saveGenreStatement                     (NULL),
+        _getGenreByIDStatement                  (NULL),
+        _getGenreByNameStatement                (NULL),
         
-        _saveCategoryStatement      (NULL),
-        _getCategoryByIDStatement   (NULL),
-        _getCategoryByNameStatement (NULL),
+        _saveCategoryStatement                  (NULL),
+        _getCategoryByIDStatement               (NULL),
+        _getCategoryByNameStatement             (NULL),
         
-        _saveCategoryDescriptionStatement(NULL),
-        _getCategoryDescriptionByIDStatement(NULL)
+        _saveCategoryDescriptionStatement       (NULL),
+        _getCategoryDescriptionByIDStatement    (NULL)
     {
         
     }
@@ -51,11 +53,15 @@ namespace music
         
         if (_saveRecordingStatement != NULL)
             sqlite3_finalize(_saveRecordingStatement);
+        if (_updateRecordingByIDStatement != NULL)
+            sqlite3_finalize(_updateRecordingByIDStatement);
         if (_getRecordingByIDStatement != NULL)
             sqlite3_finalize(_getRecordingByIDStatement);
             
         if (_saveRecordingFeaturesStatement != NULL)
             sqlite3_finalize(_saveRecordingFeaturesStatement);
+        if (_updateRecordingFeaturesStatement != NULL)
+            sqlite3_finalize(_updateRecordingFeaturesStatement);
         if (_getRecordingFeaturesByIDStatement != NULL)
             sqlite3_finalize(_getRecordingFeaturesByIDStatement);
             
@@ -346,6 +352,13 @@ namespace music
     bool SQLiteDatabaseConnection::addRecording(databaseentities::Recording& recording)
     {
         DEBUG_OUT("saving new recording...", 30);
+        if (recording.getID() != -1)
+        {
+            //TODO: document this behaviour
+            DEBUG_OUT("the id needs to be -1 to add this entry to the database. call the appropriate update function if you want to update an already-existing entry.", 30);
+            return false;
+        }
+        
         int rc;
         if (_saveRecordingStatement == NULL)
         {
@@ -356,7 +369,6 @@ namespace music
                 return false;
             }
         }
-        //TODO: save data, set ID
         
         databaseentities::id_datatype genreID=-1;
         databaseentities::id_datatype albumID=-1;
@@ -427,6 +439,12 @@ namespace music
     
     bool SQLiteDatabaseConnection::addRecordingFeatures(databaseentities::RecordingFeatures& recordingFeatures)
     {
+        if (recordingFeatures.getID() != -1)
+        {
+            //TODO: document this behaviour
+            DEBUG_OUT("the id needs to be -1 to add this entry to the database. call the appropriate update function if you want to update an already-existing entry.", 30);
+            return false;
+        }
         int rc;
         
         if (_saveRecordingFeaturesStatement == NULL)
@@ -1169,6 +1187,132 @@ namespace music
         }
         
         rc = sqlite3_reset(_getCategoryByIDStatement);
+        if (rc != SQLITE_OK)
+        {
+            ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        return true;
+    }
+    
+    bool SQLiteDatabaseConnection::updateRecordingByID(databaseentities::Recording& recording, bool updateFeatures)
+    {
+        DEBUG_OUT("updating recording...", 30);
+        if (updateFeatures)
+        {
+            bool success = false;
+            if (recording.getRecordingFeatures() == NULL)
+            {
+                recording.setRecordingFeatures(new databaseentities::RecordingFeatures());
+                recording.getRecordingFeatures()->setID(-1);
+                success = addRecordingFeatures(*(recording.getRecordingFeatures()));
+                if (!success)
+                {
+                    ERROR_OUT("Failed to save recording features.", 10);
+                    return false;
+                }
+            }
+            else
+            {
+                success = updateRecordingFeaturesByID(*(recording.getRecordingFeatures()));
+                if (!success)
+                {
+                    DEBUG_OUT("Failed to update recording features.", 10);
+                    return false;
+                }
+            }
+        }
+        
+        int rc;
+        if (_updateRecordingByIDStatement == NULL)
+        {
+            rc = sqlite3_prepare_v2(_db, "UPDATE recording SET artistID=@artistID, title=@title, albumID=@albumID, tracknr=@tracknr, filename=@filename, genreID=@genreID WHERE recordingID=@recordingID;", -1, &_updateRecordingByIDStatement, NULL);
+            if (rc != SQLITE_OK)
+            {
+                ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        databaseentities::id_datatype genreID=-1;
+        databaseentities::id_datatype albumID=-1;
+        databaseentities::id_datatype artistID=-1;
+        
+        DEBUG_OUT("updating genre, album and artist...", 35);
+        bool success;
+        success = addOrGetGenre(genreID, recording.getGenre());
+        if (!success)
+        {
+            ERROR_OUT("could not save genre.", 10);
+            return false;
+        }
+        success = addOrGetAlbum(albumID, recording.getAlbum());
+        if (!success)
+        {
+            ERROR_OUT("could not save album.", 10);
+            return false;
+        }
+        success = addOrGetArtist(artistID, recording.getArtist());
+        if (!success)
+        {
+            ERROR_OUT("could not save artist.", 10);
+            return false;
+        }
+        DEBUG_OUT("genre, album and artist updated.", 40);
+        //TODO: the approach here might lead to orphaned artists, albums and genres.
+        
+        sqlite3_bind_int64(_updateRecordingByIDStatement, 1, artistID);
+        sqlite3_bind_text( _updateRecordingByIDStatement, 2, recording.getTitle().c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_int64(_updateRecordingByIDStatement, 3, albumID);
+        sqlite3_bind_int(  _updateRecordingByIDStatement, 4, recording.getTrackNumber());
+        sqlite3_bind_text( _updateRecordingByIDStatement, 5, recording.getFilename().c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_int64(_updateRecordingByIDStatement, 6, genreID);
+        sqlite3_bind_int64(_updateRecordingByIDStatement, 7, recording.getID());
+        
+        rc = sqlite3_step(_updateRecordingByIDStatement);
+        if (rc != SQLITE_DONE)
+        {
+            ERROR_OUT("Failed to execute statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        rc = sqlite3_reset(_updateRecordingByIDStatement);
+        if (rc != SQLITE_OK)
+        {
+            ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        return true;
+    }
+    bool SQLiteDatabaseConnection::updateRecordingFeaturesByID(databaseentities::RecordingFeatures& recordingFeatures)
+    {
+        DEBUG_OUT("updating recording features...", 30);
+        int rc;
+        if (_updateRecordingFeaturesStatement == NULL)
+        {
+            rc = sqlite3_prepare_v2(_db, "UPDATE features SET length=@length, tempo=@tempo, dynamicrange=@dynamicrange WHERE featuresID=@featuresID;", -1, &_updateRecordingFeaturesStatement, NULL);
+            if (rc != SQLITE_OK)
+            {
+                ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        sqlite3_bind_double(_updateRecordingFeaturesStatement, 1, recordingFeatures.getLength());
+        sqlite3_bind_double(_updateRecordingFeaturesStatement, 2, recordingFeatures.getTempo());
+        sqlite3_bind_double(_updateRecordingFeaturesStatement, 3, recordingFeatures.getDynamicRange());
+        sqlite3_bind_int64( _updateRecordingFeaturesStatement, 4, recordingFeatures.getID());
+        
+        rc = sqlite3_step(_updateRecordingFeaturesStatement);
+        if (rc != SQLITE_DONE)
+        {
+            ERROR_OUT("Failed to execute statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        rc = sqlite3_reset(_updateRecordingFeaturesStatement);
         if (rc != SQLITE_OK)
         {
             ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
