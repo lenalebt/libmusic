@@ -229,7 +229,7 @@ namespace music
             ");");
         
         ctstatements.push_back("CREATE TABLE IF NOT EXISTS categoryExample(categoryID INTEGER NOT NULL, "
-            "recordingID INTEGER NOT NULL, exampleType INTEGER, PRIMARY KEY(categoryID, recordingID),"
+            "recordingID INTEGER NOT NULL, score REAL, PRIMARY KEY(categoryID, recordingID),"
             "FOREIGN KEY(recordingID)     REFERENCES recording(recordingID),"
             "FOREIGN KEY(categoryID) REFERENCES category(categoryID)"
             ");");
@@ -1348,7 +1348,50 @@ namespace music
     
     bool getRecordingToCategoryScore(databaseentities::id_datatype recordingID, databaseentities::id_datatype categoryID, double& score)
     {
-        return false;
+        int rc;
+        score = -1.0;
+        
+        if (_getRecordingToCategoryScoreByIDsStatement == NULL)
+        {
+            rc = sqlite3_prepare_v2(_db, "SELECT score FROM categoryMembership WHERE (recordingID=@recordingID AND categoryID=@categoryID);", -1, &_getRecordingToCategoryScoreByIDsStatement, NULL);
+            if (rc != SQLITE_OK)
+            {
+                ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        //bind parameters
+        sqlite3_bind_int64(_getRecordingToCategoryScoreByIDsStatement, 1, recordingID);
+        sqlite3_bind_int64(_getRecordingToCategoryScoreByIDsStatement, 1, categoryID);
+        
+        while ((rc = sqlite3_step(_getRecordingToCategoryScoreByIDsStatement)) != SQLITE_DONE)
+        {
+            if (rc == SQLITE_ROW)
+            {
+                score = sqlite3_column_double(_getRecordingToCategoryScoreByIDsStatement, 0);
+            }
+            else
+            {
+                ERROR_OUT("Failed to read data from database. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        if (rc != SQLITE_DONE)
+        {
+            ERROR_OUT("Failed to execute statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        rc = sqlite3_reset(_getRecordingToCategoryScoreByIDsStatement);
+        if (rc != SQLITE_OK)
+        {
+            ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        return true;
     }
     bool updateRecordingToCategoryScore(databaseentities::id_datatype recordingID, databaseentities::id_datatype categoryID, double score)
     {
@@ -1356,7 +1399,50 @@ namespace music
     }
     bool getCategoryExampleScore(databaseentities::id_datatype categoryID, databaseentities::id_datatype recordingID, double& score)
     {
-        return false;
+        int rc;
+        score = -1.0;
+        
+        if (_getCategoryExampleScoreByIDsStatement == NULL)
+        {
+            rc = sqlite3_prepare_v2(_db, "SELECT score FROM categoryExample WHERE (recordingID=@recordingID AND categoryID=@categoryID);", -1, &_getCategoryExampleScoreByIDsStatement, NULL);
+            if (rc != SQLITE_OK)
+            {
+                ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        //bind parameters
+        sqlite3_bind_int64(_getCategoryExampleScoreByIDsStatement, 1, recordingID);
+        sqlite3_bind_int64(_getCategoryExampleScoreByIDsStatement, 1, categoryID);
+        
+        while ((rc = sqlite3_step(_getCategoryExampleScoreByIDsStatement)) != SQLITE_DONE)
+        {
+            if (rc == SQLITE_ROW)
+            {
+                score = sqlite3_column_double(_getCategoryExampleScoreByIDsStatement, 0);
+            }
+            else
+            {
+                ERROR_OUT("Failed to read data from database. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        if (rc != SQLITE_DONE)
+        {
+            ERROR_OUT("Failed to execute statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        rc = sqlite3_reset(_getCategoryExampleScoreByIDsStatement);
+        if (rc != SQLITE_OK)
+        {
+            ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        return true;
     }
     bool updateCategoryExampleScore(databaseentities::id_datatype categoryID, databaseentities::id_datatype recordingID, double score)
     {
