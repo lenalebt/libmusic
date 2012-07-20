@@ -49,6 +49,11 @@ namespace music
         bool getCategoryByID(databaseentities::Category& category, bool readDescription=false);
         bool addCategoryDescription(databaseentities::CategoryDescription& categoryDescription);
         bool getCategoryDescriptionByID(databaseentities::CategoryDescription& categoryDescription);
+        
+        bool getRecordingToCategoryScore(databaseentities::id_datatype recordingID, databaseentities::id_datatype categoryID, double& score);
+        bool updateRecordingToCategoryScore(databaseentities::id_datatype recordingID, databaseentities::id_datatype categoryID, double score);
+        bool getCategoryExampleScore(databaseentities::id_datatype categoryID, databaseentities::id_datatype recordingID, double& score);
+        bool updateCategoryExampleScore(databaseentities::id_datatype categoryID, databaseentities::id_datatype recordingID, double score);
     private:
         
     protected:
@@ -83,6 +88,14 @@ namespace music
         
         sqlite3_stmt* _saveCategoryDescriptionStatement;
         sqlite3_stmt* _getCategoryDescriptionByIDStatement;
+        
+        sqlite3_stmt* _getRecordingToCategoryScoreByIDsStatement;
+        sqlite3_stmt* _deleteRecordingToCategoryScoreByIDsStatement;
+        sqlite3_stmt* _saveRecordingToCategoryScoreStatement;
+        
+        sqlite3_stmt* _getCategoryExampleScoreByIDsStatement;
+        sqlite3_stmt* _deleteCategoryExampleScoreByIDsStatement;
+        sqlite3_stmt* _saveCategoryExampleScoreStatement;
         
         /**
          * @brief Creates the needed tables in the database file.
