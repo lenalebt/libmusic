@@ -279,7 +279,6 @@ namespace tests
             {
                 music::ProgressCallbackCaller* callback = new music::OutputStreamCallback(std::cout);
                 preprop.preprocessFile(filename, recordingID, conn, callback);
-                //TODO: Add file.
             }
         }
         

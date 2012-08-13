@@ -7,6 +7,8 @@ namespace music
         if (callback != NULL)
             callback->progress(0.0, "initializing...");
         
+        //TODO: Do feature extraction on the file, save data to database.
+        
         return false;
     }
 }
