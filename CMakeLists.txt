@@ -68,6 +68,7 @@ SET(
     src/music/feature_extraction/timbre.cpp
     src/music/feature_extraction/dynamic_range.cpp
     src/music/feature_extraction/feature_extraction_helper.cpp
+    src/music/feature_extraction/preprocessor.cpp
     
     #database
     src/music/database/databaseconnection.cpp
@@ -78,6 +79,9 @@ SET(
     src/tools/console_colors.cpp
     src/tools/stringhelper.cpp
     src/tools/tuple.cpp
+    
+    #uihelper
+    src/music/uihelper/progress_callback.cpp
     
     #kissfft source files
     src/kissfft/kiss_fft.c
@@ -100,6 +104,7 @@ SET(
     src/music/feature_extraction/timbre.hpp
     src/music/feature_extraction/dynamic_range.hpp
     src/music/feature_extraction/feature_extraction_helper.hpp
+    src/music/feature_extraction/preprocessor.hpp
     
     #database
     src/music/database/databaseconnection.hpp
@@ -110,6 +115,9 @@ SET(
     src/tools/console_colors.hpp
     src/tools/stringhelper.hpp
     src/tools/tuple.hpp
+    
+    #uihelper
+    src/music/uihelper/progress_callback.hpp
     
     #kissfft headers
     src/kissfft/kiss_fft.h
