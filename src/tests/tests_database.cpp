@@ -178,6 +178,7 @@ namespace tests
         
         closedir (dir);
         
+        //memberships in categories of files
         CHECK(conn->updateRecordingToCategoryScore(1, 1, 1.0));
         CHECK(conn->updateRecordingToCategoryScore(2, 1, 0.9));
         CHECK(conn->updateRecordingToCategoryScore(3, 1, 0.8));
@@ -198,6 +199,29 @@ namespace tests
         CHECK(conn->getRecordingToCategoryScore(4, 1, score));
         CHECK_EQ(score, 0.2);
         CHECK(conn->getRecordingToCategoryScore(5, 1, score));
+        CHECK_EQ(score, 0.3);
+        
+        //examples and counterexamples of songs
+        CHECK(conn->updateCategoryExampleScore(1, 1, 1.0));
+        CHECK(conn->updateCategoryExampleScore(2, 1, 0.9));
+        CHECK(conn->updateCategoryExampleScore(3, 1, 0.8));
+        CHECK(conn->updateCategoryExampleScore(4, 1, 0.7));
+        
+        CHECK(conn->updateCategoryExampleScore(2, 1, 0.0));
+        CHECK(conn->updateCategoryExampleScore(3, 1, 0.1));
+        CHECK(conn->updateCategoryExampleScore(4, 1, 0.2));
+        CHECK(conn->updateCategoryExampleScore(5, 1, 0.3));
+        
+        score=0.0;
+        CHECK(conn->getCategoryExampleScore(1, 1, score));
+        CHECK_EQ(score, 1.0);
+        CHECK(conn->getCategoryExampleScore(2, 1, score));
+        CHECK_EQ(score, 0.0);
+        CHECK(conn->getCategoryExampleScore(3, 1, score));
+        CHECK_EQ(score, 0.1);
+        CHECK(conn->getCategoryExampleScore(4, 1, score));
+        CHECK_EQ(score, 0.2);
+        CHECK(conn->getCategoryExampleScore(5, 1, score));
         CHECK_EQ(score, 0.3);
         
         CHECK(conn->close());
