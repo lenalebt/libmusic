@@ -2,6 +2,8 @@
 #define PROGRESS_CALLBACK_HPP
 
 #include <string>
+#include <iostream>
+#include <iomanip>
 
 namespace music
 {
@@ -51,10 +53,10 @@ namespace music
     class ProgressCallbackCaller
     {
     private:
+        
+    protected:
         std::string id;
         ProgressCallback& callback;
-    protected:
-        
     public:
         /**
          * @brief Creates a new ProgressCallbackCaller object.
@@ -75,10 +77,27 @@ namespace music
          *      if not applicable, percent < 0.0.
          * @param progressMessage an optional message that might be presented to the user.
          */
-        void progress(double percent, const std::string& progressMessage)
+        virtual void progress(double percent, const std::string& progressMessage)
         {
             callback.progress(id, percent, progressMessage);
         }
+    };
+    
+    class OutputStreamCallback : public ProgressCallbackCaller, private ProgressCallback
+    {
+    private:
+        std::ostream& os;
+    protected:
+        
+    public:
+        OutputStreamCallback(std::ostream& os, const std::string& id = "") : ProgressCallbackCaller(*this, id), os(os) {}
+        void progress(double percent, const std::string& progressMessage)
+        {
+            if (id != "")
+                os << id << ": ";
+            os << std::fixed << std::setprecision(2) << percent << "%, \"" << progressMessage << "\"" << std::endl;
+        }
+        void progress(const std::string& id, double percent, const std::string& progressMessage) {}
     };
 }
 #endif //PROGRESS_CALLBACK_HPP

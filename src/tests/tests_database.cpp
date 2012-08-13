@@ -235,8 +235,53 @@ namespace tests
     {
         DEBUG_OUT("using path \"" << path << "\"...", 10);
         
+        music::SQLiteDatabaseConnection* conn = NULL;
+        
+        CHECK(conn == NULL)
+        conn = new music::SQLiteDatabaseConnection();
+        CHECK(conn != NULL);
+        
+        //TODO: delete file "database.db"
+        DEBUG_OUT("removing file \"database.db\"...", 10);
+        unlink("database.db");  //POSIX standard call
+        
+        CHECK(!conn->isDBOpen());
+        CHECK(conn->open("database.db"));
+        CHECK(conn->isDBOpen());
+        CHECK(conn->close());
+        CHECK(!conn->isDBOpen());
+        CHECK(conn->open("database.db"));
+        CHECK(conn->isDBOpen());
+        CHECK(conn->open("database.db"));
+        CHECK(conn->isDBOpen());
+        
+        
         music::FilePreprocessor preprop;
         
+        //TODO: try to add all files from the test directory to the database
+        DIR* dir = NULL;        //POSIX standard calls
+        CHECK(dir == NULL);
+        struct dirent *ent;
+        dir = opendir(path.c_str());
+        CHECK(dir != NULL);
+        
+        music::databaseentities::id_datatype recordingID = -1;
+        
+        while ((ent = readdir (dir)) != NULL)
+        {
+            std::string filename(ent->d_name);
+            
+            DEBUG_OUT("adding file: \"" << filename << "\"", 15)
+            
+            std::string loweredFilename(filename);
+            tolower(loweredFilename);
+            if (endsWith(loweredFilename, ".mp3"))
+            {
+                music::ProgressCallbackCaller* callback = new music::OutputStreamCallback(std::cout);
+                preprop.preprocessFile(filename, recordingID, conn, callback);
+                //TODO: Add file.
+            }
+        }
         
         return EXIT_FAILURE;    //TEST NOT FINISHED YET
     }
