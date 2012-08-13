@@ -9,6 +9,8 @@
 
 #include <unistd.h>
 
+#include "preprocessor.hpp"
+
 namespace tests
 {
     int testSQLiteDatabaseConnection()
@@ -227,5 +229,15 @@ namespace tests
         CHECK(conn->close());
         
         return EXIT_SUCCESS;
+    }
+    
+    int testPreprocessFiles(const std::string& path)
+    {
+        DEBUG_OUT("using path \"" << path << "\"...", 10);
+        
+        music::FilePreprocessor preprop;
+        
+        
+        return EXIT_FAILURE;    //TEST NOT FINISHED YET
     }
 }
