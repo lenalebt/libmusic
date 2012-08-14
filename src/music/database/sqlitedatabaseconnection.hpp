@@ -36,6 +36,7 @@ namespace music
         bool isDBOpen();
         bool beginTransaction();
         bool endTransaction();
+        bool rollbackTransaction();
         
         bool addRecording(databaseentities::Recording& recording);
         bool addRecordingFeatures(databaseentities::RecordingFeatures& recordingFeatures);

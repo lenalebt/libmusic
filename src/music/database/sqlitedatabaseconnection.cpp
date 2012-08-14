@@ -334,6 +334,22 @@ namespace music
         
         return true;
     }
+    bool SQLiteDatabaseConnection::rollbackTransaction()
+    {
+        DEBUG_OUT("Rollback transaction.", 40);
+        char* errorMsg;
+        
+        int rc = sqlite3_exec(_db, "ROLLBACK TRANSACTION;", NULL, 0, &errorMsg);
+        
+        if (rc != SQLITE_OK)
+        {
+            ERROR_OUT("Failed to rollback transaction. Error message: \"" << errorMsg << "\"", 10);
+            sqlite3_free(errorMsg);
+            return false;
+        }
+        
+        return true;
+    }
     
     databaseentities::id_datatype SQLiteDatabaseConnection::getLastInsertRowID()
     {
