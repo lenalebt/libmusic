@@ -16,6 +16,8 @@ namespace music
         _saveRecordingStatement                 (NULL),
         _updateRecordingByIDStatement           (NULL),
         _getRecordingByIDStatement              (NULL),
+        _getRecordingIDByFilenameStatement      (NULL),
+        _getRecordingIDByArtistTitleAlbumStatement(NULL),
         
         _saveRecordingFeaturesStatement         (NULL),
         _updateRecordingFeaturesStatement       (NULL),
@@ -65,6 +67,10 @@ namespace music
             sqlite3_finalize(_updateRecordingByIDStatement);
         if (_getRecordingByIDStatement != NULL)
             sqlite3_finalize(_getRecordingByIDStatement);
+        if (_getRecordingIDByFilenameStatement != NULL)
+            sqlite3_finalize(_getRecordingIDByFilenameStatement);
+        if (_getRecordingIDByArtistTitleAlbumStatement != NULL)
+            sqlite3_finalize(_getRecordingIDByArtistTitleAlbumStatement);
             
         if (_saveRecordingFeaturesStatement != NULL)
             sqlite3_finalize(_saveRecordingFeaturesStatement);
@@ -947,6 +953,106 @@ namespace music
         }
         
         rc = sqlite3_reset(_getRecordingByIDStatement);
+        if (rc != SQLITE_OK)
+        {
+            ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        return true;
+    }
+    
+    /** @todo implement */
+    bool SQLiteDatabaseConnection::getRecordingIDByFilename(databaseentities::id_datatype& recordingID, const std::string& filename)
+    {
+        DEBUG_OUT("will read recordingID by filename now...", 35);
+        
+        int rc;
+        
+        if (_getRecordingIDByFilenameStatement == NULL)
+        {
+            rc = sqlite3_prepare_v2(_db, "SELECT recordingID FROM recording WHERE filename=@filename;", -1, &_getRecordingIDByFilenameStatement, NULL);
+            if (rc != SQLITE_OK)
+            {
+                ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        //bind parameters
+        sqlite3_bind_text(_getRecordingIDByFilenameStatement, 1, filename.c_str(), -1, SQLITE_TRANSIENT);
+        
+        while ((rc = sqlite3_step(_getRecordingIDByFilenameStatement)) != SQLITE_DONE)
+        {
+            if (rc == SQLITE_ROW)
+            {
+                recordingID = sqlite3_column_int64(_getRecordingIDByFilenameStatement, 0);
+            }
+            else
+            {
+                ERROR_OUT("Failed to read data from database. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        if (rc != SQLITE_DONE)
+        {
+            ERROR_OUT("Failed to execute statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        rc = sqlite3_reset(_getRecordingIDByFilenameStatement);
+        if (rc != SQLITE_OK)
+        {
+            ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        return true;
+    }
+    /** @todo implement */
+    bool SQLiteDatabaseConnection::getRecordingIDByProperties(std::vector<databaseentities::id_datatype>& recordingIDs, const std::string& artist, const std::string& title, const std::string& album)
+    {
+        DEBUG_OUT("will read recordingID by artist, title and album now...", 35);
+        
+        int rc;
+        recordingIDs.clear();
+        
+        if (_getRecordingIDByArtistTitleAlbumStatement == NULL)
+        {
+            rc = sqlite3_prepare_v2(_db, "SELECT recordingID FROM recording NATURAL JOIN artist NATURAL JOIN album WHERE (artist LIKE @artist) AND (title LIKE @title) AND (album LIKE @album);", -1, &_getRecordingIDByArtistTitleAlbumStatement, NULL);
+            if (rc != SQLITE_OK)
+            {
+                ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        //bind parameters
+        sqlite3_bind_text(_getRecordingIDByFilenameStatement, 1, (std::string("%") + artist + "%").c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(_getRecordingIDByFilenameStatement, 2, (std::string("%") + title + "%").c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(_getRecordingIDByFilenameStatement, 3, (std::string("%") + album + "%").c_str(), -1, SQLITE_TRANSIENT);
+        
+        while ((rc = sqlite3_step(_getRecordingIDByArtistTitleAlbumStatement)) != SQLITE_DONE)
+        {
+            if (rc == SQLITE_ROW)
+            {
+                recordingIDs.push_back(sqlite3_column_int64(_getRecordingIDByFilenameStatement, 0));
+            }
+            else
+            {
+                ERROR_OUT("Failed to read data from database. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        if (rc != SQLITE_DONE)
+        {
+            ERROR_OUT("Failed to execute statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        rc = sqlite3_reset(_getRecordingIDByArtistTitleAlbumStatement);
         if (rc != SQLITE_OK)
         {
             ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
