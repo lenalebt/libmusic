@@ -29,6 +29,9 @@ namespace music
     {
         try
         {
+            //start transaction, will be able to rollback.
+            dbconnection->beginTransaction();
+            
             float stepCount = 17.0;
             bool success;
             
@@ -117,11 +120,13 @@ namespace music
             delete transformResult;
             delete buffer;
             
+            dbconnection->endTransaction();
             return true;
         }
         catch (...)
         {
-            ERROR_OUT("An unknown error occurred. Normally, the program would have been terminated here.", 0);
+            ERROR_OUT("An unknown error occurred. Normally, the program would have been terminated here. Rolling back database transaction and trying to go on.", 0);
+            dbconnection->rollbackTransaction();
             return false;
         }
     }
