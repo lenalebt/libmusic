@@ -45,6 +45,10 @@ namespace music
         bool updateRecordingByID(databaseentities::Recording& recording, bool updateFeatures=false);
         
         bool getRecordingIDByFilename(databaseentities::id_datatype& recordingID, const std::string& filename);
+        /** @remarks Searching for artist, title and album will be performed case-insensitive. You may use
+         *      wildcards: <code>_</code> is a single character, <code>%</code> may be any number of characters.
+         *      If you want a field to not be of interest, fill it with a <code>%</code> character.
+         */
         bool getRecordingIDByProperties(std::vector<databaseentities::id_datatype>& recordingIDs, const std::string& artist, const std::string& title, const std::string& album);
         
         bool getRecordingFeaturesByID(databaseentities::RecordingFeatures& recordingFeatures);

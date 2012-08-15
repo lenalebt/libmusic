@@ -136,7 +136,8 @@ namespace music
          * @param album The album of the recording. Will perform a pattern match.
          * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
          * 
-         * @remarks Pattern match means that partwise matches are matches, too. The match will be case-insensitive.
+         * @remarks Pattern match means that partwise matches are matches, too. The match will be case-insensitive. Have a look at the
+         *      derived classes for details.
          */
         virtual bool getRecordingIDByProperties(std::vector<databaseentities::id_datatype>& recordingIDs, const std::string& artist, const std::string& title, const std::string& album)=0;
         

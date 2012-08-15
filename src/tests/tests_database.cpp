@@ -15,7 +15,7 @@ namespace tests
 {
     int testSQLiteDatabaseConnection()
     {
-        music::SQLiteDatabaseConnection* conn = NULL;
+        music::DatabaseConnection* conn = NULL;
         
         CHECK(conn == NULL)
         conn = new music::SQLiteDatabaseConnection();

@@ -962,7 +962,6 @@ namespace music
         return true;
     }
     
-    /** @todo implement */
     bool SQLiteDatabaseConnection::getRecordingIDByFilename(databaseentities::id_datatype& recordingID, const std::string& filename)
     {
         DEBUG_OUT("will read recordingID by filename now...", 35);
@@ -1010,7 +1009,7 @@ namespace music
         
         return true;
     }
-    /** @todo implement */
+    
     bool SQLiteDatabaseConnection::getRecordingIDByProperties(std::vector<databaseentities::id_datatype>& recordingIDs, const std::string& artist, const std::string& title, const std::string& album)
     {
         DEBUG_OUT("will read recordingID by artist, title and album now...", 35);
@@ -1029,9 +1028,9 @@ namespace music
         }
         
         //bind parameters
-        sqlite3_bind_text(_getRecordingIDByArtistTitleAlbumStatement, 1, (std::string("%") + artist + "%").c_str(), -1, SQLITE_TRANSIENT);
-        sqlite3_bind_text(_getRecordingIDByArtistTitleAlbumStatement, 2, (std::string("%") + title + "%").c_str(), -1, SQLITE_TRANSIENT);
-        sqlite3_bind_text(_getRecordingIDByArtistTitleAlbumStatement, 3, (std::string("%") + album + "%").c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(_getRecordingIDByArtistTitleAlbumStatement, 1, artist.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(_getRecordingIDByArtistTitleAlbumStatement, 2, title.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(_getRecordingIDByArtistTitleAlbumStatement, 3, album.c_str(), -1, SQLITE_TRANSIENT);
         
         while ((rc = sqlite3_step(_getRecordingIDByArtistTitleAlbumStatement)) != SQLITE_DONE)
         {
