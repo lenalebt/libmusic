@@ -137,7 +137,7 @@ namespace tests
                 CHECK_EQ(recording->getID(), recordingID);
                 
                 std::vector<music::databaseentities::id_datatype> recordingIDs;
-                CHECK(conn->getRecordingIDByProperties(recordingIDs, recording->getArtist(), recording->getTitle(), recording->getAlbum()));
+                CHECK(conn->getRecordingIDsByProperties(recordingIDs, recording->getArtist(), recording->getTitle(), recording->getAlbum()));
                 CHECK_OP(recordingIDs.size(), >, 0);
                 
                 delete recording;
@@ -253,6 +253,50 @@ namespace tests
         CHECK_EQ(score, 0.2);
         CHECK(conn->getCategoryExampleScore(5, 1, score));
         CHECK_EQ(score, 0.3);
+        
+        DEBUG_OUT("Adding some categories and search for them...", 0);
+        music::databaseentities::Category punkrock;
+        punkrock.setCategoryName("Punk Rock");
+        music::databaseentities::Category rock;
+        punkrock.setCategoryName("Rock");
+        
+        CHECK(conn->addCategory(punkrock));
+        CHECK(conn->addCategory(rock));
+        
+        std::vector<music::databaseentities::id_datatype> categoryIDs;
+        
+        CHECK(conn->getCategoryIDsByName(categoryIDs, "%rock%"));
+        CHECK_EQ(categoryIDs.size(), 2u);
+        
+        DEBUG_OUT("adding some test scores for recordings...", 0);
+        CHECK(conn->beginTransaction());
+        for (int i=0; i<=1000; i++)
+        {
+            music::databaseentities::Recording rec;
+            rec.setID(-1);
+            rec.setArtist(std::string("testArtist") + i);
+            rec.setAlbum(std::string("testAlbum") + i);
+            rec.setTitle(std::string("testTitle") + i);
+            CHECK(conn->addRecording(rec));
+            CHECK(conn->updateRecordingToCategoryScore(rec.getID(), rock.getID(), double(i)/1000.0));
+            CHECK(conn->updateRecordingToCategoryScore(rec.getID(), punkrock.getID(), 0.5 + double(i)/2000.0));
+        }
+        CHECK(conn->endTransaction());
+        
+        DEBUG_OUT("loading test scores...", 0);
+        std::vector<std::pair<music::databaseentities::id_datatype, double> > recordingIDScores;
+        CHECK(conn->getRecordingIDsInCategory(recordingIDScores, rock.getID(), 0.5));
+        CHECK_EQ(recordingIDScores.size(), 501u);
+        CHECK(conn->getRecordingIDsInCategory(recordingIDScores, rock.getID(), 0.0));
+        CHECK_EQ(recordingIDScores.size(), 1000u);
+        CHECK(conn->getRecordingIDsInCategory(recordingIDScores, rock.getID(), 0.0, 1.0, 2000));
+        CHECK_EQ(recordingIDScores.size(), 1001u);
+        CHECK(conn->getRecordingIDsInCategory(recordingIDScores, rock.getID(), 0.0, 1.0, 100));
+        CHECK_EQ(recordingIDScores.size(), 100u);
+        CHECK(conn->getRecordingIDsInCategory(recordingIDScores, punkrock.getID(), 0.0, 1.0, 2000));
+        CHECK_EQ(recordingIDScores.size(), 1001u);
+        CHECK(conn->getRecordingIDsInCategory(recordingIDScores, punkrock.getID(), 0.5, 1.0, 2000));
+        CHECK_EQ(recordingIDScores.size(), 1001u);
         
         CHECK(conn->close());
         

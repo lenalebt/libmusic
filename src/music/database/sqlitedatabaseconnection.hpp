@@ -27,8 +27,6 @@ namespace music
     class SQLiteDatabaseConnection : public DatabaseConnection
     {
     public:
-        
-        
         SQLiteDatabaseConnection();
         ~SQLiteDatabaseConnection();
         bool open(std::string dbConnectionString);
@@ -45,22 +43,32 @@ namespace music
         bool updateRecordingByID(databaseentities::Recording& recording, bool updateFeatures=false);
         
         bool getRecordingIDByFilename(databaseentities::id_datatype& recordingID, const std::string& filename);
-        /** @remarks Searching for artist, title and album will be performed case-insensitive. You may use
+        /**
+         * @copydoc DatabaseConnection::getRecordingIDsByProperties()
+         * @remarks Searching for artist, title and album will be performed case-insensitive. You may use
          *      wildcards: <code>_</code> is a single character, <code>%</code> may be any number of characters.
          *      If you want a field to not be of interest, fill it with a <code>%</code> character.
          */
-        bool getRecordingIDByProperties(std::vector<databaseentities::id_datatype>& recordingIDs, const std::string& artist, const std::string& title, const std::string& album);
+        bool getRecordingIDsByProperties(std::vector<databaseentities::id_datatype>& recordingIDs, const std::string& artist, const std::string& title, const std::string& album);
         
         bool getRecordingFeaturesByID(databaseentities::RecordingFeatures& recordingFeatures);
         bool updateRecordingFeaturesByID(databaseentities::RecordingFeatures& recordingFeatures);
         
         bool addCategory(databaseentities::Category& category);
         bool getCategoryByID(databaseentities::Category& category, bool readDescription=false);
+        /**
+         * @copydoc DatabaseConnection::getCategoryIDsByName()
+         * @remarks Searching for artist, title and album will be performed case-insensitive. You may use
+         *      wildcards: <code>_</code> is a single character, <code>%</code> may be any number of characters.
+         *      If you want all categories, use a single <code>%</code> character.
+         */
+        bool getCategoryIDsByName(std::vector<databaseentities::id_datatype>& categoryIDs, const std::string& categoryName);
         bool addCategoryDescription(databaseentities::CategoryDescription& categoryDescription);
         bool getCategoryDescriptionByID(databaseentities::CategoryDescription& categoryDescription);
         
         bool getRecordingToCategoryScore(databaseentities::id_datatype recordingID, databaseentities::id_datatype categoryID, double& score);
         bool updateRecordingToCategoryScore(databaseentities::id_datatype recordingID, databaseentities::id_datatype categoryID, double score);
+        bool getRecordingIDsInCategory(std::vector<std::pair<databaseentities::id_datatype, double> >& recordingIDsAndScores, databaseentities::id_datatype categoryID, double minScore, double maxScore=1.0, int limit=1000);
         bool getCategoryExampleScore(databaseentities::id_datatype categoryID, databaseentities::id_datatype recordingID, double& score);
         bool updateCategoryExampleScore(databaseentities::id_datatype categoryID, databaseentities::id_datatype recordingID, double score);
     private:
@@ -75,7 +83,8 @@ namespace music
         sqlite3_stmt* _updateRecordingByIDStatement;
         sqlite3_stmt* _getRecordingByIDStatement;
         sqlite3_stmt* _getRecordingIDByFilenameStatement;
-        sqlite3_stmt* _getRecordingIDByArtistTitleAlbumStatement;
+        sqlite3_stmt* _getRecordingIDsByArtistTitleAlbumStatement;
+        sqlite3_stmt* _getRecordingIDsByCategoryMembershipScoresStatement;
         
         sqlite3_stmt* _saveRecordingFeaturesStatement;
         sqlite3_stmt* _updateRecordingFeaturesStatement;
@@ -96,6 +105,7 @@ namespace music
         sqlite3_stmt* _saveCategoryStatement;
         sqlite3_stmt* _getCategoryByIDStatement;
         sqlite3_stmt* _getCategoryByNameStatement;
+        sqlite3_stmt* _getCategoryIDsByNameStatement;
         
         sqlite3_stmt* _saveCategoryDescriptionStatement;
         sqlite3_stmt* _getCategoryDescriptionByIDStatement;

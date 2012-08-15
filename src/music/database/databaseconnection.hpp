@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <utility>
 #include "databaseentities.hpp"
 
 namespace music
@@ -152,7 +153,7 @@ namespace music
          * @remarks Pattern match means that partwise matches are matches, too. The match will be case-insensitive. Have a look at the
          *      derived classes for details.
          */
-        virtual bool getRecordingIDByProperties(std::vector<databaseentities::id_datatype>& recordingIDs, const std::string& artist, const std::string& title, const std::string& album)=0;
+        virtual bool getRecordingIDsByProperties(std::vector<databaseentities::id_datatype>& recordingIDs, const std::string& artist, const std::string& title, const std::string& album)=0;
         
         /**
          * @brief Updates a recording in the database by giving the id.
@@ -204,6 +205,20 @@ namespace music
          * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
          */
         virtual bool getCategoryByID(databaseentities::Category& category, bool readDescription=false)=0;
+        
+        /**
+         * @brief Reads the category IDs that belong to a given category name.
+         * 
+         * @param[out] recordingIDs The IDs of the categories that are found. Empty, if no categories were found.
+         * @param categoryName The name of the category. Will perform a pattern match.
+         * 
+         * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
+         * 
+         * @remarks Pattern match means that partwise matches are matches, too. The match will be case-insensitive. Have a look at the
+         *      derived classes for details.
+         */
+        virtual bool getCategoryIDsByName(std::vector<databaseentities::id_datatype>& categoryIDs, const std::string& categoryName)=0;
+        
         /**
          * @brief Adds a new category description to the database.
          * 
@@ -242,8 +257,23 @@ namespace music
          * @param recordingID The ID of the recording
          * @param categoryID The ID of the category
          * @param score The score of the relation.
+         * 
+         * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
          */
         virtual bool updateRecordingToCategoryScore(databaseentities::id_datatype recordingID, databaseentities::id_datatype categoryID, double score)=0;
+        /**
+         * @brief Reads the recordings that belong to a category and have a particular minimum score.
+         * 
+         * The IDs
+         * 
+         * @param[out] recordingIDsAndScores The IDs and scores of the recordings found. Empty, if no recordings were found.
+         * @param categoryID The ID of the category the recordings need to belong to.
+         * @param minScore The minimal score the recording needs to have. Equality counts as "found".
+         * @param maxScore The maximum score the recording may have. Equality counts as "found".
+         * @param limit The maximum number of elements that will be given back.
+         * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
+         */
+        virtual bool getRecordingIDsInCategory(std::vector<std::pair<databaseentities::id_datatype, double> >& recordingIDsAndScores, databaseentities::id_datatype categoryID, double minScore, double maxScore=1.0, int limit=1000)=0;
         /** 
          * @brief Reads the score of a recording, if it is an example for a category (score 100%), or a counter-example (score 0%).
          *
