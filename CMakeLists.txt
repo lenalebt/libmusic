@@ -298,3 +298,23 @@ FILE(GLOB music_global_headers "${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp")
 INSTALL (FILES ${music_global_headers}
     DESTINATION include
     )
+FILE(GLOB music_special_headers "${CMAKE_CURRENT_SOURCE_DIR}/src/music/*.hpp")
+INSTALL (FILES ${music_special_headers}
+    DESTINATION include/music
+    )
+FILE(GLOB music_database_headers "${CMAKE_CURRENT_SOURCE_DIR}/src/music/database/*.hpp")
+INSTALL (FILES ${music_database_headers}
+    DESTINATION include/music/database
+    )
+FILE(GLOB music_classification_headers "${CMAKE_CURRENT_SOURCE_DIR}/src/music/classification/*.hpp")
+INSTALL (FILES ${music_classification_headers}
+    DESTINATION include/music/classification
+    )
+FILE(GLOB music_uihelper_headers "${CMAKE_CURRENT_SOURCE_DIR}/src/music/uihelper/*.hpp")
+INSTALL (FILES ${music_uihelper_headers}
+    DESTINATION include/music/uihelper
+    )
+FILE(GLOB music_feature_extraction_headers "${CMAKE_CURRENT_SOURCE_DIR}/src/music/feature_extraction/*.hpp")
+INSTALL (FILES ${music_feature_extraction_headers}
+    DESTINATION include/music/feature_extraction
+    )
