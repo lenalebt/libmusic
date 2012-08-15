@@ -52,6 +52,7 @@
 #endif
 #define DEBUG_OUT_NOENDL(str,level) DEBUG_OUT_NOENDL_LEVEL(str, level)
 #define DEBUG_OUT(str,level)        DEBUG_OUT_NOENDL(str << std::endl, level)
+#define DEBUG_VAR_OUT(var,level)    DEBUG_OUT_NOENDL(QUOTEME(var) << " == " << var << std::endl, level)
 #define ERROR_OUT_NOENDL(str,level) ERROR_OUT_NOENDL_LEVEL(str, level)
 #define ERROR_OUT(str,level)        ERROR_OUT_NOENDL(str << std::endl, level)
 

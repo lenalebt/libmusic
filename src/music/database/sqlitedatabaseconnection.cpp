@@ -1020,7 +1020,7 @@ namespace music
         
         if (_getRecordingIDByArtistTitleAlbumStatement == NULL)
         {
-            rc = sqlite3_prepare_v2(_db, "SELECT recordingID FROM recording NATURAL JOIN artist NATURAL JOIN album WHERE (artist LIKE @artist) AND (title LIKE @title) AND (album LIKE @album);", -1, &_getRecordingIDByArtistTitleAlbumStatement, NULL);
+            rc = sqlite3_prepare_v2(_db, "SELECT recordingID FROM recording NATURAL JOIN artist NATURAL JOIN album WHERE (artistName LIKE @artistName) AND (title LIKE @title) AND (albumName LIKE @albumName);", -1, &_getRecordingIDByArtistTitleAlbumStatement, NULL);
             if (rc != SQLITE_OK)
             {
                 ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
@@ -1029,15 +1029,15 @@ namespace music
         }
         
         //bind parameters
-        sqlite3_bind_text(_getRecordingIDByFilenameStatement, 1, (std::string("%") + artist + "%").c_str(), -1, SQLITE_TRANSIENT);
-        sqlite3_bind_text(_getRecordingIDByFilenameStatement, 2, (std::string("%") + title + "%").c_str(), -1, SQLITE_TRANSIENT);
-        sqlite3_bind_text(_getRecordingIDByFilenameStatement, 3, (std::string("%") + album + "%").c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(_getRecordingIDByArtistTitleAlbumStatement, 1, (std::string("%") + artist + "%").c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(_getRecordingIDByArtistTitleAlbumStatement, 2, (std::string("%") + title + "%").c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(_getRecordingIDByArtistTitleAlbumStatement, 3, (std::string("%") + album + "%").c_str(), -1, SQLITE_TRANSIENT);
         
         while ((rc = sqlite3_step(_getRecordingIDByArtistTitleAlbumStatement)) != SQLITE_DONE)
         {
             if (rc == SQLITE_ROW)
             {
-                recordingIDs.push_back(sqlite3_column_int64(_getRecordingIDByFilenameStatement, 0));
+                recordingIDs.push_back(sqlite3_column_int64(_getRecordingIDByArtistTitleAlbumStatement, 0));
             }
             else
             {
