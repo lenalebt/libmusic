@@ -4,6 +4,7 @@
 #include <string>
 #include <iostream>
 #include <iomanip>
+#include "debug.hpp"
 
 namespace music
 {
@@ -71,6 +72,10 @@ namespace music
         }
         /**
          * @brief Reports progress to an instance of ProgressCallback.
+         * 
+         * If the value is not between 0.0 (inclusive) and 1.0 (inclusive),
+         * a message will appear on the console, informing about that error.
+         * 
          * @see ProgressCallback
          * 
          * @param value the amount of the job that is finished (0.0 <= value <= 1.0), if applicable.
@@ -79,6 +84,8 @@ namespace music
          */
         virtual void progress(double value, const std::string& progressMessage)
         {
+            if ((value < 0.0) || (value > 1.0))
+                ERROR_OUT("ProgressCallbackCaller: Value not between 0.0 and 1.0 (" << value << ").", 50);
             callback.progress(id, value, progressMessage);
         }
     };
