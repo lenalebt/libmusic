@@ -85,7 +85,7 @@ namespace music
         virtual void progress(double value, const std::string& progressMessage)
         {
             if ((value < 0.0) || (value > 1.0))
-                ERROR_OUT("ProgressCallbackCaller: Value not between 0.0 and 1.0 (" << value << ").", 50);
+                ERROR_OUT("ProgressCallbackCaller: value not between 0.0 and 1.0 (" << value << ").", 50);
             callback.progress(id, value, progressMessage);
         }
     };
@@ -98,13 +98,12 @@ namespace music
         
     public:
         OutputStreamCallback(std::ostream& os, const std::string& id = "") : ProgressCallbackCaller(*this, id), os(os) {}
-        void progress(double value, const std::string& progressMessage)
+        void progress(const std::string& id, double value, const std::string& progressMessage)
         {
             if (id != "")
                 os << id << ": ";
             os << std::fixed << std::setprecision(2) << value*100.0 << "%, \"" << progressMessage << "\"" << std::endl;
         }
-        void progress(const std::string& id, double value, const std::string& progressMessage) {}
     };
 }
 #endif //PROGRESS_CALLBACK_HPP

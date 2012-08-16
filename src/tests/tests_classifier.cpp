@@ -38,6 +38,9 @@ namespace tests
         CHECK_EQ(vec1, c->getClass1Mean());
         CHECK_EQ(vec2, c->getClass2Mean());
         
+        DEBUG_VAR_OUT(c->getClass1Covariance(), 0);
+        DEBUG_VAR_OUT(c->getClass2Covariance(), 0);
+        
         ERROR_OUT("this test is not finished yet.", 0);
         return EXIT_FAILURE;
         
