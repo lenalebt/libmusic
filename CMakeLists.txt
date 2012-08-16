@@ -83,6 +83,10 @@ SET(
     #uihelper
     src/music/uihelper/progress_callback.cpp
     
+    #classification
+    src/music/classification/classifier.cpp
+    src/music/classification/lda_fisher.cpp
+    
     #kissfft source files
     src/kissfft/kiss_fft.c
     src/kissfft/tools/kiss_fftr.c
@@ -118,6 +122,10 @@ SET(
     
     #uihelper
     src/music/uihelper/progress_callback.hpp
+    
+    #classification
+    src/music/classification/classifier.hpp
+    src/music/classification/lda_fisher.hpp
     
     #kissfft headers
     src/kissfft/kiss_fft.h
@@ -160,6 +168,7 @@ INCLUDE_DIRECTORIES(
     src/music/feature_extraction
     src/music/database
     src/music/uihelper
+    src/music/classification
     src/tests
     src/kissfft
     src/kissfft/tools
@@ -221,6 +230,8 @@ ADD_TEST(estimatetimbre            "musictests" "estimatetimbre")
 ADD_TEST(calculatedynamicrange     "musictests" "calculatedynamicrange")
 ADD_TEST(perbinstatistics          "musictests" "perbinstatistics")
 ADD_TEST(pertimeslicestatistics    "musictests" "pertimeslicestatistics")
+ADD_TEST(fisherlda                 "musictests" "fisherlda")
+ADD_TEST(preprocessfiles           "musictests" "preprocessfiles" "./testdata/")
 
 ADD_EXECUTABLE(musictests
     ${music_TEST_SOURCES}

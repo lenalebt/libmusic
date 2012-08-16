@@ -4,17 +4,30 @@
 #include <Eigen/Dense>
 #include <utility>
 #include <vector>
+#include "progress_callback.hpp"
 
-class Classifier
+/**
+ * @brief This is an interface for a data classifier.
+ * 
+ * This classifier can handle two classes.
+ * 
+ * @remarks Scaling is done internally!
+ * 
+ * @author Lena Brueder
+ * @date 2012-08-16
+ */
+namespace music
 {
-private:
-    
-protected:
-    
-public:
-    virtual void learnModel()=0;
-    virtual void setTrainingData(const std::vector<std::pair<Eigen::VectorXd, double> >& trainingData)=0;
-    virtual double classifyVector(const Eigen::VectorXd& vector)=0;
-};
+    class Classifier
+    {
+    private:
+        
+    protected:
+        
+    public:
+        virtual bool learnModel(const std::vector<std::pair<Eigen::VectorXd, double> >& trainingData, ProgressCallbackCaller* callback = NULL)=0;
+        virtual double classifyVector(const Eigen::VectorXd& vector)=0;
+    };
+}
 
 #endif //CLASSIFIER_HPP
