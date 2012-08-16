@@ -8,7 +8,7 @@ namespace music
     class FisherLDAClassifier : public Classifier
     {
     private:
-        
+        bool applyPCA;  //apply PCA before doing LDA? Helps getting Sw invertible.
     protected:
         Eigen::VectorXd mean1;
         Eigen::VectorXd mean2;
@@ -22,7 +22,11 @@ namespace music
         
         Eigen::VectorXd w;      //normal vector of seperating hyperplane
         double w0;              //classification border on projected space
+        
+        Eigen::MatrixXd reducedU;
+        Eigen::MatrixXd doPCA(const std::vector<std::pair<Eigen::VectorXd, double> >& trainingData);
     public:
+        FisherLDAClassifier(bool applyPCA = false);
         bool learnModel(const std::vector<std::pair<Eigen::VectorXd, double> >& trainingData, ProgressCallbackCaller* callback = NULL);
         double classifyVector(const Eigen::VectorXd& vector);
         
