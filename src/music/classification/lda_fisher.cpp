@@ -4,7 +4,7 @@ namespace music
 {
     bool FisherLDAClassifier::learnModel(const std::vector<std::pair<Eigen::VectorXd, double> >& trainingData, ProgressCallbackCaller* callback)
     {
-        double steps = 2.0;
+        double steps = 5.0;
         
         if (callback != NULL)
             callback->progress(0.0, "initializing...");
@@ -36,8 +36,18 @@ namespace music
                 mean2 += it->first;
             }
         }
+        mean = (mean1 + mean2) / (class1Count + class2Count);
         mean1 /= class1Count;
         mean2 /= class2Count;
+        
+        DEBUG_VAR_OUT(mean1, 0);
+        DEBUG_VAR_OUT(mean2, 0);
+        
+        
+        if (callback != NULL)
+            callback->progress(2.0/steps, "calculating support vector b...");
+        
+        //b = (mean1 + mean2) / 2;
         
         if (callback != NULL)
             callback->progress(2.0/steps, "calculating covariance matrices...");
@@ -68,8 +78,35 @@ namespace music
         
         
         if (callback != NULL)
-            callback->progress(3.0/steps, "calculating optimal discriminant...");
+            callback->progress(3.0/steps, "calculating Sw and Sb...");
+        //TODO: calculate disriminant
         
+        DEBUG_VAR_OUT(covariance1, 0);
+        DEBUG_VAR_OUT(covariance2, 0);
+        
+        Sw = covariance1 + covariance2;
+        DEBUG_VAR_OUT(Sw, 0);
+        /*{
+            Eigen::VectorXd m1 = mean1 - mean;
+            Eigen::VectorXd m2 = mean2 - mean;
+            
+            //DEBUG_VAR_OUT(m1, 0);
+            //DEBUG_VAR_OUT(m2, 0);
+            
+            Sb = m1 * m1.transpose() + m2 * m2.transpose();
+            //DEBUG_VAR_OUT(Sb, 0);
+        }*/
+        
+        
+        if (callback != NULL)
+            callback->progress(4.0/steps, "calculating optimal discriminant...");
+        //TODO: calculate disriminant
+        //calculate by finding the largest eigenvalue of Sw^-1 * Sb.
+        
+        w = Sw.inverse() * (mean1 - mean2);
+        DEBUG_VAR_OUT(w, 0);
+        w0 = w.transpose() * ((mean1 + mean2)/2.0);
+        DEBUG_VAR_OUT(w0, 0);
         
         if (callback != NULL)
             callback->progress(1.0, "finished.");
@@ -79,6 +116,6 @@ namespace music
     }
     double FisherLDAClassifier::classifyVector(const Eigen::VectorXd& vector)
     {
-        return -1.0;
+        return w.transpose() * vector - w0;
     }
 }

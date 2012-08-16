@@ -14,6 +14,8 @@
 
 int main(int argc, char *argv[])
 {
+    srand(time(NULL));
+    
     if (argc < 2)
     {
         std::cout << "you need to tell the program which test it should run." << std::endl;
