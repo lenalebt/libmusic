@@ -116,6 +116,6 @@ namespace music
     }
     double FisherLDAClassifier::classifyVector(const Eigen::VectorXd& vector)
     {
-        return w.transpose() * vector - w0;
+        return -(w.transpose() * vector - w0);
     }
 }
