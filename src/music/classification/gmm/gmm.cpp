@@ -28,7 +28,7 @@ namespace music
         return preFactor * std::exp(-0.5 * (dist.transpose() * fullCovInverse * dist)(0));
     }
     
-    std::vector<std::pair<Gaussian*, double> > GaussianMixtureModel::emAlg(std::vector<Gaussian*> init, std::vector<Eigen::VectorXd> data, unsigned int maxIterations)
+    std::vector<std::pair<Gaussian*, double> > GaussianMixtureModel::emAlg(std::vector<Gaussian*> init, std::vector<Eigen::VectorXd> data, int gaussianCount, unsigned int maxIterations)
     {
         //if init is empty, choose some data points as initialization.
         //k-means or something else should be done by somebody else beforehand.
@@ -37,7 +37,7 @@ namespace music
         if (init.empty())
         {
             //init with random data points and identity matricies as covariance matrix
-            for (int i=0; i<dimension; i++)
+            for (int i=0; i<gaussianCount; i++)
             {
                 Gaussian* gaussian;
                 
@@ -48,6 +48,7 @@ namespace music
         }
         
         Eigen::VectorXd weights;
+        Eigen::ArrayXd p(dimension, gaussianCount);
         
         
         unsigned int iteration = 0;
@@ -57,7 +58,16 @@ namespace music
             iteration++;
             
             //E-step BEGIN
-            
+            //for every gaussian do...
+            for (int g=0; g<gaussianCount; g++)
+            {
+                //for every data point do...
+                for (unsigned int i=0; i < data.size(); i++)
+                {
+                    //calculate probability (non-normalized)
+                    p(i,g) = gaussians[i]->calculateValue(data[i]);
+                }
+            }
             //E-step END
             
             //M-step BEGIN
