@@ -86,6 +86,7 @@ SET(
     #classification
     src/music/classification/classifier.cpp
     src/music/classification/lda_fisher.cpp
+    src/music/classification/gmm/gmm.cpp
     
     #kissfft source files
     src/kissfft/kiss_fft.c
@@ -126,6 +127,7 @@ SET(
     #classification
     src/music/classification/classifier.hpp
     src/music/classification/lda_fisher.hpp
+    src/music/classification/gmm/gmm.hpp
     
     #kissfft headers
     src/kissfft/kiss_fft.h
