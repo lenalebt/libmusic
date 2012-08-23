@@ -61,13 +61,6 @@ namespace music
             gaussians.push_back(gs[i].first);
             weights[i] = gs[i].second;
         }
-        
-        DEBUG_OUT("gaussian 1 mean: " << gaussians[0]->getMean(), 0);
-        DEBUG_OUT("gaussian 1 sigma: " << gaussians[0]->getCovarianceMatrix(), 0);
-        DEBUG_OUT("gaussian 2 mean: " << gaussians[1]->getMean(), 0);
-        DEBUG_OUT("gaussian 2 sigma: " << gaussians[1]->getCovarianceMatrix(), 0);
-        DEBUG_OUT("gaussian 3 mean: " << gaussians[2]->getMean(), 0);
-        DEBUG_OUT("gaussian 3 sigma: " << gaussians[2]->getCovarianceMatrix(), 0);
     }
     
     std::vector<std::pair<Gaussian*, double> > GaussianMixtureModel::emAlg(std::vector<Gaussian*> init, std::vector<Eigen::VectorXd> data, int gaussianCount, unsigned int maxIterations)

@@ -109,7 +109,7 @@ namespace tests
         //create data. don't have a generator for multivariate gaussian values, just taking equally distributed data (uncorrelated)
         //set these values to change how much data will be generated, and how many dimensions you have
         int dimension = 8;
-        int dataCount = 100;
+        int dataCount = 10000;
         
         Eigen::VectorXd dataVector(dimension);
         std::vector<Eigen::VectorXd> data;
@@ -158,11 +158,20 @@ namespace tests
         
         //train GMM with data
         DEBUG_OUT("training gmm...", 0);
-        gmm.trainGMM(data, 5);
+        gmm.trainGMM(data, 2);
         DEBUG_OUT("training done.", 0);
         
         //test if the GMM converged the right way, or not. test data.
+        Eigen::VectorXd weights = gmm.getWeights();
+        std::vector<music::Gaussian*> gaussians = gmm.getGaussians();
         
+        for (std::vector<music::Gaussian*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
+        {
+            DEBUG_OUT("gaussian mean: " << (*it)->getMean(), 0);
+            DEBUG_OUT("gaussian sigma: " << (*it)->getCovarianceMatrix(), 0);
+            DEBUG_OUT("testing if the estimated mean fits to the input mean of the clusters...", 0);
+            CHECK( (((**it).getMean() - mu1).norm() / mu1.norm() < 10e-1) || (((**it).getMean() - mu2).norm() / mu2.norm() < 10e-1));
+        }
         
         
         //TODO: test is not ready yet.
