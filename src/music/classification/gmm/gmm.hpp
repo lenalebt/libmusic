@@ -3,6 +3,7 @@
 
 #include <Eigen/Dense>
 #include <vector>
+#include <Eigen/Cholesky>
 
 namespace music
 {
@@ -15,11 +16,16 @@ namespace music
         Eigen::VectorXd mean;
     public:
         virtual double calculateValue(const Eigen::VectorXd& dataVector)=0;
+        //calculate gaussian without subtraction of mean (might be done outside of the function!)
+        virtual double calculateNoMeanValue(const Eigen::VectorXd& dataVector)=0;
         double getWeight()                          {return weight;}
         Eigen::VectorXd& getMean()                  {return mean;}
         void setMean(const Eigen::VectorXd& mean)   {this->mean = mean;}
         virtual Eigen::MatrixXd getCovarianceMatrix()=0;
         virtual void setCovarianceMatrix(const Eigen::MatrixXd& matrix)=0;
+        
+        //create random value distributed like this gaussian (pseudorandom, not very good)
+        virtual Eigen::VectorXd rand()=0;
     };
 
     class GaussianFullCov : public Gaussian
@@ -28,13 +34,16 @@ namespace music
         
     protected:
         Eigen::MatrixXd fullCov;
-        Eigen::MatrixXd fullCovInverse;
-        double fullCovDeterminant;
+        Eigen::LDLT<Eigen::MatrixXd> ldlt;
         double preFactor;
     public:
+        GaussianFullCov() : fullCov(), ldlt(), preFactor() {}
         double calculateValue(const Eigen::VectorXd& dataVector);
+        double calculateNoMeanValue(const Eigen::VectorXd& dataVector);
         void setCovarianceMatrix(const Eigen::MatrixXd& matrix);
         Eigen::MatrixXd getCovarianceMatrix()   {return fullCov;}
+        
+        Eigen::VectorXd rand();
     };
 
     class GaussianDiagCov : public Gaussian
@@ -48,8 +57,11 @@ namespace music
         double preFactor;
     public:
         double calculateValue(const Eigen::VectorXd& dataVector);
+        double calculateNoMeanValue(const Eigen::VectorXd& dataVector);
         Eigen::MatrixXd getCovarianceMatrix()   {return diagCov.asDiagonal();}
         void setCovarianceMatrix(const Eigen::MatrixXd& matrix) {this->diagCov = matrix.diagonal();}
+        
+        Eigen::VectorXd rand();
     };
 
     class GaussianMixtureModel
@@ -58,6 +70,7 @@ namespace music
         
     protected:
         std::vector<Gaussian*> gaussians;
+        Eigen::VectorXd weights;
         
         //give back gaussian with weight.
         std::vector<std::pair<Gaussian*, double> > emAlg(std::vector<Gaussian*> init, std::vector<Eigen::VectorXd> data, int gaussianCount = 10,unsigned int maxIterations=50);

@@ -4,6 +4,7 @@
 #include "classifier.hpp"
 #include "lda_fisher.hpp"
 #include "progress_callback.hpp"
+#include "gmm.hpp"
 
 namespace tests
 {
@@ -94,6 +95,68 @@ namespace tests
         }
         
         ERROR_OUT("this test is not finished yet.", 0);
+        return EXIT_FAILURE;
+        
+        return EXIT_SUCCESS;
+    }
+    
+    int testGMM()
+    {
+        DEBUG_OUT("running test for gaussian mixture models...", 0);
+        music::GaussianMixtureModel gmm;
+        srand(time(NULL));
+        
+        int dimension = 2;
+        int dataCount = 1000;
+        
+        Eigen::VectorXd dataVector(dimension);
+        std::vector<Eigen::VectorXd> data;
+        
+        DEBUG_OUT("adding " << dataCount << " data vectors...", 0);
+        //calc mu1 and mu2...
+        Eigen::VectorXd mu1(dimension);
+        Eigen::VectorXd mu2(dimension);
+        for (int j=0; j<dimension; j++)
+        {
+            mu1[j] = -0.5 + double(rand() % 1000) / 1000.0;
+            mu2[j] = 3.0 - 0.5 + double(rand() % 1000) / 1000.0;
+        }
+        DEBUG_OUT("mu1 = " << mu1, 0);
+        DEBUG_OUT("mu2 = " << mu2, 0);
+        
+        //distribution 1
+        DEBUG_OUT(dataCount / 2 << " for distribution 1...", 0);
+        Eigen::VectorXd meanVec = Eigen::VectorXd::Zero(dimension);
+        for (int i=0; i<dataCount/2; i++)
+        {
+            for (int j=0; j<dimension; j++)
+                dataVector[j] = -0.5 + double(rand() % 1000) / 1000.0;
+            meanVec = meanVec + dataVector;
+            data.push_back(dataVector + mu1);
+        }
+        DEBUG_OUT("mean of distribution 1 = " << meanVec / (dataCount/2) + mu1, 0);
+        
+        meanVec = Eigen::VectorXd::Zero(dimension);
+        //distribution 2
+        DEBUG_OUT(dataCount / 2 << " for distribution 2...", 0);
+        for (int i=dataCount/2; i<dataCount; i++)
+        {
+            for (int j=0; j<dimension; j++)
+                dataVector[j] = -1.0 + double(rand() % 2000) / 1000.0;
+            meanVec = meanVec + dataVector;
+            data.push_back(dataVector + mu2);
+        }
+        DEBUG_OUT("mean of distribution 2 = " << meanVec / (dataCount/2) + mu2, 0);
+        
+        DEBUG_OUT("training gmm...", 0);
+        gmm.trainGMM(data, 2);
+        DEBUG_OUT("training done.", 0);
+        
+        //TODO: create data
+        //TODO: train data
+        //TODO: test data
+        
+        //TODO: test is not ready yet.
         return EXIT_FAILURE;
         
         return EXIT_SUCCESS;
