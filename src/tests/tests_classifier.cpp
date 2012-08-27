@@ -6,6 +6,8 @@
 #include "progress_callback.hpp"
 #include "gmm.hpp"
 
+#include <fstream>
+
 namespace tests
 {
     int testFisherLDA()
@@ -162,7 +164,6 @@ namespace tests
         DEBUG_OUT("training done.", 0);
         
         //test if the GMM converged the right way, or not. test data.
-        Eigen::VectorXd weights = gmm.getWeights();
         std::vector<music::Gaussian*> gaussians = gmm.getGaussians();
         
         for (std::vector<music::Gaussian*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
@@ -173,9 +174,39 @@ namespace tests
             CHECK( (((**it).getMean() - mu1).norm() / mu1.norm() < 10e-1) || (((**it).getMean() - mu2).norm() / mu2.norm() < 10e-1));
         }
         
+        DEBUG_OUT("testing generation of random vectors distributed like a given gaussian distribution...", 0);
+        music::Gaussian* g = new music::GaussianFullCov(10);
+        Eigen::VectorXd mean(2);
+        mean.setZero();
+        Eigen::MatrixXd cov(2, 2);// = Eigen::MatrixXd::Identity(10, 10);
+        cov.setRandom();
+        cov = (cov * cov.transpose()).eval();
+        
+        
+        DEBUG_OUT("mean vector: " << mean, 0);
+        DEBUG_OUT("covariance matrix: " << cov, 0);
+        g->setMean(mean);
+        g->setCovarianceMatrix(cov);
+        
+        DEBUG_OUT("saving random vectors to a file....", 0);
+        std::ofstream outstr("random2x2.dat");
+        
+        for (int i=0; i<10000; i++)
+            outstr << g->rand().transpose() << std::endl;
         
         //TODO: test is not ready yet.
         return EXIT_FAILURE;
+        
+        return EXIT_SUCCESS;
+    }
+    int testRNG()
+    {
+        music::RNG<double>* rng = NULL;
+        CHECK(rng == NULL);
+        rng = new music::UniformRNG<double>(0, 1);
+        CHECK(rng != NULL);
+        
+        
         
         return EXIT_SUCCESS;
     }

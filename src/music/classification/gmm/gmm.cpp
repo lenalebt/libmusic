@@ -6,8 +6,8 @@
 
 namespace music
 {
-    Gaussian::Gaussian() :
-        weight(1.0), mean(), preFactor()
+    Gaussian::Gaussian(unsigned int dimension) :
+        weight(1.0), mean(dimension), preFactor()
     {
         
     }
@@ -62,29 +62,29 @@ namespace music
     }
     Eigen::VectorXd GaussianFullCov::rand()
     {
-        //TODO
+        Eigen::LDLT<Eigen::MatrixXd> ldlt(fullCov);
+        Eigen::VectorXd y(mean.size());
+        y.setRandom();
+        return ldlt.matrixL() * y + mean;
+    }
+    GaussianFullCov::GaussianFullCov(unsigned int dimension) :
+        Gaussian(dimension), fullCov(dimension, dimension), ldlt()
+    {
+        calculatePrefactor();
     }
     
     void GaussianMixtureModel::trainGMM(std::vector<Eigen::VectorXd> data, int gaussianCount)
     {
         //TODO: precompute good starting vectors.
-        std::vector<std::pair<Gaussian*, double> > gs = this->emAlg(std::vector<Gaussian*>(), data, gaussianCount);
-        
-        gaussians.clear();
-        weights = Eigen::VectorXd(gaussianCount);
-        for (int i=0; i<gaussianCount; i++)
-        {
-            gaussians.push_back(gs[i].first);
-            weights[i] = gs[i].second;
-        }
+        gaussians = this->emAlg(std::vector<Gaussian*>(), data, gaussianCount);
     }
     
-    std::vector<std::pair<Gaussian*, double> > GaussianMixtureModel::emAlg(std::vector<Gaussian*> init, std::vector<Eigen::VectorXd> data, int gaussianCount, unsigned int maxIterations)
+    std::vector<Gaussian*> GaussianMixtureModel::emAlg(std::vector<Gaussian*> init, std::vector<Eigen::VectorXd> data, int gaussianCount, unsigned int maxIterations)
     {
         //if init is empty, choose some data points as initialization.
         //k-means or something else should be done by somebody else beforehand.
         std::vector<Gaussian*> gaussians;
-        int dimension = data[0].size();
+        unsigned int dimension = data[0].size();
         unsigned int dataSize = data.size();
         if (init.empty())
         {
@@ -93,7 +93,7 @@ namespace music
             for (int i=0; i<gaussianCount; i++)
             {
                 DEBUG_OUT("adding gaussian distribution " << i << "...", 25);
-                Gaussian* gaussian = new GaussianFullCov();
+                Gaussian* gaussian = new GaussianFullCov(dimension);
                 
                 gaussian->setMean(data[rand() % dataSize]);
                 gaussian->setCovarianceMatrix(Eigen::MatrixXd::Identity(dimension, dimension));
@@ -178,13 +178,11 @@ namespace music
         DEBUG_OUT("EM converged or terminated after " << iteration << " iterations...", 20);
         
         
-        std::vector<std::pair<Gaussian*, double> > retVec;
         for (int g=0; g<gaussianCount; g++)
         {
-            retVec.push_back(std::pair<Gaussian*, double>(gaussians[g], weights[g]));
+            gaussians[g]->setWeight(weights[g]);
         }
-        return retVec;
-        //TODO: return step
+        return gaussians;
     }
     double GaussianMixtureModel::compareTo(const GaussianMixtureModel& other)
     {

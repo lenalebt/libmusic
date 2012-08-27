@@ -8,6 +8,90 @@
 namespace music
 {
     /**
+     * @brief A random number generator interface.
+     * 
+     * @ingroup classification
+     * 
+     * @author Lena Brueder
+     * @date 2012-08-27
+     */
+    template <typename T>
+    class RNG
+    {
+    public:
+        virtual T rand()=0;
+    };
+    /**
+     * @brief A random number generator which produces uniformly diistributed random numbers.
+     * 
+     * @ingroup classification
+     * 
+     * @author Lena Brueder
+     * @date 2012-08-27
+     */
+    template <typename T>
+    class UniformRNG : public RNG<T>
+    {
+    private:
+        
+    protected:
+        T a;
+        T b;
+    public:
+        UniformRNG() :
+            a(0.0), b(1.0) {}
+        UniformRNG(T a, T b) :
+            a(a), b(b) {}
+        T rand()
+        {
+            return a + b*(double(rand()) / RAND_MAX);
+        }
+        
+        T getA()   {return a;}
+        T getB()   {return b;}
+    };
+    /**
+     * @brief A random number generator which produces normally distributed numbers.
+     * 
+     * @ingroup classification
+     * 
+     * @author Lena Brueder
+     * @date 2012-08-27
+     */
+    template <typename T>
+    class NormalRNG : public RNG<T>
+    {
+    private:
+        
+    protected:
+        UniformRNG<T>* rng;
+        T mean;
+        T variance;
+    public:
+        /**
+         * @brief Construct a new random number generator with normally distributed samples.
+         * 
+         * @param rng The uniform random number generator which will be used to
+         *      build the normal distribution. This object takes ownership of the rng!
+         */
+        NormalRNG(UniformRNG<T>* rng, T mean, T variance) :
+            rng(rng), mean(mean), variance(variance)
+        {
+            if (rng == NULL)
+                rng = new UniformRNG<T>();
+        }
+        NormalRNG(T mean, T variance) :
+            rng(new UniformRNG<T>()), mean(mean), variance(variance) {}
+        NormalRNG() :
+            rng(new UniformRNG<T>()), mean(0.0), variance(1.0) {}
+        ~NormalRNG()    {delete rng;}
+        T rand();
+        
+        T getMean()        {return mean;}
+        T getVariance()    {return variance;}
+    };
+    
+    /**
      * @brief This class represents a multivariate gaussian distribution.
      * 
      * A multivariate gaussian distribution is a probability density function.
@@ -39,7 +123,7 @@ namespace music
      * @author Lena Brueder
      * @date 2012-08-27
      */
-    class Gaussian
+    class Gaussian : public RNG<Eigen::VectorXd>
     {
     private:
         
@@ -57,7 +141,7 @@ namespace music
          */
         virtual void calculatePrefactor()=0;
     public:
-        Gaussian();
+        Gaussian(unsigned int dimension);
         Gaussian(double weight, Eigen::VectorXd mean);
         /**
          * @brief Calculate the value of the gaussian distribution at the given position.
@@ -143,7 +227,7 @@ namespace music
         
         void calculatePrefactor();
     public:
-        GaussianFullCov() : fullCov(), ldlt() {}
+        GaussianFullCov(unsigned int dimension);
         double calculateValue(const Eigen::VectorXd& dataVector);
         double calculateNoMeanValue(const Eigen::VectorXd& dataVector);
         void setCovarianceMatrix(const Eigen::MatrixXd& matrix);
@@ -182,13 +266,16 @@ namespace music
     /**
      * @brief This class is able to generate a gaussian mixture model for data.
      * 
+     * If you have a fairly large dataset (some 1,000-10,000 data points),
+     * this class helps you find a model which represents the data. It uses
+     * a mixture of normal distributions to model the data. If you know the
+     * structure of your data to be different, it might be better to use a
+     * different approach.
      * 
+     * To use this class, you need to know all your data at once and call the trainGMM()
+     * function on the data. It will use a suitable unsupervized learning algorithm
+     * to build the model.
      * 
-     * 
-     * 
-     * @remarks 
-     * @todo 
-     * @bug 
      * @ingroup classification
      * 
      * @author Lena Brueder
@@ -200,17 +287,22 @@ namespace music
         
     protected:
         std::vector<Gaussian*> gaussians;
-        Eigen::VectorXd weights;
         
         //give back gaussian with weight.
-        std::vector<std::pair<Gaussian*, double> > emAlg(std::vector<Gaussian*> init, std::vector<Eigen::VectorXd> data, int gaussianCount = 10,unsigned int maxIterations=50);
+        /**
+         * @brief Starts the expectation-maximization algorithm (EM algorithm) on the data.
+         * 
+         * 
+         * 
+         * @return A list of the gaussian distributions that build the model.
+         */
+        std::vector<Gaussian* > emAlg(std::vector<Gaussian*> init, std::vector<Eigen::VectorXd> data, int gaussianCount = 10, unsigned int maxIterations=50);
     public:
         //use EM algorithm to train the model
         void trainGMM(std::vector<Eigen::VectorXd> data, int gaussianCount=10);
         //compare models (with Earth Movers Distance, or by sampling)
         double compareTo(const GaussianMixtureModel& other);
         
-        const Eigen::VectorXd& getWeights() const   {return weights;}
         std::vector<Gaussian*> getGaussians() const {return gaussians;}
     };
 }

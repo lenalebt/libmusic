@@ -11,6 +11,8 @@ namespace music
     /**
      * @brief This class preprocesses files and adds them to the database.
      * 
+     * @ingroup feature_extraction
+     * 
      * @author Lena Brueder
      * @date 2012-08-13
      */
