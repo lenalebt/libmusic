@@ -5,6 +5,20 @@
 
 namespace music
 {
+    /**
+     * @brief A Fisher linear disciminant analysis classifier
+     * 
+     * This class performs a linear discriminant analysis with a Fisher discriminant.
+     * It is able to seperate two groups linearly. If it should not be possible to
+     * seperate the groups, it might produce weird results.
+     * 
+     * @remarks Make sure that your data can be linearly seperated before you apply this classifier.
+     * @ingroup classification
+     * @todo Better documentation (class members are not documented yet)
+     * 
+     * @author Lena Brueder
+     * @date 2012-08-27
+     */
     class FisherLDAClassifier : public Classifier
     {
     private:

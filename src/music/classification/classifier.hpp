@@ -7,11 +7,17 @@
 #include "progress_callback.hpp"
 
 /**
+     * @defgroup classification Classification
+     * @brief All classes in this module belong to classification.
+     */
+
+/**
  * @brief This is an interface for a data classifier.
  * 
  * This classifier can handle two classes.
  * 
  * @remarks Scaling is done internally!
+ * @ingroup classification
  * 
  * @author Lena Brueder
  * @date 2012-08-16
