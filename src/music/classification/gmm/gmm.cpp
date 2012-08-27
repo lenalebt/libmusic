@@ -7,12 +7,12 @@
 namespace music
 {
     Gaussian::Gaussian(unsigned int dimension) :
-        weight(1.0), mean(dimension), preFactor(), rng()
+        weight(1.0), mean(dimension), preFactor(), rng(new NormalRNG<double>())
     {
         
     }
     Gaussian::Gaussian(double weight, Eigen::VectorXd mean) :
-        weight(weight), mean(mean), preFactor(), rng()
+        weight(weight), mean(mean), preFactor(), rng(new NormalRNG<double>())
     {
         
     }
@@ -66,7 +66,7 @@ namespace music
         Eigen::VectorXd y(mean.size());
         //y.setRandom();    //this creates random number with a uniform distribution!
         for (int i=0; i<mean.size(); i++)
-            y[i] = rng.rand();
+            y[i] = rng->rand();
         return ldlt.matrixL() * y + mean;
     }
     GaussianFullCov::GaussianFullCov(unsigned int dimension) :

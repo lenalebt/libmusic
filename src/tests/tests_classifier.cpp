@@ -5,6 +5,7 @@
 #include "lda_fisher.hpp"
 #include "progress_callback.hpp"
 #include "gmm.hpp"
+#include "randomnumbers.hpp"
 
 #include <fstream>
 

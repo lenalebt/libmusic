@@ -5,115 +5,10 @@
 #include <vector>
 #include <Eigen/Cholesky>
 
+#include "randomnumbers.hpp"
+
 namespace music
 {
-    /**
-     * @brief A random number generator interface.
-     * 
-     * @ingroup classification
-     * 
-     * @author Lena Brueder
-     * @date 2012-08-27
-     */
-    template <typename T>
-    class RNG
-    {
-    public:
-        virtual T rand()=0;
-    };
-    /**
-     * @brief A random number generator which produces uniformly diistributed random numbers.
-     * 
-     * @ingroup classification
-     * 
-     * @author Lena Brueder
-     * @date 2012-08-27
-     */
-    template <typename T>
-    class UniformRNG : public RNG<T>
-    {
-    private:
-        
-    protected:
-        T a;
-        T b;
-        T diff;
-    public:
-        UniformRNG() :
-            a(0.0), b(1.0)  {diff = b-a;}
-        UniformRNG(T a, T b) :
-            a(a), b(b)      {diff = b-a;}
-        T rand()
-        {
-            return a + (diff)*(double(std::rand()) / RAND_MAX);
-        }
-        
-        T getA() const   {return a;}
-        T getB() const   {return b;}
-    };
-    /**
-     * @brief A random number generator which produces normally distributed numbers.
-     * 
-     * @ingroup classification
-     * 
-     * @author Lena Brueder
-     * @date 2012-08-27
-     */
-    template <typename T>
-    class NormalRNG : public RNG<T>
-    {
-    private:
-        double storedval;
-    protected:
-        UniformRNG<T>* rng;
-        T mean;
-        T variance;
-    public:
-        /**
-         * @brief Construct a new random number generator with normally distributed samples.
-         * 
-         * @param rng The uniform random number generator which will be used to
-         *      build the normal distribution. This object takes ownership of the rng!
-         */
-        NormalRNG(UniformRNG<T>* rng, T mean, T variance) :
-            storedval(0.0), rng(rng), mean(mean), variance(variance)
-        {
-            if ((rng == NULL) || (rng->getA() != -1) || (rng->getB() != 1))
-                rng = new UniformRNG<T>(-1, 1);
-        }
-        NormalRNG(T mean, T variance) :
-            storedval(0.0), rng(new UniformRNG<T>(-1, 1)), mean(mean), variance(variance) {}
-        NormalRNG() :
-            storedval(0.0), rng(new UniformRNG<T>(-1, 1)), mean(0.0), variance(1.0) {}
-        ~NormalRNG()    {delete rng;}
-        T rand()
-        {
-            //Box-Muller transform, as presented in "Numerical Recipes, Third edition", p.365...
-            T v1, v2, rsq, fac;
-            if (storedval == 0.0)
-            {
-                do
-                {
-                    v1 = rng->rand();
-                    v2 = rng->rand();
-                    rsq = v1*v1 + v2*v2;
-                } while ((rsq >= 1.0) || (rsq == 0.0));
-                fac = sqrt(-2.0*log(rsq)/rsq);
-                storedval = v1 * fac;
-                return mean + variance * v2 * fac;
-            }
-            else
-            {
-                fac = storedval;
-                storedval = 0.0;
-                return mean + variance * fac;
-            }
-        }
-        
-        T getMean() const       {return mean;}
-        T getVariance() const   {return variance;}
-    };
-    
     /**
      * @brief This class represents a multivariate gaussian distribution.
      * 
@@ -146,7 +41,7 @@ namespace music
      * @author Lena Brueder
      * @date 2012-08-27
      */
-    class Gaussian : public RNG<Eigen::VectorXd>
+    class Gaussian //: public RNG< Eigen::VectorXd >
     {
     private:
         
@@ -154,7 +49,7 @@ namespace music
         double weight;
         Eigen::VectorXd mean;
         double preFactor;
-        NormalRNG<double> rng;
+        NormalRNG<double>* rng;
         
         /**
          * @brief Calculates the prefactor of the gaussian, which is used in
@@ -221,12 +116,10 @@ namespace music
          */
         virtual void setCovarianceMatrix(const Eigen::MatrixXd& matrix)=0;
         
-        //create random value distributed like this gaussian (pseudorandom, not very good)
         /**
          * @brief Generate a random vector that follows the distribution.
          * 
-         * This function internally uses the rand() function from the OS,
-         * so it might not generate good random numbers.
+         * This function 
          * 
          * @return A random vector following this distribution.
          */
