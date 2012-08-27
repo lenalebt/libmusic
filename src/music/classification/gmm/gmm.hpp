@@ -41,7 +41,7 @@ namespace music
      * @author Lena Brueder
      * @date 2012-08-27
      */
-    class Gaussian //: public RNG< Eigen::VectorXd >
+    class Gaussian : public StandardRNG<Eigen::VectorXd>
     {
     private:
         
@@ -198,12 +198,13 @@ namespace music
      * @author Lena Brueder
      * @date 2012-08-27
      */
-    class GaussianMixtureModel
+    class GaussianMixtureModel : public StandardRNG<Eigen::VectorXd>
     {
     private:
         
     protected:
         std::vector<Gaussian*> gaussians;
+        UniformRNG<double> uniRNG;
         
         //give back gaussian with weight.
         /**
@@ -215,12 +216,15 @@ namespace music
          */
         std::vector<Gaussian* > emAlg(std::vector<Gaussian*> init, std::vector<Eigen::VectorXd> data, int gaussianCount = 10, unsigned int maxIterations=50);
     public:
+        GaussianMixtureModel();
         //use EM algorithm to train the model
         void trainGMM(std::vector<Eigen::VectorXd> data, int gaussianCount=10);
         //compare models (with Earth Movers Distance, or by sampling)
         double compareTo(const GaussianMixtureModel& other);
         
         std::vector<Gaussian*> getGaussians() const {return gaussians;}
+        
+        Eigen::VectorXd rand();
     };
 }
 
