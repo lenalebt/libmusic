@@ -209,9 +209,6 @@ namespace tests
             CHECK( (((**it).getMean() - mu1).norm() / mu1.norm() < 10e-1) || (((**it).getMean() - mu2).norm() / mu2.norm() < 10e-1));
         }
         
-        //TODO: test is not ready yet.
-        return EXIT_FAILURE;
-        
         return EXIT_SUCCESS;
     }
     int testRNG()
