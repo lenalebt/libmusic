@@ -14,7 +14,6 @@ namespace music
      * devices, but it also performs good in other environments. It uses
      * files as backend and is not divided into client and server.
      * 
-     * @todo implement
      * @see DatabaseConnection
      * @remarks The return code of the functions does not say anything about if an element was found or not.
      *      It only tells you if an error occured (results in <code>false</code>), or

@@ -199,7 +199,7 @@ namespace music
      * 
      * To use this class, you need to know all your data at once and call the trainGMM()
      * function on the data. It will use a suitable unsupervized learning algorithm
-     * to build the model.
+     * to build the model (usually the EM algorithm).
      * 
      * @ingroup classification
      * 
@@ -214,25 +214,77 @@ namespace music
         std::vector<Gaussian*> gaussians;
         UniformRNG<double> uniRNG;
         
-        //give back gaussian with weight.
         /**
-         * @brief Starts the expectation-maximization algorithm (EM algorithm) on the data.
+         * @brief Starts the expectation-maximization algorithm (EM algorithm) for
+         *      gaussian mixture models (GMM) on the data.
          * 
+         * @param init The initial guesses for the centers of gravity of the normal
+         *      distributions
+         * @param data The data that should be analyzed
+         * @param gaussianCount The count of gaussian distributions that will be used to model the data
+         * @param maxIterations The maximum number of iterations of the algorithm. Usually, it converges much faster.
          * 
+         * @remarks Keep in mind that the gaussians have a field called "weight",
+         *      which tells you the weight of the gaussian in the model.
          * 
          * @return A list of the gaussian distributions that build the model.
          */
         std::vector<Gaussian* > emAlg(std::vector<Gaussian*> init, std::vector<Eigen::VectorXd> data, int gaussianCount = 10, unsigned int maxIterations=50);
     public:
+        /**
+         * @brief Creates a new empty Gaussian Mixture Model.
+         */
         GaussianMixtureModel();
-        //use EM algorithm to train the model
+        /**
+         * @brief Train this GMM to model the data given.
+         * 
+         * @param data The data that should be modeled
+         * @param gaussianCount The count of gaussian distributions that will be used to model the data
+         * 
+         * @return 
+         */
         void trainGMM(std::vector<Eigen::VectorXd> data, int gaussianCount=10);
-        //compare models (with Earth Movers Distance, or by sampling)
+        /**
+         * @brief Compare this gaussian mixture model with another one.
+         * 
+         * @remarks It is not clear which distance measure will be used for
+         *      this task. It is not clear if the measure will be a number
+         *      in [0,1] where 1 means "fits good" to 0 means "does not fit",
+         *      or if it should be a distance measure where 0 means "they are equal or very close"
+         *      to \f$\infty\f$ which means "imagine anything that does not fit, here it is".
+         * @remarks There are some approaches: Earth Movers Distance, or by sampling.
+         * 
+         * @todo Implement!
+         * 
+         * @return A distance measure of the two gaussians.
+         */
         double compareTo(const GaussianMixtureModel& other);
         
+        /**
+         * @brief Returns the list of gaussian distributions of this model.
+         * @return A list of gaussian distributions.
+         */
         std::vector<Gaussian*> getGaussians() const {return gaussians;}
         
+        /**
+         * @brief Draw a random vector from the probability density that is
+         *      represented by this GMM.
+         * @return A random vector drawn from this probability density.
+         */
         Eigen::VectorXd rand();
+        
+        /**
+         * @brief Create a JSON string that represents this model.
+         * @return A JSON string representing this model.
+         */
+        std::string toJSONString();
+        /**
+         * @brief Loads a model directly from a JSON string.
+         * @param jsonString A JSON string describing a gaussian mixture model.
+         * @todo Describe the structure of the JSON string
+         * 
+         */
+        void loadFromJSONString(std::string jsonString);
     };
 }
 
