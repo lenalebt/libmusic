@@ -201,11 +201,61 @@ namespace tests
     }
     int testRNG()
     {
-        music::RNG<double>* rng = NULL;
-        CHECK(rng == NULL);
-        rng = new music::UniformRNG<double>(0, 1);
-        CHECK(rng != NULL);
+        music::UniformRNG<double>* urng = NULL;
+        CHECK(urng == NULL);
+        urng = new music::UniformRNG<double>(-1, 1);
+        CHECK(urng != NULL);
         
+        double mean=0.0;
+        double variance=0.0;
+        double number;
+        int numValues=10000000;
+        DEBUG_OUT("generating random numbers with uniform distribution: " << numValues, 0);
+        for (int i=0; i<numValues; i++)
+        {
+            number = urng->rand();
+            
+            //make sure that all values are within the given interval
+            assert(number >= urng->getA());
+            assert(number < urng->getB());
+            
+            mean += number;
+            variance += number*number;
+        }
+        mean /= numValues;
+        variance /= numValues;
+        
+        CHECK_OP(mean, <, 0.02);
+        CHECK_OP(mean, >,-0.02);
+        CHECK_OP(variance, <, 0.36);
+        CHECK_OP(variance, >, 0.30);
+        
+        DEBUG_VAR_OUT(mean, 0);
+        DEBUG_VAR_OUT(variance, 0);
+        
+        music::NormalRNG<double>* grng = NULL;
+        CHECK(grng == NULL);
+        grng = new music::NormalRNG<double>();
+        CHECK(grng != NULL);
+        
+        DEBUG_OUT("generating random numbers with normal distribution: " << numValues, 0);
+        for (int i=0; i<numValues; i++)
+        {
+            number = grng->rand();
+            //DEBUG_VAR_OUT(number, 0);
+            mean += number;
+            variance += number*number;
+        }
+        mean /= numValues;
+        variance /= numValues;
+        
+        CHECK_OP(mean, <, 0.02);
+        CHECK_OP(mean, >,-0.02);
+        CHECK_OP(variance, <, 1.03);
+        CHECK_OP(variance, >, 0.97);
+        
+        DEBUG_VAR_OUT(mean, 0);
+        DEBUG_VAR_OUT(variance, 0);
         
         
         return EXIT_SUCCESS;
