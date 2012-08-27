@@ -9,9 +9,11 @@ IF(MUSICACCESS_INCLUDE_DIR)
     SET(MUSICACCESS_FIND_QUIETLY TRUE)
 ENDIF(MUSICACCESS_INCLUDE_DIR)
 
-FIND_PATH(MUSICACCESS_INCLUDE_DIR musicaccess.hpp)
+FIND_PATH(MUSICACCESS_INCLUDE_DIR musicaccess.hpp PATHS
+        ${CMAKE_INSTALL_PREFIX}/include)
 
-FIND_LIBRARY(MUSICACCESS_LIBRARY NAMES musicaccess)
+FIND_LIBRARY(MUSICACCESS_LIBRARY NAMES musicaccess PATHS
+        /usr/lib /usr/local/lib /armle-v7/usr/lib /armle-v7/lib)
 
 # Handle the QUIETLY and REQUIRED arguments and set MUSICACCESS_FOUND to TRUE if
 # all listed variables are TRUE.
