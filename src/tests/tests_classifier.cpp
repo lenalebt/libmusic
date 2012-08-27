@@ -175,25 +175,39 @@ namespace tests
             CHECK( (((**it).getMean() - mu1).norm() / mu1.norm() < 10e-1) || (((**it).getMean() - mu2).norm() / mu2.norm() < 10e-1));
         }
         
-        DEBUG_OUT("testing generation of random vectors distributed like a given gaussian distribution...", 0);
-        music::Gaussian* g = new music::GaussianFullCov(10);
-        Eigen::VectorXd mean(2);
-        mean.setZero();
-        Eigen::MatrixXd cov(2, 2);// = Eigen::MatrixXd::Identity(10, 10);
-        cov.setRandom();
-        cov = (cov * cov.transpose()).eval();
+        DEBUG_OUT("testing generation of random vectors distributed like a given gaussian mixture distribution...", 0);
+        data.clear();
         
+        DEBUG_OUT("reading old mean values...", 0);
+        mu1 = gaussians[0]->getMean();
+        mu2 = gaussians[1]->getMean();
         
-        DEBUG_OUT("mean vector: " << mean, 0);
-        DEBUG_OUT("covariance matrix: " << cov, 0);
-        g->setMean(mean);
-        g->setCovarianceMatrix(cov);
+        DEBUG_OUT("generating new data from the previously calculated gaussian mixture model (twice as many data points)...", 0);
+        for (int i=0; i<2*dataCount; i++)
+        {
+            data.push_back(gmm.rand());
+        }
         
-        DEBUG_OUT("saving random vectors to a file....", 0);
-        std::ofstream outstr("random2x2.dat");
+        DEBUG_OUT("deleting old gaussians...", 0);
+        for (unsigned int g=0; g<gaussians.size(); g++)
+            delete gaussians[g];
+        gaussians.clear();
         
-        for (int i=0; i<10000; i++)
-            outstr << g->rand().transpose() << std::endl;
+        //train GMM with data
+        DEBUG_OUT("training gmm...", 0);
+        gmm.trainGMM(data, 2);
+        DEBUG_OUT("training done.", 0);
+        
+        //test if the GMM converged the right way, or not. test data.
+        gaussians = gmm.getGaussians();
+        
+        for (std::vector<music::Gaussian*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
+        {
+            DEBUG_OUT("gaussian mean: " << (*it)->getMean(), 0);
+            DEBUG_OUT("gaussian sigma: " << (*it)->getCovarianceMatrix(), 0);
+            DEBUG_OUT("testing if the estimated mean fits to the input mean of the clusters...", 0);
+            CHECK( (((**it).getMean() - mu1).norm() / mu1.norm() < 10e-1) || (((**it).getMean() - mu2).norm() / mu2.norm() < 10e-1));
+        }
         
         //TODO: test is not ready yet.
         return EXIT_FAILURE;
@@ -211,7 +225,7 @@ namespace tests
         double variance=0.0;
         double number;
         int numValues=10000000;
-        DEBUG_OUT("generating random numbers with uniform distribution: " << numValues, 0);
+        DEBUG_OUT("generating random numbers from uniform distribution: " << numValues, 0);
         for (int i=0; i<numValues; i++)
         {
             number = urng->rand();
@@ -239,7 +253,7 @@ namespace tests
         grng = new music::NormalRNG<double>();
         CHECK(grng != NULL);
         
-        DEBUG_OUT("generating random numbers with normal distribution: " << numValues, 0);
+        DEBUG_OUT("generating random numbers from normal distribution: " << numValues, 0);
         for (int i=0; i<numValues; i++)
         {
             number = grng->rand();
@@ -258,6 +272,7 @@ namespace tests
         DEBUG_VAR_OUT(mean, 0);
         DEBUG_VAR_OUT(variance, 0);
         
+        //TODO: Test of multivariate normal distribution is missing. how to test it!?
         
         return EXIT_SUCCESS;
     }

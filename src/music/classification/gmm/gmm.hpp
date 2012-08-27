@@ -49,6 +49,7 @@ namespace music
         double weight;
         Eigen::VectorXd mean;
         double preFactor;
+        double preFactorWithoutWeights;
         NormalRNG<double>* rng;
         
         /**
@@ -67,6 +68,11 @@ namespace music
          * @return The value of the pdf at the given position.
          */
         virtual double calculateValue(const Eigen::VectorXd& dataVector)=0;
+        /**
+         * @brief Calculate the value of the gaussian distribution at the given position without applying the weight.
+         * @return The value of the pdf at the given position without the weight applied.
+         */
+        virtual double calculateValueWithoutWeights(const Eigen::VectorXd& dataVector)=0;
         /**
          * @brief Calculate the value of the gaussian distribution with mean
          *      at position zero.
@@ -146,6 +152,7 @@ namespace music
     public:
         GaussianFullCov(unsigned int dimension);
         double calculateValue(const Eigen::VectorXd& dataVector);
+        double calculateValueWithoutWeights(const Eigen::VectorXd& dataVector);
         double calculateNoMeanValue(const Eigen::VectorXd& dataVector);
         void setCovarianceMatrix(const Eigen::MatrixXd& matrix);
         Eigen::MatrixXd getCovarianceMatrix()   {return fullCov;}
@@ -173,6 +180,7 @@ namespace music
         void calculatePrefactor();
     public:
         double calculateValue(const Eigen::VectorXd& dataVector);
+        double calculateValueWithoutWeights(const Eigen::VectorXd& dataVector);
         double calculateNoMeanValue(const Eigen::VectorXd& dataVector);
         Eigen::MatrixXd getCovarianceMatrix()   {return diagCov.asDiagonal();}
         void setCovarianceMatrix(const Eigen::MatrixXd& matrix) {this->diagCov = matrix.diagonal();}
