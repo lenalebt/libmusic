@@ -37,6 +37,8 @@ int main(int argc, char *argv[])
         return tests::testConstantQ();
     else if (testname == "fft")
         return tests::testFFT();
+    else if (testname == "dct")
+        return tests::testDCT();
     else if (testname == "sqlitedatabaseconnection")
         return tests::testSQLiteDatabaseConnection();
     else if (testname == "estimatebpm")

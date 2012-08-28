@@ -4,8 +4,6 @@
 #include <assert.h>
 #include "debug.hpp"
 
-#include <sstream>
-
 namespace music
 {
     Gaussian::Gaussian(unsigned int dimension) :
@@ -256,11 +254,50 @@ namespace music
         
     }
     
-    std::string GaussianMixtureModel::toJSONString()
+    std::string GaussianMixtureModel::toJSONString(bool styledWriter) const
     {
-        std::stringstream stream;
-        stream << *this;
-        return stream.str();
+        //uses Jsoncpp as library. Jsoncpp is licensed as MIT, so we may use it without restriction.
+        Json::Value root(Json::arrayValue);
+        Json::Writer* writer=NULL;
+        
+        if (styledWriter)
+            writer = new Json::StyledWriter();
+        else
+            writer = new Json::FastWriter();
+        
+        for (unsigned int g=0; g<gaussians.size(); g++)
+        {
+            Json::Value arrayElement;
+            
+            //output the weight
+            arrayElement["weight"]      = gaussians[g]->getWeight();
+            
+            //output the mean as array of doubles
+            Json::Value mean(Json::arrayValue);
+            Eigen::VectorXd gMean = gaussians[g]->getMean();
+            for (int i=0; i<gMean.size(); i++)
+                mean.append(Json::Value(gMean[i]));
+            arrayElement["mean"]        = mean;
+            
+            //output the variance as array of double. only save the lower
+            //triangular, as the other values are mirrored.
+            Json::Value variance(Json::arrayValue);
+            Eigen::MatrixXd gVariance = gaussians[g]->getCovarianceMatrix();
+            for (int i=0; i<gVariance.rows(); i++)
+            {
+                for (int j=i; j<gVariance.cols(); j++)
+                {
+                    variance.append(Json::Value(gVariance(i, j)));
+                }
+            }
+            arrayElement["covariance"]    = variance;
+            
+            root.append(arrayElement);
+        }
+        
+        std::string str = writer->write(root);
+        delete writer;
+        return str;
     }
     
     void GaussianMixtureModel::loadFromJSONString(const std::string& jsonString)
@@ -268,7 +305,6 @@ namespace music
         Json::Value root;
         Json::Reader reader;
         reader.parse(jsonString, root, false);
-        std::cout << root;
         loadFromJsonValue(root);
     }
     void GaussianMixtureModel::loadFromJsonValue(Json::Value& jsonValue)
@@ -347,42 +383,8 @@ namespace music
     }
     std::ostream& operator<<(std::ostream& os, const GaussianMixtureModel& model)
     {
-        //uses Jsoncpp as library. Jsoncpp is licensed as MIT, so we may use it without restriction.
-        Json::Value root(Json::arrayValue);
-        Json::StyledWriter writer;
-        
-        for (unsigned int g=0; g<model.gaussians.size(); g++)
-        {
-            Json::Value arrayElement;
-            
-            //output the weight
-            arrayElement["weight"]      = model.gaussians[g]->getWeight();
-            
-            //output the mean as array of doubles
-            Json::Value mean(Json::arrayValue);
-            Eigen::VectorXd gMean = model.gaussians[g]->getMean();
-            for (int i=0; i<gMean.size(); i++)
-                mean.append(Json::Value(gMean[i]));
-            arrayElement["mean"]        = mean;
-            
-            //output the variance as array of double. only save the lower
-            //triangular, as the other values are mirrored.
-            Json::Value variance(Json::arrayValue);
-            Eigen::MatrixXd gVariance = model.gaussians[g]->getCovarianceMatrix();
-            for (int i=0; i<gVariance.rows(); i++)
-            {
-                for (int j=i; j<gVariance.cols(); j++)
-                {
-                    variance.append(Json::Value(gVariance(i, j)));
-                }
-            }
-            arrayElement["covariance"]    = variance;
-            
-            root.append(arrayElement);
-        }
-        
-        os << writer.write(root);
-        return os;
+        //use a fast writer instead of a styled writer, produces smaller JSON
+        return (os << model.toJSONString(false));
     }
     std::istream& operator>>(std::istream& is, GaussianMixtureModel& model)
     {
@@ -390,5 +392,6 @@ namespace music
         Json::Reader reader;
         reader.parse(is, root, false);
         model.loadFromJsonValue(root);
+        return is;
     }
 }

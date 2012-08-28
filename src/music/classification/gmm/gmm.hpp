@@ -281,7 +281,7 @@ namespace music
          * @brief Create a JSON string that represents this model.
          * @return A JSON string representing this model.
          */
-        std::string toJSONString();
+        std::string toJSONString(bool styledWriter=false) const;
         /**
          * @brief Loads a model directly from a JSON string.
          * @param jsonString A JSON string describing a gaussian mixture model.

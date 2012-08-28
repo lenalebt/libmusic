@@ -127,7 +127,7 @@ namespace tests
     {
         music::FFT fft;
         
-        std::cerr << "calculating the fft of a signal..." << std::endl;
+        DEBUG_OUT("calculating the fft of a signal...", 0)
         
         kiss_fft_scalar mem[8] = {1.0, 1.2, 1.5, 1.3, 1.05, 1.0, 1.0, 1.0};
         kiss_fft_cpx outmem[8];
@@ -142,7 +142,7 @@ namespace tests
             std::cerr << "(" << outmem[i].r << "+" << outmem[i].i << "*i)" << " ";
         }
         
-        std::cerr << "calculating full fft from real-values fft..." << std::endl;
+        DEBUG_OUT("calculating full fft from real-values fft...", 0);
         std::cerr << std::endl;
         int midPoint = 8/2;
         for (int i=1; i<8/2; i++)
@@ -156,7 +156,7 @@ namespace tests
         }
         std::cerr << std::endl;
         
-        std::cerr << "checking full fft..." << std::endl;
+        DEBUG_OUT("checking full fft...", 0);
         std::complex<kiss_fft_scalar> cpxmem[8];
         cpxmem[0] = std::complex<kiss_fft_scalar>(1.0, 0.0);
         cpxmem[1] = std::complex<kiss_fft_scalar>(1.2, 0.0);
@@ -207,7 +207,7 @@ namespace tests
         
         for(std::list<int>::iterator it = intlist.begin(); it != intlist.end(); it++)
         {
-            std::cerr << "applying with sine of frequency " << *it << "*T..." << std::endl;
+            DEBUG_OUT("applying with sine of frequency " << *it << "*T...", 0);
             CHECK_OP(*it, <=, 1024/2+1);
             CHECK_OP(*it, >=, 1);
             
@@ -234,6 +234,35 @@ namespace tests
             fft.doFFT(largemem, 64, largeoutmem, freqLength);
             CHECK_EQ(freqLength, 33);
         }
+        
+        return EXIT_SUCCESS;
+    }
+    int testDCT()
+    {
+        music::DCT dct;
+        //music::FFT fft;
+        
+        DEBUG_OUT("calculating the dct of a signal...", 0);
+        
+        float mem[129];
+        float outmem[129];
+        
+        for(int i=0; i<129; i++)
+        {
+            mem[i] = cos(2*2*M_PI*i/128.0);
+            std::cerr << mem[i] << " ";
+        }
+        std::cerr << std::endl;
+        
+        dct.doDCT(mem, 129, outmem);
+        //int freqLen;
+        //fft.doFFT(mem, 128, (kiss_fft_cpx*)outmem, freqLen);
+        
+        for(int i=0; i<129; i++)
+        {
+            std::cerr << outmem[i] << " ";
+        }
+        std::cerr << std::endl;
         
         return EXIT_SUCCESS;
     }
