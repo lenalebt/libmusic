@@ -268,6 +268,7 @@ namespace music
         Json::Value root;
         Json::Reader reader;
         reader.parse(jsonString, root, false);
+        std::cout << root;
         loadFromJsonValue(root);
     }
     void GaussianMixtureModel::loadFromJsonValue(Json::Value& jsonValue)
@@ -303,6 +304,7 @@ namespace music
             Json::Value jMean = jsonValue[g]["mean"];
             for (int i=0; i<dimension; i++)
                 mean[i] = jMean[i].asDouble();
+            gauss->setMean(mean);
             
             //read covariance
             Eigen::MatrixXd variance(dimension, dimension);
@@ -323,10 +325,10 @@ namespace music
                     //go one step to the right when we exceed the matrix dimensions
                     //begin on the diagonal.
                     i++;
-                    if (i>dimension)
+                    if (i>=dimension)
                     {
-                        i=j;
                         j++;
+                        i=j;
                     }
                 }
             }
@@ -338,7 +340,7 @@ namespace music
                 for (int i=0; i<dimension; i++)
                     variance(i,i) = jVariance[i].asDouble();
             }
-            
+            gauss->setCovarianceMatrix(variance);
             
             gaussians.push_back(gauss);
         }
@@ -347,7 +349,7 @@ namespace music
     {
         //uses Jsoncpp as library. Jsoncpp is licensed as MIT, so we may use it without restriction.
         Json::Value root(Json::arrayValue);
-        Json::FastWriter writer;
+        Json::StyledWriter writer;
         
         for (unsigned int g=0; g<model.gaussians.size(); g++)
         {
