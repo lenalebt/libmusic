@@ -209,6 +209,8 @@ namespace tests
             CHECK( (((**it).getMean() - mu1).norm() / mu1.norm() < 10e-1) || (((**it).getMean() - mu2).norm() / mu2.norm() < 10e-1));
         }
         
+        DEBUG_OUT("Model as JSON: " << gmm, 0);
+        
         return EXIT_SUCCESS;
     }
     int testRNG()

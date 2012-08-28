@@ -80,6 +80,7 @@ SET(
     src/tools/stringhelper.cpp
     src/tools/tuple.cpp
     src/tools/randomnumbers.cpp
+    src/tools/jsoncpp/jsoncpp.cpp
     
     #uihelper
     src/music/uihelper/progress_callback.cpp
@@ -122,6 +123,8 @@ SET(
     src/tools/stringhelper.hpp
     src/tools/tuple.hpp
     src/tools/randomnumbers.hpp
+    src/tools/jsoncpp/json/json.h
+    src/tools/jsoncpp/json/json-forwards.h
     
     #uihelper
     src/music/uihelper/progress_callback.hpp
@@ -168,6 +171,7 @@ INCLUDE_DIRECTORIES(
     ${EIGEN3_INCLUDE_DIR}
     src/
     src/tools
+    src/tools/jsoncpp
     src/music
     src/music/feature_extraction
     src/music/database
