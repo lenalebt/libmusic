@@ -227,6 +227,18 @@ namespace tests
             CHECK( (((**it).getMean() - mu1).norm() / mu1.norm() < 10e-1) || (((**it).getMean() - mu2).norm() / mu2.norm() < 10e-1));
         }
         
+        music::GaussianMixtureModel gmm3;
+        gmm3.loadFromJSONString(gmmJSON);
+        
+        gaussians = gmm3.getGaussians();
+        gaussians[0]->setMean(mu1 * 1.1);
+        gaussians[1]->setMean(mu2 * 1.1);
+        
+        DEBUG_VAR_OUT(gmm.compareTo(gmm2), 0);
+        DEBUG_VAR_OUT(gmm2.compareTo(gmm), 0);
+        DEBUG_VAR_OUT(gmm.compareTo(gmm3), 0);
+        DEBUG_VAR_OUT(gmm3.compareTo(gmm), 0);
+        
         return EXIT_SUCCESS;
     }
     int testRNG()

@@ -232,9 +232,28 @@ namespace music
         }
         return gaussians;
     }
+    
+    double GaussianMixtureModel::calculateValue(const Eigen::VectorXd& pos) const
+    {
+        double retVal=0.0;
+        for (std::vector<Gaussian*>::const_iterator it = gaussians.begin(); it != gaussians.end(); it++)
+        {
+            retVal += (**it).calculateValue(pos);
+        }
+        return retVal;
+    }
+    
     double GaussianMixtureModel::compareTo(const GaussianMixtureModel& other)
     {
-        
+        //draw some samples from the one model and take a look at the pdf values of the other.
+        double value = 0.0;
+        const int numValues = 10000;
+        //get the mean of the pdf values. large values should mean "pdfs are similar",
+        //and small values indicate that they are not equal.
+        for (int i=0; i<numValues; i++)
+            value += other.calculateValue(this->rand());
+        value /= numValues * 2.55745e-05;
+        return value;
     }
     
     Eigen::VectorXd GaussianMixtureModel::rand()
@@ -247,6 +266,10 @@ namespace music
             if (sumOfWeights > randomNumber)
                 return gaussians[i]->rand();
         }
+        
+        //this should never happen...
+        ERROR_OUT("You should never see this, as you will not get random numbers outside of [0,1[ from a random number generator generating numbers in [0,1[. If you see this, something veeery weird happened.", 0);
+        return gaussians[0]->rand();
     }
     GaussianMixtureModel::GaussianMixtureModel() :
         uniRNG(0.0, 1.0)
