@@ -59,19 +59,6 @@ namespace music
         //  */
         // void doicFFT(const kiss_fft_cpx *freqData, int freqLength, kiss_fft_cpx *timeData, int& timeLength);
     };
-    
-    class DCT
-    {
-    private:
-        FFT fft;
-    protected:
-        
-    public:
-        DCT();
-        ~DCT();
-        void doDCT1(float* timeData, int timeLength, float* freqData);
-        void doDCT2(float* timeData, int timeLength, float* freqData);
-    };
 }
 
 #endif //FFT_HPP
