@@ -397,6 +397,21 @@ namespace tests
             }
         }
         
+        DEBUG_OUT("saving mean absolute values of the cqt transform result (0.01s) to file \"octavesmean.dat\"", 10);
+        std::ofstream outstrm("octavesmean.dat");
+        for (int octave=transformResult->getOctaveCount()-1; octave>=0; octave--)
+        {
+            for (int bin=transformResult->getBinsPerOctave()-1; bin >= 0; bin--)
+            {
+                for (int i=0; i < 100*transformResult->getOriginalDuration(); i++)
+                {
+                    double time = 0.01 * i;
+                    outstrm << fabs(transformResult->getNoteValueMean(time, octave, bin, 0.01)) << " ";
+                }
+                outstrm << std::endl;
+            }
+        }
+        
         delete transformResult;
         //delete[] buffer;
         delete cqt;

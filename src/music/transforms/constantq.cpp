@@ -495,6 +495,8 @@ namespace music
         if (time <= 0.0f)
             return 0.0f;
         
+        assert(preDuration > 0);
+        
         if (octave >= octaveCount)
         {
             DEBUG_OUT("tried to acces octave " << octave << ", we only have " << octaveCount << " octaves!", 10);
@@ -514,6 +516,7 @@ namespace music
         if (preTime <= 0.0)
         {
             prePos=0;
+            prePos += drop[octave] + 1;
         }
         else
         {
@@ -526,6 +529,7 @@ namespace music
         float mean=0.0f;
         
         assert(pos < octaveMatrix[octave]->cols());
+        assert(prePos <= pos);
         
         for (int i=prePos; i<=pos; i++)
         {
@@ -533,7 +537,7 @@ namespace music
         }
         
         if (pos != prePos)
-            mean /= pos-prePos;
+            mean /= pos-prePos+1;
         
         return mean;
     }
