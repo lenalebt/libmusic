@@ -48,4 +48,32 @@ namespace music
     {
         
     }
+    
+    TimbreModel::TimbreModel(ConstantQTransformResult* transformResult) :
+        transformResult(transformResult)
+    {
+        
+    }
+    void TimbreModel::calculateModel(int modelSize, double timeSliceSize)
+    {
+        assert(modelSize > 0);
+        assert(timeSliceSize > 0.0);
+        
+        //first get data vectors
+        TimbreEstimator tEst(transformResult);
+        double time;
+        std::vector<Eigen::VectorXd> data;
+        for (int i=1; i<transformResult->getOriginalDuration()/timeSliceSize; i++)
+        {
+            time = i*timeSliceSize;
+            data.push_back(tEst.estimateTimbre(time - timeSliceSize, time));
+        }
+        
+        //then train the model
+        model.trainGMM(data, modelSize);
+    }
+    GaussianMixtureModel TimbreModel::getModel()
+    {
+        return model;
+    }
 }

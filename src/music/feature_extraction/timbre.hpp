@@ -3,6 +3,7 @@
 
 #include "constantq.hpp"
 #include "dct.hpp"
+#include "gmm.hpp"
 
 namespace music
 {
@@ -36,6 +37,19 @@ namespace music
     public:
         TimbreEstimator(ConstantQTransformResult* transformResult);
         Eigen::VectorXd estimateTimbre(double fromTime, double toTime);
+    };
+    
+    class TimbreModel
+    {
+    private:
+        
+    protected:
+        ConstantQTransformResult* transformResult;
+        GaussianMixtureModel model;
+    public:
+        TimbreModel(ConstantQTransformResult* transformResult);
+        void calculateModel(int modelSize=5, double timeSliceSize=0.02);
+        GaussianMixtureModel getModel();
     };
 }
 #endif  //TIMBRE_HPP
