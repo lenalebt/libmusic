@@ -176,13 +176,17 @@ namespace music
                 }
             }
             
+            //DEBUG_VAR_OUT(p, 0);
+            
             double sum;
             for (unsigned int i=0; i<dataSize; i++)
             {
                 //normalize p.
-                //sometimes the sum gets 0, and then dividing by it would be wrong.
+                //sometimes the sum gets 0 or veeeery small, and then
+                //dividing by it leads to nan/inf values. we try to
+                //skip these values.
                 sum = p.row(i).sum();
-                if (sum == 0.0)
+                if (sum <= 1.0e-280)
                     sum = 1.0;
                 
                 //resolve aliasing issues here with calling eval()
@@ -190,6 +194,8 @@ namespace music
             }
             DEBUG_OUT("E-step END", 30);
             //E-step END
+            
+            //DEBUG_VAR_OUT(p, 0);
             
             //M-step BEGIN
             DEBUG_OUT("M-step BEGIN", 30);
@@ -233,11 +239,16 @@ namespace music
         }
         DEBUG_OUT("EM converged or terminated after " << iteration << " iterations...", 20);
         
-        
+        double sumOfWeights = 0.0;
+        normalizationFactor = 0.0;
         for (int g=0; g<gaussianCount; g++)
         {
+            sumOfWeights += weights[g];
             gaussians[g]->setWeight(weights[g]);
+            normalizationFactor += gaussians[g]->calculateValue(gaussians[g]->getMean());
         }
+        normalizationFactor /= gaussianCount;
+        uniRNG = UniformRNG<double>(0.0, sumOfWeights);
         return gaussians;
     }
     
@@ -260,7 +271,7 @@ namespace music
         //and small values indicate that they are not equal.
         for (int i=0; i<numValues; i++)
             value += other.calculateValue(this->rand());
-        value /= numValues * 2.55745e-05;
+        value /= numValues * normalizationFactor;
         return value;
     }
     
@@ -271,7 +282,7 @@ namespace music
         for (unsigned int i=0; i<gaussians.size(); i++)
         {
             sumOfWeights += gaussians[i]->getWeight();
-            if (sumOfWeights > randomNumber)
+            if (sumOfWeights >= randomNumber)
                 return gaussians[i]->rand();
         }
         
@@ -280,7 +291,7 @@ namespace music
         return gaussians[0]->rand();
     }
     GaussianMixtureModel::GaussianMixtureModel() :
-        uniRNG(0.0, 1.0)
+        gaussians(), uniRNG(0.0, 1.0), normalizationFactor(1.0)
     {
         
     }

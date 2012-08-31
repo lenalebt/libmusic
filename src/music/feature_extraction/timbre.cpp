@@ -36,8 +36,9 @@ namespace music
         //    std::cerr << freqData[i] << " ";
         //std::cerr << std::endl;
         
-        Eigen::VectorXd timbre(20);
-        for (int i=1; i<21; i++)
+        int timbreVectorSize = 8;
+        Eigen::VectorXd timbre(timbreVectorSize);
+        for (int i=1; i<timbreVectorSize+1; i++)
             timbre[i-1] = freqData[i];
         return timbre;
     }

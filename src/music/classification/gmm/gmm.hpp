@@ -215,6 +215,7 @@ namespace music
     protected:
         std::vector<Gaussian*> gaussians;
         UniformRNG<double> uniRNG;
+        double normalizationFactor;
         
         void loadFromJsonValue(Json::Value& jsonValue);
         
