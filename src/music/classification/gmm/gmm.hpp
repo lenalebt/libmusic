@@ -234,7 +234,7 @@ namespace music
          * 
          * @return A list of the gaussian distributions that build the model.
          */
-        std::vector<Gaussian* > emAlg(std::vector<Gaussian*> init, std::vector<Eigen::VectorXd> data, int gaussianCount = 10, unsigned int maxIterations=50);
+        std::vector<Gaussian* > emAlg(const std::vector<Gaussian*>& init, const std::vector<Eigen::VectorXd>& data, int gaussianCount = 10, unsigned int maxIterations=50);
     public:
         /**
          * @brief Creates a new empty Gaussian Mixture Model.
@@ -248,7 +248,7 @@ namespace music
          * 
          * @return 
          */
-        void trainGMM(std::vector<Eigen::VectorXd> data, int gaussianCount=10);
+        void trainGMM(const std::vector<Eigen::VectorXd>& data, int gaussianCount=10);
         /**
          * @brief Compare this gaussian mixture model with another one.
          * 

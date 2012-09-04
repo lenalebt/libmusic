@@ -5,6 +5,7 @@ namespace tests
 {
     int testFisherLDA();
     int testGMM();
+    int testKMeans();
     int testRNG();
 }
 

@@ -25,6 +25,8 @@ int main(int argc, char *argv[])
     std::string testname(argv[1]);
     std::transform(testname.begin(), testname.end(), testname.begin(), ::tolower);
     
+    std::cerr << "running test \"" << testname << "\"..." << std::endl;
+    
     if (testname == "basename")
         return tests::testBasename();
     else if (testname == "stringhelper")
@@ -57,6 +59,8 @@ int main(int argc, char *argv[])
         return tests::testFisherLDA();
     else if (testname == "gmm")
         return tests::testGMM();
+    else if (testname == "kmeans")
+        return tests::testKMeans();
     else if (testname == "rng")
         return tests::testRNG();
     else if (testname == "preprocessfiles")
