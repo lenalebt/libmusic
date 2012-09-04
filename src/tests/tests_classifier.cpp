@@ -305,10 +305,22 @@ namespace tests
         DEBUG_OUT("estimated variance of distribution 2 = " << varVec / (3*dataCount/4), 0);
         
         DEBUG_OUT("running k-means with generated data and 2 means...", 0);
-        kmeans.trainKMeans(data, 2, 3);
+        kmeans.trainKMeans(data, 2, 100);
         std::vector<Eigen::VectorXd> means1 = kmeans.getMeans();
         DEBUG_VAR_OUT(means1[0], 0);
         DEBUG_VAR_OUT(means1[1], 0);
+        
+        CHECK( ((means1[0] - mu1).norm() / mu1.norm() < 10e-1) || ((means1[0] - mu2).norm() / mu2.norm() < 10e-1));
+        CHECK( ((means1[1] - mu1).norm() / mu1.norm() < 10e-1) || ((means1[1] - mu2).norm() / mu2.norm() < 10e-1));
+        
+        DEBUG_OUT("running k-means with generated data and 2 means...", 0);
+        kmeans.trainKMeans(data, 5, 100);
+        std::vector<Eigen::VectorXd> means2 = kmeans.getMeans();
+        DEBUG_VAR_OUT(means2[0], 0);
+        DEBUG_VAR_OUT(means2[1], 0);
+        DEBUG_VAR_OUT(means2[2], 0);
+        DEBUG_VAR_OUT(means2[3], 0);
+        DEBUG_VAR_OUT(means2[4], 0);
         
         return EXIT_FAILURE;
     }
