@@ -25,7 +25,7 @@ namespace music
         if (init.empty() || (init.size() != meanCount))
         {
             //TODO: take random values
-            DEBUG_OUT("no init vectors given. using random values...", 20);
+            DEBUG_OUT("no init vectors given. using random values...", 25);
             //init with random data points and identity matricies as covariance matrix
             for (unsigned int i=0; i<meanCount; i++)
             {
@@ -83,6 +83,15 @@ namespace music
             {
                 means[i] = means[i] / vectorCountInCluster[i];
             }
+        }
+        
+        if (converged)
+        {
+            DEBUG_OUT("k-means converged after " << iteration << " iterations.", 20);
+        }
+        else
+        {
+            DEBUG_OUT("k-means stopped after " << iteration << " iterations.", 20);
         }
     }
 }
