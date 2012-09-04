@@ -246,7 +246,6 @@ namespace music
          * @param data The data that should be modeled
          * @param gaussianCount The count of gaussian distributions that will be used to model the data
          * 
-         * @return 
          */
         void trainGMM(const std::vector<Eigen::VectorXd>& data, int gaussianCount=10);
         /**
