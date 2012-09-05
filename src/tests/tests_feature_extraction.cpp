@@ -608,16 +608,16 @@ namespace tests
             outstr << data[i].transpose() << std::endl;
         }
         
-        music::GaussianMixtureModel gmm1;
+        music::GaussianMixtureModel<double> gmm1;
         gmm1.trainGMM(data, gaussianCount);
         
-        music::GaussianMixtureModel gmm2;
+        music::GaussianMixtureModel<double> gmm2;
         gmm2.trainGMM(data, gaussianCount);
         
-        std::vector<music::Gaussian*> gaussians1 = gmm1.getGaussians();
+        std::vector<music::Gaussian<double>*> gaussians1 = gmm1.getGaussians();
         for (int i=0; i<gaussianCount; i++)
             DEBUG_VAR_OUT(gaussians1[i]->getMean(), 0);
-        std::vector<music::Gaussian*> gaussians2 = gmm2.getGaussians();
+        std::vector<music::Gaussian<double>*> gaussians2 = gmm2.getGaussians();
         for (int i=0; i<gaussianCount; i++)
             DEBUG_VAR_OUT(gaussians2[i]->getMean(), 0);
         

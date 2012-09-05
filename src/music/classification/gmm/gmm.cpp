@@ -6,19 +6,21 @@
 
 namespace music
 {
-    Gaussian::Gaussian(unsigned int dimension) :
-        weight(1.0), mean(dimension), preFactor(), rng(new NormalRNG<double>())
+    template <typename T>
+    Gaussian<T>::Gaussian(unsigned int dimension) :
+        weight(1.0), mean(dimension), preFactor(), rng(new NormalRNG<T>())
     {
         
     }
-    Gaussian::Gaussian(double weight, Eigen::VectorXd mean) :
-        weight(weight), mean(mean), preFactor(), rng(new NormalRNG<double>())
+    template <typename T>
+    Gaussian<T>::Gaussian(T weight, const Eigen::Matrix<T, Eigen::Dynamic, 1>& mean) :
+        weight(weight), mean(mean), preFactor(), rng(new NormalRNG<T>())
     {
         
     }
     
-    
-    double GaussianDiagCov::calculateValue(const Eigen::VectorXd& dataVector)
+    template <typename T>
+    T GaussianDiagCov<T>::calculateValue(const Eigen::Matrix<T, Eigen::Dynamic, 1>& dataVector)
     {
         assert(dataVector.size() == mean.size());
         Eigen::VectorXd dist = dataVector - mean;
@@ -26,7 +28,8 @@ namespace music
         ldlt.solve(dist2);
         return preFactor * std::exp(-0.5 * (dist.transpose() * dist2)(0));
     }
-    double GaussianDiagCov::calculateValueWithoutWeights(const Eigen::VectorXd& dataVector)
+    template <typename T>
+    T GaussianDiagCov<T>::calculateValueWithoutWeights(const Eigen::Matrix<T, Eigen::Dynamic, 1>& dataVector)
     {
         assert(dataVector.size() == mean.size());
         Eigen::VectorXd dist = dataVector - mean;
@@ -34,14 +37,16 @@ namespace music
         ldlt.solve(dist2);
         return preFactorWithoutWeights * std::exp(-0.5 * (dist.transpose() * dist2)(0));
     }
-    double GaussianDiagCov::calculateNoMeanValue(const Eigen::VectorXd& dataVector)
+    template <typename T>
+    T GaussianDiagCov<T>::calculateNoMeanValue(const Eigen::Matrix<T, Eigen::Dynamic, 1>& dataVector)
     {
         assert(dataVector.size() == mean.size());
         Eigen::VectorXd vec2 = dataVector;
         ldlt.solve(vec2);
         return preFactor * std::exp(-0.5 * (dataVector.transpose() * vec2)(0));
     }
-    Eigen::VectorXd GaussianDiagCov::rand()
+    template <typename T>
+    Eigen::Matrix<T, Eigen::Dynamic, 1> GaussianDiagCov<T>::rand()
     {
         assert(mean.size() > 0);
         Eigen::LDLT<Eigen::MatrixXd> ldlt(diagCov.asDiagonal());
@@ -50,12 +55,14 @@ namespace music
             y[i] = rng->rand();
         return ldlt.matrixL() * y + mean;
     }
-    void GaussianDiagCov::calculatePrefactor()
+    template <typename T>
+    void GaussianDiagCov<T>::calculatePrefactor()
     {
         preFactor = weight * 1.0/(pow(2*M_PI, diagCov.size()/2.0) * sqrt(diagCov.prod()));
         preFactorWithoutWeights = 1.0/(pow(2*M_PI, diagCov.size()/2.0) * sqrt(diagCov.prod()));
     }
-    void GaussianDiagCov::setCovarianceMatrix(const Eigen::MatrixXd& fullCov)
+    template <typename T>
+    void GaussianDiagCov<T>::setCovarianceMatrix(const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& fullCov)
     {
         assert(fullCov.rows() == mean.size());
         this->diagCov = fullCov.diagonal();
@@ -63,19 +70,21 @@ namespace music
         
         calculatePrefactor();
     }
-    GaussianDiagCov::GaussianDiagCov(unsigned int dimension) :
-        Gaussian(dimension)
+    template <typename T>
+    GaussianDiagCov<T>::GaussianDiagCov(unsigned int dimension) :
+        Gaussian<T>(dimension)
     {
         
     }
     
-    
-    void GaussianFullCov::calculatePrefactor()
+    template <typename T>
+    void GaussianFullCov<T>::calculatePrefactor()
     {
         preFactor = weight * 1.0/(pow(2*M_PI, fullCov.rows()/2.0) * sqrt(fullCov.determinant()));
         preFactorWithoutWeights = 1.0/(pow(2*M_PI, fullCov.rows()/2.0) * sqrt(fullCov.determinant()));
     }
-    void GaussianFullCov::setCovarianceMatrix(const Eigen::MatrixXd& fullCov)
+    template <typename T>
+    void GaussianFullCov<T>::setCovarianceMatrix(const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& fullCov)
     {
         assert(fullCov.rows() == mean.size());
         this->fullCov = fullCov;
@@ -83,7 +92,8 @@ namespace music
         
         calculatePrefactor();
     }
-    double GaussianFullCov::calculateValue(const Eigen::VectorXd& dataVector)
+    template <typename T>
+    T GaussianFullCov<T>::calculateValue(const Eigen::Matrix<T, Eigen::Dynamic, 1>& dataVector)
     {
         assert(dataVector.size() == mean.size());
         Eigen::VectorXd dist = dataVector - mean;
@@ -91,7 +101,8 @@ namespace music
         ldlt.solve(dist2);
         return preFactor * std::exp(-0.5 * (dist.transpose() * dist2)(0));
     }
-    double GaussianFullCov::calculateValueWithoutWeights(const Eigen::VectorXd& dataVector)
+    template <typename T>
+    T GaussianFullCov<T>::calculateValueWithoutWeights(const Eigen::Matrix<T, Eigen::Dynamic, 1>& dataVector)
     {
         assert(dataVector.size() == mean.size());
         Eigen::VectorXd dist = dataVector - mean;
@@ -99,39 +110,44 @@ namespace music
         ldlt.solve(dist2);
         return preFactorWithoutWeights * std::exp(-0.5 * (dist.transpose() * dist2)(0));
     }
-    double GaussianFullCov::calculateNoMeanValue(const Eigen::VectorXd& dataVector)
+    template <typename T>
+    T GaussianFullCov<T>::calculateNoMeanValue(const Eigen::Matrix<T, Eigen::Dynamic, 1>& dataVector)
     {
         assert(dataVector.size() == mean.size());
         Eigen::VectorXd vec2 = dataVector;
         ldlt.solve(vec2);
         return preFactor * std::exp(-0.5 * (dataVector.transpose() * vec2)(0));
     }
-    Eigen::VectorXd GaussianFullCov::rand()
+    template <typename T>
+    Eigen::Matrix<T, Eigen::Dynamic, 1> GaussianFullCov<T>::rand()
     {
         assert(mean.size() > 0);
-        Eigen::LDLT<Eigen::MatrixXd> ldlt(fullCov);
+        Eigen::LDLT<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > ldlt(fullCov);
         Eigen::VectorXd y(mean.size());
         for (int i=0; i<mean.size(); i++)
             y[i] = rng->rand();
         return ldlt.matrixL() * y + mean;
     }
-    GaussianFullCov::GaussianFullCov(unsigned int dimension) :
-        Gaussian(dimension), fullCov(dimension, dimension), ldlt()
+    template <typename T>
+    GaussianFullCov<T>::GaussianFullCov(unsigned int dimension) :
+        Gaussian<T>(dimension), fullCov(dimension, dimension), ldlt()
     {
         calculatePrefactor();
     }
     
-    void GaussianMixtureModel::trainGMM(const std::vector<Eigen::VectorXd>& data, int gaussianCount)
+    template <typename T>
+    void GaussianMixtureModel<T>::trainGMM(const std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> >& data, int gaussianCount)
     {
         //TODO: precompute good starting vectors.
-        gaussians = this->emAlg(std::vector<Gaussian*>(), data, gaussianCount);
+        gaussians = this->emAlg(std::vector<Gaussian<T>*>(), data, gaussianCount);
     }
     
-    std::vector<Gaussian*> GaussianMixtureModel::emAlg(const std::vector<Gaussian*>& init, const std::vector<Eigen::VectorXd>& data, int gaussianCount, unsigned int maxIterations)
+    template <typename T>
+    std::vector<Gaussian<T>*> GaussianMixtureModel<T>::emAlg(const std::vector<Gaussian<T>*>& init, const std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> >& data, int gaussianCount, unsigned int maxIterations)
     {
         //if init is empty, choose some data points as initialization.
         //k-means or something else should be done by somebody else beforehand.
-        std::vector<Gaussian*> gaussians;
+        std::vector<Gaussian<T>*> gaussians;
         unsigned int dimension = data[0].size();
         unsigned int dataSize = data.size();
         if (init.empty())
@@ -141,7 +157,7 @@ namespace music
             for (int i=0; i<gaussianCount; i++)
             {
                 DEBUG_OUT("adding gaussian distribution " << i << "...", 25);
-                Gaussian* gaussian = new GaussianFullCov(dimension);
+                Gaussian<T>* gaussian = new GaussianFullCov<T>(dimension);
                 
                 gaussian->setMean(data[std::rand() % dataSize]);
                 gaussian->setCovarianceMatrix(Eigen::MatrixXd::Identity(dimension, dimension));
@@ -150,9 +166,9 @@ namespace music
         }
         
         //set initial weights all equal to 1/gaussianCount
-        Eigen::VectorXd weights = Eigen::VectorXd::Constant(gaussianCount, 1.0/double(gaussianCount));
-        Eigen::VectorXd oldWeights = weights;
-        Eigen::ArrayXXd p(dataSize, gaussianCount);
+        Eigen::Matrix<T, Eigen::Dynamic, 1> weights = Eigen::VectorXd::Constant(gaussianCount, 1.0/T(gaussianCount));
+        Eigen::Matrix<T, Eigen::Dynamic, 1> oldWeights = weights;
+        Eigen::Array<T, Eigen::Dynamic, Eigen::Dynamic> p(dataSize, gaussianCount);
         
         
         unsigned int iteration = 0;
@@ -217,11 +233,11 @@ namespace music
                 
                 //calculate sigma
                 //TODO: this step needs to be done by the gaussian, in order to reduce calculation costs.
-                Eigen::MatrixXd sigma(dimension, dimension);
+                Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> sigma(dimension, dimension);
                 sigma.setZero();
                 for (unsigned int i=0; i< dataSize; i++)
                 {
-                    Eigen::VectorXd dist = data[i] - mu;
+                    Eigen::Matrix<T, Eigen::Dynamic, 1> dist = data[i] - mu;
                     sigma = sigma + (p(i,g) * (dist * dist.transpose()));
                 }
                 sigma = sigma / (dataSize * prob(g));
@@ -259,20 +275,22 @@ namespace music
         return gaussians;
     }
     
-    double GaussianMixtureModel::calculateValue(const Eigen::VectorXd& pos) const
+    template <typename T>
+    T GaussianMixtureModel<T>::calculateValue(const Eigen::Matrix<T, Eigen::Dynamic, 1>& pos) const
     {
-        double retVal=0.0;
-        for (std::vector<Gaussian*>::const_iterator it = gaussians.begin(); it != gaussians.end(); it++)
+        T retVal=0.0;
+        for (typename std::vector<Gaussian<T>*>::const_iterator it = gaussians.begin(); it != gaussians.end(); it++)
         {
             retVal += (**it).calculateValue(pos);
         }
         return retVal;
     }
     
-    double GaussianMixtureModel::compareTo(const GaussianMixtureModel& other)
+    template <typename T>
+    T GaussianMixtureModel<T>::compareTo(const GaussianMixtureModel<T>& other)
     {
         //draw some samples from the one model and take a look at the pdf values of the other.
-        double value = 0.0;
+        T value = 0.0;
         const int numValues = 5000;
         //get the mean of the pdf values. large values should mean "pdfs are similar",
         //and small values indicate that they are not equal.
@@ -282,10 +300,11 @@ namespace music
         return value;
     }
     
-    Eigen::VectorXd GaussianMixtureModel::rand()
+    template <typename T>
+    Eigen::Matrix<T, Eigen::Dynamic, 1> GaussianMixtureModel<T>::rand()
     {
-        double sumOfWeights=0.0;
-        double randomNumber = uniRNG.rand();
+        T sumOfWeights=0.0;
+        T randomNumber = uniRNG.rand();
         for (unsigned int i=0; i<gaussians.size(); i++)
         {
             sumOfWeights += gaussians[i]->getWeight();
@@ -297,13 +316,15 @@ namespace music
         ERROR_OUT("You should never see this, as you will not get random numbers outside of [0,1[ from a random number generator generating numbers in [0,1[. If you see this, something veeery weird happened.", 0);
         return gaussians[0]->rand();
     }
-    GaussianMixtureModel::GaussianMixtureModel() :
+    template <typename T>
+    GaussianMixtureModel<T>::GaussianMixtureModel() :
         gaussians(), uniRNG(0.0, 1.0), normalizationFactor(1.0)
     {
         
     }
     
-    std::string GaussianMixtureModel::toJSONString(bool styledWriter) const
+    template <typename T>
+    std::string GaussianMixtureModel<T>::toJSONString(bool styledWriter) const
     {
         //uses Jsoncpp as library. Jsoncpp is licensed as MIT, so we may use it without restriction.
         Json::Value root(Json::arrayValue);
@@ -323,7 +344,7 @@ namespace music
             
             //output the mean as array of doubles
             Json::Value mean(Json::arrayValue);
-            Eigen::VectorXd gMean = gaussians[g]->getMean();
+            Eigen::Matrix<T, Eigen::Dynamic, 1> gMean = gaussians[g]->getMean();
             for (int i=0; i<gMean.size(); i++)
                 mean.append(Json::Value(gMean[i]));
             arrayElement["mean"]        = mean;
@@ -331,7 +352,7 @@ namespace music
             //output the variance as array of double. only save the lower
             //triangular, as the other values are mirrored.
             Json::Value variance(Json::arrayValue);
-            Eigen::MatrixXd gVariance = gaussians[g]->getCovarianceMatrix();
+            Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> gVariance = gaussians[g]->getCovarianceMatrix();
             for (int i=0; i<gVariance.rows(); i++)
             {
                 for (int j=i; j<gVariance.cols(); j++)
@@ -349,14 +370,16 @@ namespace music
         return str;
     }
     
-    void GaussianMixtureModel::loadFromJSONString(const std::string& jsonString)
+    template <typename T>
+    void GaussianMixtureModel<T>::loadFromJSONString(const std::string& jsonString)
     {
         Json::Value root;
         Json::Reader reader;
         reader.parse(jsonString, root, false);
         loadFromJsonValue(root);
     }
-    void GaussianMixtureModel::loadFromJsonValue(Json::Value& jsonValue)
+    template <typename T>
+    void GaussianMixtureModel<T>::loadFromJsonValue(Json::Value& jsonValue)
     {
         //first: empty list of old gaussians.
         for (unsigned int g=0; g<gaussians.size(); g++)
@@ -367,17 +390,17 @@ namespace music
         for (unsigned int g=0; g<jsonValue.size(); g++)
         {
             //first init variables and read dimensionality
-            Gaussian* gauss=NULL;
+            Gaussian<T>* gauss=NULL;
             int dimension=jsonValue[g]["mean"].size();
             bool varianceIsFull;
             if (jsonValue[g]["mean"].size() == jsonValue[g]["covariance"].size())
             {
-                gauss = new GaussianDiagCov(dimension);
+                gauss = new GaussianDiagCov<T>(dimension);
                 varianceIsFull = false;
             }
             else
             {
-                gauss = new GaussianFullCov(dimension);
+                gauss = new GaussianFullCov<T>(dimension);
                 varianceIsFull = true;
             }
             
@@ -385,14 +408,14 @@ namespace music
             gauss->setWeight(jsonValue[g]["weight"].asDouble());
             
             //read mean
-            Eigen::VectorXd mean(dimension);
+            Eigen::Matrix<T, Eigen::Dynamic, 1> mean(dimension);
             Json::Value jMean = jsonValue[g]["mean"];
             for (int i=0; i<dimension; i++)
                 mean[i] = jMean[i].asDouble();
             gauss->setMean(mean);
             
             //read covariance
-            Eigen::MatrixXd variance(dimension, dimension);
+            Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> variance(dimension, dimension);
             Json::Value jVariance = jsonValue[g]["covariance"];
             if (varianceIsFull)
             {
@@ -430,12 +453,16 @@ namespace music
             gaussians.push_back(gauss);
         }
     }
-    std::ostream& operator<<(std::ostream& os, const GaussianMixtureModel& model)
+    
+    template <typename T>
+    std::ostream& operator<<(std::ostream& os, const GaussianMixtureModel<T>& model)
     {
         //use a fast writer instead of a styled writer, produces smaller JSON
         return (os << model.toJSONString(false));
     }
-    std::istream& operator>>(std::istream& is, GaussianMixtureModel& model)
+    
+    template <typename T>
+    std::istream& operator>>(std::istream& is, GaussianMixtureModel<T>& model)
     {
         Json::Value root;
         Json::Reader reader;
@@ -443,4 +470,12 @@ namespace music
         model.loadFromJsonValue(root);
         return is;
     }
+    
+    template class GaussianFullCov<double>;
+    template class GaussianDiagCov<double>;
+    template class GaussianMixtureModel<double>;
+    
+    template std::ostream& operator<<(std::ostream& os, const GaussianMixtureModel<double>& model);
+    template std::istream& operator>>(std::istream& is, GaussianMixtureModel<double>& model);
+    
 }
