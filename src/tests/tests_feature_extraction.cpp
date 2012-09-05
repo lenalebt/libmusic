@@ -603,7 +603,7 @@ namespace tests
         
         DEBUG_OUT("Writing CQFCCs to a file...", 10);
         std::ofstream outstr("cqfcc.dat");
-        for (int i=0; i<data.size(); i++)
+        for (unsigned int i=0; i<data.size(); i++)
         {
             outstr << data[i].transpose() << std::endl;
         }

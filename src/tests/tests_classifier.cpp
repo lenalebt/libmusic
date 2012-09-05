@@ -251,7 +251,7 @@ namespace tests
     int testKMeans()
     {
         DEBUG_OUT("running test for k-means...", 0);
-        music::KMeans kmeans;
+        music::KMeans<double> kmeans;
         srand(time(NULL));
         
         //create data. don't have a generator for multivariate gaussian values, just taking equally distributed data (uncorrelated)
@@ -313,7 +313,7 @@ namespace tests
         CHECK( ((means1[0] - mu1).norm() / mu1.norm() < 10e-1) || ((means1[0] - mu2).norm() / mu2.norm() < 10e-1));
         CHECK( ((means1[1] - mu1).norm() / mu1.norm() < 10e-1) || ((means1[1] - mu2).norm() / mu2.norm() < 10e-1));
         
-        DEBUG_OUT("running k-means with generated data and 2 means...", 0);
+        DEBUG_OUT("running k-means with generated data and 5 means...", 0);
         CHECK(kmeans.trainKMeans(data, 5, 100));
         std::vector<Eigen::VectorXd> means2 = kmeans.getMeans();
         DEBUG_VAR_OUT(means2[0], 0);
@@ -327,6 +327,41 @@ namespace tests
         CHECK( ((means2[2] - mu1).norm() / mu1.norm() < 10e-1) || ((means2[2] - mu2).norm() / mu2.norm() < 10e-1));
         CHECK( ((means2[3] - mu1).norm() / mu1.norm() < 10e-1) || ((means2[3] - mu2).norm() / mu2.norm() < 10e-1));
         CHECK( ((means2[4] - mu1).norm() / mu1.norm() < 10e-1) || ((means2[4] - mu2).norm() / mu2.norm() < 10e-1));
+        
+        DEBUG_OUT("running k-means with generated data and 15 means...", 0);
+        CHECK(kmeans.trainKMeans(data, 15, 100));
+        std::vector<Eigen::VectorXd> means3 = kmeans.getMeans();
+        DEBUG_VAR_OUT(means3[0], 0);
+        DEBUG_VAR_OUT(means3[1], 0);
+        DEBUG_VAR_OUT(means3[2], 0);
+        DEBUG_VAR_OUT(means3[3], 0);
+        DEBUG_VAR_OUT(means3[4], 0);
+        DEBUG_VAR_OUT(means3[5], 0);
+        DEBUG_VAR_OUT(means3[6], 0);
+        DEBUG_VAR_OUT(means3[7], 0);
+        DEBUG_VAR_OUT(means3[8], 0);
+        DEBUG_VAR_OUT(means3[9], 0);
+        DEBUG_VAR_OUT(means3[10], 0);
+        DEBUG_VAR_OUT(means3[11], 0);
+        DEBUG_VAR_OUT(means3[12], 0);
+        DEBUG_VAR_OUT(means3[13], 0);
+        DEBUG_VAR_OUT(means3[14], 0);
+        
+        CHECK( ((means3[0] - mu1).norm() / mu1.norm() < 10e-1) || ((means3[0] - mu2).norm() / mu2.norm() < 10e-1));
+        CHECK( ((means3[1] - mu1).norm() / mu1.norm() < 10e-1) || ((means3[1] - mu2).norm() / mu2.norm() < 10e-1));
+        CHECK( ((means3[2] - mu1).norm() / mu1.norm() < 10e-1) || ((means3[2] - mu2).norm() / mu2.norm() < 10e-1));
+        CHECK( ((means3[3] - mu1).norm() / mu1.norm() < 10e-1) || ((means3[3] - mu2).norm() / mu2.norm() < 10e-1));
+        CHECK( ((means3[4] - mu1).norm() / mu1.norm() < 10e-1) || ((means3[4] - mu2).norm() / mu2.norm() < 10e-1));
+        CHECK( ((means3[5] - mu1).norm() / mu1.norm() < 10e-1) || ((means3[5] - mu2).norm() / mu2.norm() < 10e-1));
+        CHECK( ((means3[6] - mu1).norm() / mu1.norm() < 10e-1) || ((means3[6] - mu2).norm() / mu2.norm() < 10e-1));
+        CHECK( ((means3[7] - mu1).norm() / mu1.norm() < 10e-1) || ((means3[7] - mu2).norm() / mu2.norm() < 10e-1));
+        CHECK( ((means3[8] - mu1).norm() / mu1.norm() < 10e-1) || ((means3[8] - mu2).norm() / mu2.norm() < 10e-1));
+        CHECK( ((means3[9] - mu1).norm() / mu1.norm() < 10e-1) || ((means3[9] - mu2).norm() / mu2.norm() < 10e-1));
+        CHECK( ((means3[10] - mu1).norm() / mu1.norm() < 10e-1) || ((means3[10] - mu2).norm() / mu2.norm() < 10e-1));
+        CHECK( ((means3[11] - mu1).norm() / mu1.norm() < 10e-1) || ((means3[11] - mu2).norm() / mu2.norm() < 10e-1));
+        CHECK( ((means3[12] - mu1).norm() / mu1.norm() < 10e-1) || ((means3[12] - mu2).norm() / mu2.norm() < 10e-1));
+        CHECK( ((means3[13] - mu1).norm() / mu1.norm() < 10e-1) || ((means3[13] - mu2).norm() / mu2.norm() < 10e-1));
+        CHECK( ((means3[14] - mu1).norm() / mu1.norm() < 10e-1) || ((means3[14] - mu2).norm() / mu2.norm() < 10e-1));
         
         return EXIT_FAILURE;
     }
