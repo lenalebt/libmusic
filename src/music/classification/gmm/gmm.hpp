@@ -43,17 +43,17 @@ namespace music
      * @author Lena Brueder
      * @date 2012-08-27
      */
-    template <typename T>
-    class Gaussian : public StandardRNG<Eigen::Matrix<T, Eigen::Dynamic, 1> >
+    template <typename ScalarType=double>
+    class Gaussian : public StandardRNG<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >
     {
     private:
         
     protected:
-        T weight;
-        Eigen::Matrix<T, Eigen::Dynamic, 1> mean;
-        T preFactor;
-        T preFactorWithoutWeights;
-        NormalRNG<T>* rng;
+        ScalarType weight;
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> mean;
+        ScalarType preFactor;
+        ScalarType preFactorWithoutWeights;
+        NormalRNG<ScalarType>* rng;
         
         /**
          * @brief Calculates the prefactor of the gaussian, which is used in
@@ -65,17 +65,17 @@ namespace music
         virtual void calculatePrefactor()=0;
     public:
         Gaussian(unsigned int dimension);
-        Gaussian(T weight, const Eigen::Matrix<T, Eigen::Dynamic, 1>& mean);
+        Gaussian(ScalarType weight, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& mean);
         /**
          * @brief Calculate the value of the gaussian distribution at the given position.
          * @return The value of the pdf at the given position.
          */
-        virtual T calculateValue(const Eigen::Matrix<T, Eigen::Dynamic, 1>& dataVector)=0;
+        virtual ScalarType calculateValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector)=0;
         /**
          * @brief Calculate the value of the gaussian distribution at the given position without applying the weight.
          * @return The value of the pdf at the given position without the weight applied.
          */
-        virtual T calculateValueWithoutWeights(const Eigen::Matrix<T, Eigen::Dynamic, 1>& dataVector)=0;
+        virtual ScalarType calculateValueWithoutWeights(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector)=0;
         /**
          * @brief Calculate the value of the gaussian distribution with mean
          *      at position zero.
@@ -85,29 +85,29 @@ namespace music
          * 
          * @return The value of the pdf at the given position if the mean was zero.
          */
-        virtual T calculateNoMeanValue(const Eigen::Matrix<T, Eigen::Dynamic, 1>& dataVector)=0;
+        virtual ScalarType calculateNoMeanValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector)=0;
         
         /**
          * @brief Get the weight factor of this gaussian.
          * @return The weight factor of this gaussian distribution.
          */
-        T getWeight() const                    {return weight;}
+        ScalarType getWeight() const                    {return weight;}
         /**
          * @brief Set the weight factor of this gaussian.
          * @param weight The weight factor of this gaussian distribution.
          */
-        void setWeight(T weight)               {this->weight = weight; calculatePrefactor();}
+        void setWeight(ScalarType weight)               {this->weight = weight; calculatePrefactor();}
         
         /**
          * @brief Get the mean of this gaussian.
          * @return The mean of this gaussian distribution.
          */
-        const Eigen::Matrix<T, Eigen::Dynamic, 1>& getMean() const      {return mean;}
+        const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& getMean() const      {return mean;}
         /**
          * @brief Set the mean of this gaussian.
          * @param mean The mean of this gaussian distribution.
          */
-        void setMean(const Eigen::Matrix<T, Eigen::Dynamic, 1>& mean)   {this->mean = mean; calculatePrefactor();}
+        void setMean(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& mean)   {this->mean = mean; calculatePrefactor();}
         
         /**
          * @brief Get the covariance matrix of this gaussian.
@@ -115,7 +115,7 @@ namespace music
          *      even if the matrix is not represented as such internally.
          * @return The covariance matrix of this gaussian distribution.
          */
-        virtual Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> getCovarianceMatrix()=0;
+        virtual Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> getCovarianceMatrix()=0;
         /**
          * @brief Set the covariance matrix of this gaussian.
          * @remarks This function will always take full covariance matricies,
@@ -123,7 +123,7 @@ namespace music
          *      If this is the case, only the diagonal elements will be used!
          * @param matrix The covariance matrix of this gaussian distribution.
          */
-        virtual void setCovarianceMatrix(const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& matrix)=0;
+        virtual void setCovarianceMatrix(const Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>& matrix)=0;
         
         /**
          * @brief Generate a random vector that follows the distribution.
@@ -132,7 +132,7 @@ namespace music
          * 
          * @return A random vector following this distribution.
          */
-        virtual Eigen::Matrix<T, Eigen::Dynamic, 1> rand()=0;
+        virtual Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> rand()=0;
     };
     
     /**
@@ -143,32 +143,32 @@ namespace music
      * @author Lena Brueder
      * @date 2012-08-27
      */
-    template <typename T>
-    class GaussianFullCov : public Gaussian<T>
+    template <typename ScalarType=double>
+    class GaussianFullCov : public Gaussian<ScalarType>
     {
     private:
         
     protected:
         //weird things with templates and derived classes...
-        using Gaussian<T>::mean;
-        using Gaussian<T>::preFactor;
-        using Gaussian<T>::preFactorWithoutWeights;
-        using Gaussian<T>::rng;
-        using Gaussian<T>::weight;
+        using Gaussian<ScalarType>::mean;
+        using Gaussian<ScalarType>::preFactor;
+        using Gaussian<ScalarType>::preFactorWithoutWeights;
+        using Gaussian<ScalarType>::rng;
+        using Gaussian<ScalarType>::weight;
         
-        Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> fullCov;
-        Eigen::LDLT<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > ldlt;
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> fullCov;
+        Eigen::LDLT<Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> > ldlt;
         
         void calculatePrefactor();
     public:
         GaussianFullCov(unsigned int dimension);
-        T calculateValue(const Eigen::Matrix<T, Eigen::Dynamic, 1>& dataVector);
-        T calculateValueWithoutWeights(const Eigen::Matrix<T, Eigen::Dynamic, 1>& dataVector);
-        T calculateNoMeanValue(const Eigen::Matrix<T, Eigen::Dynamic, 1>& dataVector);
-        void setCovarianceMatrix(const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& matrix);
-        Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> getCovarianceMatrix()   {return fullCov;}
+        ScalarType calculateValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector);
+        ScalarType calculateValueWithoutWeights(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector);
+        ScalarType calculateNoMeanValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector);
+        void setCovarianceMatrix(const Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>& matrix);
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> getCovarianceMatrix()   {return fullCov;}
         
-        Eigen::Matrix<T, Eigen::Dynamic, 1> rand();
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> rand();
     };
     
     /**
@@ -179,32 +179,32 @@ namespace music
      * @author Lena Brueder
      * @date 2012-08-27
      */
-    template <typename T>
-    class GaussianDiagCov : public Gaussian<T>
+    template <typename ScalarType=double>
+    class GaussianDiagCov : public Gaussian<ScalarType>
     {
     private:
         
     protected:
         //weird things with templates and derived classes...
-        using Gaussian<T>::mean;
-        using Gaussian<T>::preFactor;
-        using Gaussian<T>::preFactorWithoutWeights;
-        using Gaussian<T>::rng;
-        using Gaussian<T>::weight;
+        using Gaussian<ScalarType>::mean;
+        using Gaussian<ScalarType>::preFactor;
+        using Gaussian<ScalarType>::preFactorWithoutWeights;
+        using Gaussian<ScalarType>::rng;
+        using Gaussian<ScalarType>::weight;
         
-        Eigen::Matrix<T, Eigen::Dynamic, 1> diagCov;
-        Eigen::LDLT<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > ldlt;
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> diagCov;
+        Eigen::LDLT<Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> > ldlt;
         
         void calculatePrefactor();
     public:
         GaussianDiagCov(unsigned int dimension);
-        T calculateValue(const Eigen::Matrix<T, Eigen::Dynamic, 1>& dataVector);
-        T calculateValueWithoutWeights(const Eigen::Matrix<T, Eigen::Dynamic, 1>& dataVector);
-        T calculateNoMeanValue(const Eigen::Matrix<T, Eigen::Dynamic, 1>& dataVector);
-        Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> getCovarianceMatrix()   {return diagCov.asDiagonal();}
-        void setCovarianceMatrix(const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& matrix);
+        ScalarType calculateValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector);
+        ScalarType calculateValueWithoutWeights(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector);
+        ScalarType calculateNoMeanValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector);
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> getCovarianceMatrix()   {return diagCov.asDiagonal();}
+        void setCovarianceMatrix(const Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>& matrix);
         
-        Eigen::Matrix<T, Eigen::Dynamic, 1> rand();
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> rand();
     };
     
     /**
@@ -225,15 +225,15 @@ namespace music
      * @author Lena Brueder
      * @date 2012-08-27
      */
-    template <typename T>
-    class GaussianMixtureModel : public StandardRNG<Eigen::Matrix<T, Eigen::Dynamic, 1> >
+    template <typename ScalarType=double, typename GaussianType=music::GaussianFullCov<ScalarType> >
+    class GaussianMixtureModel : public StandardRNG<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >
     {
     private:
         
     protected:
-        std::vector<Gaussian<T>*> gaussians;
-        UniformRNG<T> uniRNG;
-        T normalizationFactor;
+        std::vector<Gaussian<ScalarType>*> gaussians;
+        UniformRNG<ScalarType> uniRNG;
+        ScalarType normalizationFactor;
         
         void loadFromJsonValue(Json::Value& jsonValue);
         
@@ -252,7 +252,7 @@ namespace music
          * 
          * @return A list of the gaussian distributions that build the model.
          */
-        std::vector<Gaussian<T>* > emAlg(const std::vector<Gaussian<T>*>& init, const std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> >& data, int gaussianCount = 10, unsigned int maxIterations=50);
+        std::vector<Gaussian<ScalarType>* > emAlg(const std::vector<Gaussian<ScalarType>*>& init, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, int gaussianCount = 10, unsigned int maxIterations=50);
     public:
         /**
          * @brief Creates a new empty Gaussian Mixture Model.
@@ -265,7 +265,7 @@ namespace music
          * @param gaussianCount The count of gaussian distributions that will be used to model the data
          * 
          */
-        void trainGMM(const std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> >& data, int gaussianCount=10);
+        void trainGMM(const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, int gaussianCount=10);
         /**
          * @brief Compare this gaussian mixture model with another one.
          * 
@@ -280,27 +280,27 @@ namespace music
          * 
          * @return A distance measure of the two gaussians.
          */
-        T compareTo(const GaussianMixtureModel<T>& other);
+        ScalarType compareTo(const GaussianMixtureModel<ScalarType, GaussianType>& other);
         
         /**
          * @brief Returns the list of gaussian distributions of this model.
          * @return A list of gaussian distributions.
          */
-        std::vector<Gaussian<T>*> getGaussians() const {return gaussians;}
+        std::vector<Gaussian<ScalarType>*> getGaussians() const {return gaussians;}
         
         /**
          * @brief Draw a random vector from the probability density that is
          *      represented by this GMM.
          * @return A random vector drawn from this probability density.
          */
-        Eigen::Matrix<T, Eigen::Dynamic, 1> rand();
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> rand();
         
         /**
          * @brief Computes the value of the probability density function
          *      represented by this GMM at the given position.
          * @return The value of the probability density at the given position
          */
-        T calculateValue(const Eigen::Matrix<T, Eigen::Dynamic, 1>& pos) const;
+        ScalarType calculateValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& pos) const;
         
         /**
          * @brief Create a JSON string that represents this model.
@@ -315,14 +315,14 @@ namespace music
          */
         void loadFromJSONString(const std::string& jsonString);
         
-        template <typename S>
-        friend std::ostream& operator<<(std::ostream& os, const GaussianMixtureModel<S>& model);
-        template <typename S>
-        friend std::istream& operator>>(std::istream& is, GaussianMixtureModel<S>& model);
+        template <typename S, typename G>
+        friend std::ostream& operator<<(std::ostream& os, const GaussianMixtureModel<S, G>& model);
+        template <typename S, typename G>
+        friend std::istream& operator>>(std::istream& is, GaussianMixtureModel<S, G>& model);
     };
     
-    template <typename T> std::ostream& operator<<(std::ostream& os, const GaussianMixtureModel<T>& model);
-    template <typename T> std::istream& operator>>(std::istream& is, GaussianMixtureModel<T>& model);
+    template <typename ScalarType, typename GaussianType> std::ostream& operator<<(std::ostream& os, const GaussianMixtureModel<ScalarType, GaussianType>& model);
+    template <typename ScalarType, typename GaussianType> std::istream& operator>>(std::istream& is, GaussianMixtureModel<ScalarType, GaussianType>& model);
 }
 
 #endif //GMM_HPP
