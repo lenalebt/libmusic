@@ -6,15 +6,15 @@
 
 namespace music
 {
-    template<typename T>
-    KMeans<T>::KMeans() :
+    template<typename ScalarType>
+    KMeans<ScalarType>::KMeans() :
         means()
     {
         
     }
     
-    template <typename T>
-    bool KMeans<T>::trainKMeans(const std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> >& data, unsigned int meanCount, unsigned int maxIterations, const std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> >& init)
+    template <typename ScalarType>
+    bool KMeans<ScalarType>::trainKMeans(const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, unsigned int meanCount, unsigned int maxIterations, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& init)
     {
         assert(data.size() > 0u);
         assert(meanCount > 0u);
@@ -86,7 +86,7 @@ namespace music
             //first set means to zero...
             for (unsigned int i=0; i<meanCount; i++)
             {
-                means[i] = Eigen::Matrix<T, Eigen::Dynamic, 1>(dimension);
+                means[i] = Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>(dimension);
                 means[i].setZero();
                 vectorCountInCluster[i] = 0;
             }
@@ -124,8 +124,8 @@ namespace music
         return converged;
     }
     
-    template<typename T>
-    void KMeans<T>::getInitGuess(const std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> >& data, std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> >& initGuess, unsigned int meanCount)
+    template<typename ScalarType>
+    void KMeans<ScalarType>::getInitGuess(const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& initGuess, unsigned int meanCount)
     {
         assert(meanCount > 0u);
         assert(data.size() > 0u);

@@ -111,7 +111,7 @@ namespace tests
     int testGMM()
     {
         DEBUG_OUT("running test for gaussian mixture models...", 0);
-        music::GaussianMixtureModel<double> gmm;
+        music::GaussianMixtureModelFullCov<double> gmm;
         srand(time(NULL));
         
         //create data. don't have a generator for multivariate gaussian values, just taking equally distributed data (uncorrelated)
@@ -170,9 +170,9 @@ namespace tests
         DEBUG_OUT("training done.", 0);
         
         //test if the GMM converged the right way, or not. test data.
-        std::vector<music::GaussianFullCov<double>*> gaussians = gmm.getGaussians();
+        std::vector<music::Gaussian<double>*> gaussians = gmm.getGaussians();
         
-        for (std::vector<music::GaussianFullCov<double>*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
+        for (std::vector<music::Gaussian<double>*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
         {
             DEBUG_OUT("gaussian mean: " << (*it)->getMean(), 0);
             DEBUG_OUT("gaussian sigma: " << (*it)->getCovarianceMatrix(), 0);
@@ -206,7 +206,7 @@ namespace tests
         //test if the GMM converged the right way, or not. test data.
         gaussians = gmm.getGaussians();
         
-        for (std::vector<music::GaussianFullCov<double>*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
+        for (std::vector<music::Gaussian<double>*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
         {
             DEBUG_OUT("gaussian mean: " << (*it)->getMean(), 0);
             DEBUG_OUT("gaussian sigma: " << (*it)->getCovarianceMatrix(), 0);
@@ -219,12 +219,12 @@ namespace tests
         DEBUG_OUT("Model as JSON from string: " << gmmJSON, 0);
         
         DEBUG_OUT("loading model from JSON string...", 0);
-        music::GaussianMixtureModel<double> gmm2;
+        music::GaussianMixtureModelFullCov<double> gmm2;
         gmm2.loadFromJSONString(gmmJSON);
         
         gaussians = gmm2.getGaussians();
         
-        for (std::vector<music::GaussianFullCov<double>*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
+        for (std::vector<music::Gaussian<double>*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
         {
             DEBUG_OUT("gaussian mean: " << (*it)->getMean(), 0);
             DEBUG_OUT("gaussian sigma: " << (*it)->getCovarianceMatrix(), 0);
@@ -232,9 +232,9 @@ namespace tests
             CHECK( (((**it).getMean() - mu1).norm() / mu1.norm() < 10e-1) || (((**it).getMean() - mu2).norm() / mu2.norm() < 10e-1));
         }
         
-        music::GaussianMixtureModel<double> gmm3;
+        music::GaussianMixtureModelFullCov<double> gmm3;
         gmm3.trainGMM(data, 5);
-        music::GaussianMixtureModel<double> gmm4;
+        music::GaussianMixtureModelFullCov<double> gmm4;
         gmm4.trainGMM(data, 10);
         
         /*

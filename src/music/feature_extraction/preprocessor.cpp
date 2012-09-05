@@ -108,7 +108,7 @@ namespace music
             music::TimbreModel timbreModel(transformResult);
             //build model from 5 gaussians, 20ms slices
             timbreModel.calculateModel(5, 0.02);
-            features->setTimbreModel(timbreModel.getModel().toJSONString());
+            features->setTimbreModel(timbreModel.getModel()->toJSONString());
             
             
             //this adds the recording, as well as its features.

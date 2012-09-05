@@ -6,13 +6,13 @@
 
 namespace music
 {
-    template <typename T>
+    template <typename ScalarType=double>
     class KMeans
     {
     private:
         
     protected:
-        std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> > means;
+        std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> > means;
     public:
         KMeans();
         /**
@@ -35,7 +35,7 @@ namespace music
          * @return If the algorithm finished by fulfilling the convergence criterion,
          *      or stopped by reaching the maximum number of iterations.
          */
-        bool trainKMeans(const std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> >& data, unsigned int meanCount=10, unsigned int maxIterations=500, const std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> >& init=std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> >());
+        bool trainKMeans(const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, unsigned int meanCount=10, unsigned int maxIterations=500, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& init=std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >());
         
         /**
          * @brief Calculates good initial guesses for the algorithm.
@@ -46,14 +46,14 @@ namespace music
          * @param[out] initGuess The initial guesses will be given back in this vector.
          * @param meanCount The number of clusters, or means.
          */
-        void getInitGuess(const std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> >& data, std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> >& initGuess, unsigned int meanCount=10);
+        void getInitGuess(const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& initGuess, unsigned int meanCount=10);
         
         /**
          * @brief Return the means found by the algorithm.
          * @remarks Will return an empty list if the algorithm has not been run beforehand.
          * @return the means found by the algorithm.
          */
-        std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> > getMeans() const       {return means;}
+        std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> > getMeans() const       {return means;}
     };
 }
 
