@@ -37,7 +37,16 @@ namespace music
          */
         bool trainKMeans(const std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> >& data, unsigned int meanCount=10, unsigned int maxIterations=500, const std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> >& init=std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> >());
         
-        void getInitGuess(const std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> >& data, std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> >& initGuess);
+        /**
+         * @brief Calculates good initial guesses for the algorithm.
+         * 
+         * Using these initializations will lead to the k-means++ algorithm.
+         * 
+         * @param data The data vectors used to find the initial clusters.
+         * @param[out] initGuess The initial guesses will be given back in this vector.
+         * @param meanCount The number of clusters, or means.
+         */
+        void getInitGuess(const std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> >& data, std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> >& initGuess, unsigned int meanCount=10);
         
         /**
          * @brief Return the means found by the algorithm.
