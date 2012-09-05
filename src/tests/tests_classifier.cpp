@@ -170,9 +170,9 @@ namespace tests
         DEBUG_OUT("training done.", 0);
         
         //test if the GMM converged the right way, or not. test data.
-        std::vector<music::Gaussian<double>*> gaussians = gmm.getGaussians();
+        std::vector<music::GaussianFullCov<double>*> gaussians = gmm.getGaussians();
         
-        for (std::vector<music::Gaussian<double>*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
+        for (std::vector<music::GaussianFullCov<double>*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
         {
             DEBUG_OUT("gaussian mean: " << (*it)->getMean(), 0);
             DEBUG_OUT("gaussian sigma: " << (*it)->getCovarianceMatrix(), 0);
@@ -206,7 +206,7 @@ namespace tests
         //test if the GMM converged the right way, or not. test data.
         gaussians = gmm.getGaussians();
         
-        for (std::vector<music::Gaussian<double>*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
+        for (std::vector<music::GaussianFullCov<double>*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
         {
             DEBUG_OUT("gaussian mean: " << (*it)->getMean(), 0);
             DEBUG_OUT("gaussian sigma: " << (*it)->getCovarianceMatrix(), 0);
@@ -224,7 +224,7 @@ namespace tests
         
         gaussians = gmm2.getGaussians();
         
-        for (std::vector<music::Gaussian<double>*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
+        for (std::vector<music::GaussianFullCov<double>*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
         {
             DEBUG_OUT("gaussian mean: " << (*it)->getMean(), 0);
             DEBUG_OUT("gaussian sigma: " << (*it)->getCovarianceMatrix(), 0);

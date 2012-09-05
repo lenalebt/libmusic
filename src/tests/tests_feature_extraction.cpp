@@ -614,10 +614,10 @@ namespace tests
         music::GaussianMixtureModel<double> gmm2;
         gmm2.trainGMM(data, gaussianCount);
         
-        std::vector<music::Gaussian<double>*> gaussians1 = gmm1.getGaussians();
+        std::vector<music::GaussianFullCov<double>*> gaussians1 = gmm1.getGaussians();
         for (int i=0; i<gaussianCount; i++)
             DEBUG_VAR_OUT(gaussians1[i]->getMean(), 0);
-        std::vector<music::Gaussian<double>*> gaussians2 = gmm2.getGaussians();
+        std::vector<music::GaussianFullCov<double>*> gaussians2 = gmm2.getGaussians();
         for (int i=0; i<gaussianCount; i++)
             DEBUG_VAR_OUT(gaussians2[i]->getMean(), 0);
         
