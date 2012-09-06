@@ -13,11 +13,13 @@
  * @param matrix The matrix that will be examined.
  * @param epsilon The epsilon that nondiagonal elements may differ from zero
  *      to still be taken as zero.
+ * @tparam ScalarType The type of the scalars of the matrix. <code>double</code>,
+ *      if you don't set it by yourself.
  * 
  * @ingroup tools
  * @return if the matrix is diagonal (up to an epsilon), or not.
  */
-template <typename ScalarType> bool isDiagonal(const Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>& matrix, double epsilon=10e-14)
+template <typename ScalarType=double> bool isDiagonal(const Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>& matrix, double epsilon=10e-14)
 {
     assert (matrix.cols() == matrix.rows());    //supposed to be run on square matricies.
     
