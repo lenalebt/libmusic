@@ -371,3 +371,15 @@ FILE(GLOB music_feature_extraction_headers "${CMAKE_CURRENT_SOURCE_DIR}/src/musi
 INSTALL (FILES ${music_feature_extraction_headers}
     DESTINATION include/music/feature_extraction
     )
+FILE(GLOB music_tools_headers "${CMAKE_CURRENT_SOURCE_DIR}/src/tools/*.hpp")
+INSTALL (FILES ${music_tools_headers}
+    DESTINATION include/tools
+    )
+FILE(GLOB music_kissfft_headers "${CMAKE_CURRENT_SOURCE_DIR}/src/kissfft/*.h")
+INSTALL (FILES ${music_kissfft_headers}
+    DESTINATION include/kissfft
+    )
+FILE(GLOB music_kissfft_tools_headers "${CMAKE_CURRENT_SOURCE_DIR}/src/kissfft/tools/*.h")
+INSTALL (FILES ${music_kissfft_tools_headers}
+    DESTINATION include/kissfft/tools
+    )
