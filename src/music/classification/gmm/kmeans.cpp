@@ -6,15 +6,15 @@
 
 namespace music
 {
-    template<typename ScalarType>
-    KMeans<ScalarType>::KMeans() :
-        means()
+    template<typename ScalarType, typename AssignmentType>
+    KMeans<ScalarType, AssignmentType>::KMeans() :
+        means(), assignments()
     {
         
     }
     
-    template <typename ScalarType>
-    bool KMeans<ScalarType>::trainKMeans(const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, unsigned int meanCount, unsigned int maxIterations, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& init)
+    template <typename ScalarType, typename AssignmentType>
+    bool KMeans<ScalarType, AssignmentType>::trainKMeans(const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, unsigned int meanCount, unsigned int maxIterations, bool keepAssignments, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& init)
     {
         assert(data.size() > 0u);
         assert(meanCount > 0u);
@@ -36,11 +36,12 @@ namespace music
         }
         
         //initialize assignments
-        unsigned char* assignments = new unsigned char[dataSize];
-        unsigned char* oldAssignments = new unsigned char[dataSize];
-        unsigned char* tmp = NULL;
+        AssignmentType* assignments = new AssignmentType[dataSize];
+        AssignmentType* oldAssignments = new AssignmentType[dataSize];
+        AssignmentType* tmp = NULL;
+        this->assignments.clear();
         
-        unsigned char assignment;
+        AssignmentType assignment;
         double minDistance, distance;
         unsigned long assignmentChanges;
         
@@ -118,14 +119,21 @@ namespace music
             DEBUG_OUT("k-means stopped after " << iteration << " iterations.", 20);
         }
         
+        if (keepAssignments)
+        {   //keep assignments to be able to access them later on
+            this->assignments.reserve(dataSize);
+            for (unsigned int i=0; i<dataSize; i++)
+                this->assignments.push_back(assignments[i]);
+        }
+        
         delete[] assignments;
         delete[] oldAssignments;
         
         return converged;
     }
     
-    template<typename ScalarType>
-    void KMeans<ScalarType>::getInitGuess(const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& initGuess, unsigned int meanCount)
+    template<typename ScalarType, typename AssignmentType>
+    void KMeans<ScalarType, AssignmentType>::getInitGuess(const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& initGuess, unsigned int meanCount)
     {
         assert(meanCount > 0u);
         assert(data.size() > 0u);
