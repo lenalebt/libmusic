@@ -26,7 +26,8 @@ namespace music
      *      which is used to keep track of the cluster membership of the
      *      data vectors. <code>unsigned char</code> is good for <=256 clusters,
      *      and is selected as standard datatype. If you need more clusters,
-     *      change that datatype to an appropriate type.
+     *      change that datatype to an appropriate type. You might need to add
+     *      an instantiation line in kmeans.cpp .
      * @ingroup classification
      * 
      * @author Lena Brueder
@@ -96,14 +97,20 @@ namespace music
         const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& getMeans() const      {return means;}
         
         /**
-         * @brief Return the means found by the algorithm.
+         * @brief Return the cluster assignments of the data vectors to
+         *      the clusters found by the algorithm.
+         * 
+         * The indexes of this vector refer to the indexes in the data
+         * vector.
+         * 
          * @remarks Will return an empty list if the algorithm has not been
-         *      run beforehand, or <code>keepAssignments</code> was
+         *      run beforehand, or if <code>keepAssignments</code> in
+         *      trainKMeans() was
          *      <code>false</code>.
          * @remarks Returns a const-reference to an internal vector. If you
          *      need a copy, do that for yourself. Keep in mind that this
          *      const-reference changes when you re-run the algorithm!
-         * @return the means found by the algorithm.
+         * @return the cluster assignments of the data vectors found by the algorithm.
          */
         const std::vector<AssignmentType>& getAssignments() const                               {return assignments;}
     };
