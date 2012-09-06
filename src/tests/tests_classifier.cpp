@@ -406,7 +406,7 @@ namespace tests
         
         DEBUG_OUT("running k-means with generated data and 2 means, better initial guesses...", 0);
         std::vector<Eigen::VectorXd> init;
-        kmeans.getInitGuess(data, init, 2);
+        kmeans.calculateInitGuess(data, init, 2);
         CHECK(kmeans.trainKMeans(data, 2, 100));
         std::vector<Eigen::VectorXd> means1x = kmeans.getMeans();
         DEBUG_VAR_OUT(means1x[0], 0);
