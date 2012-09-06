@@ -8,6 +8,7 @@
 #include "randomnumbers.hpp"
 #include <iostream>
 #include "json/json.h"
+#include "debug.hpp"
 
 namespace music
 {
@@ -346,7 +347,7 @@ namespace music
     
     template <typename ScalarType> bool isDiagonal(const Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>& matrix, double nondiagonalAbsMax=10e-13)
     {
-        assert (matrix.cols() == matrix.rows());    //supposed to be run on diagonal matricies.
+        assert (matrix.cols() == matrix.rows());    //supposed to be run on square matricies.
         
         bool retVal=true;
         for (int i=0; i<matrix.rows(); i++)
@@ -354,7 +355,7 @@ namespace music
             //don't look at elements above and on the diagonal
             for (int j=i+1; j<matrix.cols(); j++)
             {
-                retVal |= matrix(i, j) < nondiagonalAbsMax;
+                retVal &= fabs(matrix(i, j)) < nondiagonalAbsMax;
             }
         }
         return retVal;

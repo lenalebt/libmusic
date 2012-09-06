@@ -250,7 +250,7 @@ namespace music
             weights = prob;
             DEBUG_OUT("check for convergence... weights: " << weights << ", relative change of weights:" << (oldWeights - weights).norm() / oldWeights.norm(), 50);
             
-            if ((oldWeights - weights).norm() / oldWeights.norm() < 10e-10)
+            if ((oldWeights - weights).norm() / oldWeights.norm() < 10e-3)
                 converged = true;
         }
         if (converged)
@@ -383,7 +383,7 @@ namespace music
             weights = prob;
             DEBUG_OUT("check for convergence... weights: " << weights << ", relative change of weights:" << (oldWeights - weights).norm() / oldWeights.norm(), 50);
             
-            if ((oldWeights - weights).norm() / oldWeights.norm() < 10e-10)
+            if ((oldWeights - weights).norm() / oldWeights.norm() < 10e-3)
                 converged = true;
         }
         if (converged)
@@ -459,6 +459,7 @@ namespace music
     template <typename ScalarType>
     std::string GaussianMixtureModel<ScalarType>::toJSONString(bool styledWriter) const
     {
+        DEBUG_OUT("saving model as JSON", 20);
         //uses Jsoncpp as library. Jsoncpp is licensed as MIT, so we may use it without restriction.
         Json::Value root(Json::arrayValue);
         Json::Writer* writer=NULL;
@@ -488,6 +489,7 @@ namespace music
             Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> gVariance = gaussians[g]->getCovarianceMatrix();
             if (isDiagonal(gVariance))
             {
+                DEBUG_OUT("save as diagonal covariance matrix", 10);
                 for (int i=0; i<gVariance.rows(); i++)
                 {
                     variance.append(Json::Value(gVariance(i, i)));
@@ -495,6 +497,7 @@ namespace music
             }
             else
             {
+                DEBUG_OUT("save as full covariance matrix", 10);
                 for (int i=0; i<gVariance.rows(); i++)
                 {
                     for (int j=i; j<gVariance.cols(); j++)
@@ -524,6 +527,7 @@ namespace music
     template <typename ScalarType>
     void GaussianMixtureModel<ScalarType>::loadFromJsonValue(Json::Value& jsonValue)
     {
+        DEBUG_OUT("load model from JSON...", 20);
         //first: empty list of old gaussians.
         for (unsigned int g=0; g<gaussians.size(); g++)
             delete gaussians[g];
@@ -538,11 +542,13 @@ namespace music
             bool varianceIsFull;
             if (jsonValue[g]["mean"].size() == jsonValue[g]["covariance"].size())
             {
+                DEBUG_OUT("loading as diagonal covariance matrix", 30);
                 gauss = new GaussianDiagCov<ScalarType>(dimension);
                 varianceIsFull = false;
             }
             else
             {
+                DEBUG_OUT("loading as full covariance matrix", 30);
                 gauss = new GaussianFullCov<ScalarType>(dimension);
                 varianceIsFull = true;
             }
