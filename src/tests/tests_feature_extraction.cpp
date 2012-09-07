@@ -78,18 +78,18 @@ namespace tests
         files.push("testdata/test.mp3");    //92bpm
         minBPMs.push(90);
         maxBPMs.push(96);
-        files.push("sonne.mp3");    //198bpm
-        minBPMs.push(195);
-        maxBPMs.push(207);
-        files.push("deiche.mp3");   //190bpm
-        minBPMs.push(185);
-        maxBPMs.push(195);
-        files.push("allein_allein.mp3");    //132bpm
+        files.push("dead_rocks.mp3");    //105bpm
+        minBPMs.push(100);
+        maxBPMs.push(110);
+        files.push("tenpenny_joke.mp3");   //156bpm
+        minBPMs.push(151);
+        maxBPMs.push(161);
+        /*files.push("allein_allein.mp3");    //132bpm
         minBPMs.push(128);
         maxBPMs.push(138);
         files.push("imagine.mp3");  //67bpm
         minBPMs.push(62);
-        maxBPMs.push(72);
+        maxBPMs.push(72);*/
         
         while (!files.empty())
         {
@@ -768,7 +768,7 @@ namespace tests
         musicaccess::SoundFile file;
         CHECK(!file.isFileOpen());
         //CHECK(file.open("./testdata/test.mp3", true));
-        CHECK(file.open("./sonne.mp3", true));
+        CHECK(file.open("./tenpenny_joke.mp3", true));
         //CHECK(file.open("/mnt/vm-host/database-jens/classical/MP3/01_Sonata_No.10_in_G_major_Hob.XVI8-I._Allegro.mp3", true));
         CHECK(file.isFileOpen());
         
