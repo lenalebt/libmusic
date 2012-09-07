@@ -68,7 +68,7 @@ namespace tests
      * 
      * @return the basename of a filename
      */
-    std::string basename(std::string filename);
+    std::string basename(std::string filename, bool removeExtension=false);
 }
 
 #endif  //DEBUG_HPP 
