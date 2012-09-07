@@ -78,10 +78,10 @@ namespace tests
         files.push("testdata/test.mp3");    //92bpm
         minBPMs.push(90);
         maxBPMs.push(96);
-        files.push("dead_rocks.mp3");    //105bpm
+        files.push("testdata/dead_rocks.mp3");    //105bpm
         minBPMs.push(100);
         maxBPMs.push(110);
-        files.push("tenpenny_joke.mp3");   //156bpm
+        files.push("testdata/tenpenny_joke.mp3");   //156bpm
         minBPMs.push(151);
         maxBPMs.push(161);
         /*files.push("allein_allein.mp3");    //132bpm
@@ -313,11 +313,11 @@ namespace tests
         //DEBUG_OUT("sum vector:" << std::endl << *perTimeSliceStatistics.getSumVector() << std::endl, 15)
         CHECK_EQ(perTimeSliceStatistics.getSumVector()->size(), elementCount);
         
-        CHECK_EQ((*perTimeSliceStatistics.getMeanVector())(500), 0.053265187215638);
+        CHECK_EQ((*perTimeSliceStatistics.getMeanVector())(500), 0.043363305350929);
         CHECK_EQ((*perTimeSliceStatistics.getMaxVector())(500), 0.372837632894516);
-        CHECK_EQ((*perTimeSliceStatistics.getMinVector())(500), 0.001221419661306);
-        CHECK_EQ((*perTimeSliceStatistics.getVarianceVector())(500), 0.008187203212054);
-        CHECK_EQ((*perTimeSliceStatistics.getSumVector())(500), 5.752640219288878);
+        CHECK_EQ((*perTimeSliceStatistics.getMinVector())(500), 0.001068742247298);
+        CHECK_EQ((*perTimeSliceStatistics.getVarianceVector())(500), 0.006523017583915);
+        CHECK_EQ((*perTimeSliceStatistics.getSumVector())(500), 4.683236977900378);
         
         return EXIT_SUCCESS;
     }
@@ -768,7 +768,7 @@ namespace tests
         musicaccess::SoundFile file;
         CHECK(!file.isFileOpen());
         //CHECK(file.open("./testdata/test.mp3", true));
-        CHECK(file.open("./tenpenny_joke.mp3", true));
+        CHECK(file.open("./testdata/tenpenny_joke.mp3", true));
         //CHECK(file.open("/mnt/vm-host/database-jens/classical/MP3/01_Sonata_No.10_in_G_major_Hob.XVI8-I._Allegro.mp3", true));
         CHECK(file.isFileOpen());
         
