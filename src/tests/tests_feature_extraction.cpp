@@ -556,43 +556,153 @@ namespace tests
         DEBUG_OUT("creating constant q transform kernel...", 15);
         cqt = music::ConstantQTransform::createTransform(lowpassFilter, bins, 25, 11025, 22050, q, 0.0, 0.0005, 0.25);
         
+        std::queue<std::string> files;
+        files << "./testdata/chord-major-a-guitar.mp3";
+        files << "./testdata/chord-major-a-keyboard.mp3";
+        files << "./testdata/chord-major-a#-keyboard.mp3";
+        files << "./testdata/chord-major-b-keyboard.mp3";
+        files << "./testdata/chord-major-c7-guitar.mp3";
+        files << "./testdata/chord-major-c-guitar.mp3";
+        files << "./testdata/chord-major-c-keyboard.mp3";
+        files << "./testdata/chord-major-c#-keyboard.mp3";
+        files << "./testdata/chord-major-d4-guitar.mp3";
+        files << "./testdata/chord-major-d7-guitar.mp3";
+        files << "./testdata/chord-major-d9-guitar.mp3";
+        files << "./testdata/chord-major-d-guitar.mp3";
+        files << "./testdata/chord-major-d-keyboard.mp3";
+        files << "./testdata/chord-major-d#-keyboard.mp3";
+        files << "./testdata/chord-major-dmaj7-guitar.mp3";
+        files << "./testdata/chord-major-e-guitar.mp3";
+        files << "./testdata/chord-major-e-keyboard.mp3";
+        files << "./testdata/chord-major-f-guitar.mp3";
+        files << "./testdata/chord-major-f-keyboard.mp3";
+        files << "./testdata/chord-major-f#-keyboard.mp3";
+        files << "./testdata/chord-major-g7-guitar.mp3";
+        files << "./testdata/chord-major-g-guitar.mp3";
+        files << "./testdata/chord-major-g-keyboard.mp3";
+        files << "./testdata/chord-major-g#-keyboard.mp3";
+        files << "./testdata/chord-minor-a7-guitar.mp3";
+        files << "./testdata/chord-minor-a-guitar.mp3";
+        files << "./testdata/chord-minor-a-keyboard.mp3";
+        files << "./testdata/chord-minor-a#-keyboard.mp3";
+        files << "./testdata/chord-minor-b-guitar.mp3";
+        files << "./testdata/chord-minor-b-keyboard.mp3";
+        files << "./testdata/chord-minor-c-guitar.mp3";
+        files << "./testdata/chord-minor-c-keyboard.mp3";
+        files << "./testdata/chord-minor-c#-keyboard.mp3";
+        files << "./testdata/chord-minor-d-guitar.mp3";
+        files << "./testdata/chord-minor-d-keyboard.mp3";
+        files << "./testdata/chord-minor-d#-keyboard.mp3";
+        files << "./testdata/chord-minor-e-guitar.mp3";
+        files << "./testdata/chord-minor-e-keyboard.mp3";
+        files << "./testdata/chord-minor-f-guitar.mp3";
+        files << "./testdata/chord-minor-f-keyboard.mp3";
+        files << "./testdata/chord-minor-f#-keyboard.mp3";
+        files << "./testdata/chord-minor-g-guitar.mp3";
+        files << "./testdata/chord-minor-g-keyboard.mp3";
+        files << "./testdata/chord-minor-g#-keyboard.mp3";
+        files << "./testdata/dead_rocks.mp3";
+        files << "./testdata/instrument-alto_sax.mp3";
+        files << "./testdata/instrument-b4blues.mp3";
+        files << "./testdata/instrument-bassoon.mp3";
+        files << "./testdata/instrument-bells.mp3";
+        files << "./testdata/instrument-clarinet2.mp3";
+        files << "./testdata/instrument-classical_trumpet.mp3";
+        files << "./testdata/instrument-concert_piano.mp3";
+        files << "./testdata/instrument-flute_vibrato.mp3";
+        files << "./testdata/instrument-hapsichord.mp3";
+        files << "./testdata/instrument-harp.mp3";
+        files << "./testdata/instrument-marimba.mp3";
+        files << "./testdata/instrument-oboe_vibrato.mp3";
+        files << "./testdata/instrument-rec-git-aenima.mp3";
+        files << "./testdata/instrument-rec-git-clean-hall.mp3";
+        files << "./testdata/instrument-rec-git-dist_nemo.mp3";
+        files << "./testdata/instrument-rec-git-message.mp3";
+        files << "./testdata/instrument-rec-git-pop_flange.mp3";
+        files << "./testdata/instrument-rec-git-uk80.mp3";
+        files << "./testdata/instrument-rockacoustic_piano.mp3";
+        files << "./testdata/instrument-screamb4.mp3";
+        files << "./testdata/instrument-viola_vibrato.mp3";
+        files << "./testdata/instrument-viola_warm_section.mp3";
+        files << "./testdata/instrument-violin_warm_section.mp3";
+        files << "./testdata/mixture-all_but_bass.mp3";
+        files << "./testdata/mixture-all_but_drums.mp3";
+        files << "./testdata/mixture-all_but_rhgit.mp3";
+        files << "./testdata/mixture-all_but_sologit.mp3";
+        files << "./testdata/mixture-all.mp3";
+        files << "./testdata/mixture-bass_and_rhgit.mp3";
+        files << "./testdata/mixture-bass_and_sologit.mp3";
+        files << "./testdata/mixture-drums_and_bass.mp3";
+        files << "./testdata/mixture-drums_and_rhgit.mp3";
+        files << "./testdata/mixture-drums_and_sologit.mp3";
+        files << "./testdata/mixture-rhgit_and_sologit.mp3";
+        files << "./testdata/rhythm-drums-100-4_4-8th_hihat.mp3";
+        files << "./testdata/rhythm-drums-180-4_4-8th_hihat.mp3";
+        files << "./testdata/rhythm-drums-200-4_4-8th_hihat.mp3";
+        files << "./testdata/rhythm-drums-80-4_4-16th_hihat.mp3";
+        files << "./testdata/rhythm-drums-80-4_4-8th_hihat.mp3";
+        files << "./testdata/rhythm-metronom-180.mp3";
+        files << "./testdata/rhythm-metronom-80.mp3";
+        files << "./testdata/tenpenny_joke.mp3";
+        files << "./testdata/test.mp3";
+        
         musicaccess::SoundFile file;
-        CHECK(!file.isFileOpen());
-        //CHECK(file.open("./testdata/instrument-oboe_vibrato.mp3", true));
-        CHECK(file.open("./testdata/test.mp3", true));
-        CHECK(file.isFileOpen());
-        
-        float* buffer = NULL;
-        buffer = new float[file.getSampleCount()];
-        CHECK(buffer != NULL);
-        
-        int sampleCount = file.readSamples(buffer, file.getSampleCount());
-        //estimated size might not be accurate!
-        CHECK_OP(sampleCount, >=, 0.9*file.getSampleCount());
-        CHECK_OP(sampleCount, <=, 1.1*file.getSampleCount());
-        
         musicaccess::Resampler22kHzMono resampler;
-        //int sampleCount = file.getSampleCount();
-        DEBUG_OUT("resampling input file...", 15);
-        resampler.resample(file.getSampleRate(), &buffer, sampleCount, file.getChannelCount());
+        CHECK(!file.isFileOpen());
+        float* buffer = NULL;
         
-        CHECK_OP(sampleCount, <, file.getSampleCount());
-        
-        DEBUG_OUT("applying constant q transform...", 15);
-        music::ConstantQTransformResult* transformResult = cqt->apply(buffer, sampleCount);
-        CHECK(transformResult != NULL);
-        
-        music::TimbreEstimator t(transformResult);
-        double time;
-        std::vector<Eigen::VectorXd> data;
-        //for (double time=0.0; time<transformResult->getOriginalDuration(); time += 0.125/8)
-        for (int i=0; i<transformResult->getOriginalDuration() * 32; i++)
+        while (!files.empty())
         {
-            time = (1.0/32.0) * i;
-            //DEBUG_VAR_OUT(time, 0);
-            data.push_back(t.estimateTimbre(time, time + 0.02));
+            std::string filename = files.front();
+            DEBUG_OUT("using file \"" << filename << "\"", 10);
+            files.pop();
+            CHECK(file.open(filename, true));
+            CHECK(file.isFileOpen());
+            
+            buffer = new float[file.getSampleCount()];
+            CHECK(buffer != NULL);
+            
+            int sampleCount = file.readSamples(buffer, file.getSampleCount());
+            //estimated size might not be accurate!
+            CHECK_OP(sampleCount, >=, 0.9*file.getSampleCount());
+            CHECK_OP(sampleCount, <=, 1.1*file.getSampleCount());
+            
+            DEBUG_OUT("resampling input file...", 15);
+            resampler.resample(file.getSampleRate(), &buffer, sampleCount, file.getChannelCount());
+            CHECK_OP(sampleCount, <, file.getSampleCount());
+            
+            DEBUG_OUT("applying constant q transform...", 15);
+            music::ConstantQTransformResult* transformResult = cqt->apply(buffer, sampleCount);
+            CHECK(transformResult != NULL);
+            
+            music::TimbreEstimator t(transformResult);
+            double time;
+            std::vector<Eigen::VectorXd> data;
+            //for (double time=0.0; time<transformResult->getOriginalDuration(); time += 0.125/8)
+            for (int i=0; i<transformResult->getOriginalDuration() * 32; i++)
+            {
+                time = (1.0/32.0) * i;
+                //DEBUG_VAR_OUT(time, 0);
+                data.push_back(t.estimateTimbre(time, time + 0.02));
+            }
+            DEBUG_VAR_OUT(data.size(), 0);
+            
+            DEBUG_OUT("Writing CQFCCs to a file...", 10);
+            std::ofstream outstr((std::string("cqfcc_") + basename(filename, true) + ".dat").c_str());
+            //std::ofstream outstr("cqfcc-oboe_vibrato.dat");
+            for (unsigned int i=0; i<data.size(); i++)
+            {
+                outstr << data[i].transpose() << std::endl;
+            }
+            
+            delete buffer;
+            buffer = NULL;
         }
-        DEBUG_VAR_OUT(data.size(), 0);
+        
+        
+        
+        
+        
         /*
         DEBUG_VAR_OUT(data[0], 0);
         DEBUG_VAR_OUT(data[1], 0);
@@ -601,15 +711,9 @@ namespace tests
         */
         int gaussianCount = 4;
         
-        DEBUG_OUT("Writing CQFCCs to a file...", 10);
-        std::ofstream outstr("test-cqfcc.dat");
-        //std::ofstream outstr("cqfcc-oboe_vibrato.dat");
-        for (unsigned int i=0; i<data.size(); i++)
-        {
-            outstr << data[i].transpose() << std::endl;
-        }
-        return EXIT_FAILURE;
         
+        return EXIT_FAILURE;
+        /*
         music::GaussianMixtureModelFullCov<double> gmm1;
         gmm1.trainGMM(data, gaussianCount);
         
@@ -641,7 +745,7 @@ namespace tests
         
         for (int i=0; i<gaussianCount; i++)
             DEBUG_VAR_OUT(gmm2.calculateValue(gaussians1[i]->getMean()), 0);
-        
+        */
         
         //the part below is timbre estimation via the overtone ratio, which did not work that good.
         #if 0
