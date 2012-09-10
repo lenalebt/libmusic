@@ -12,6 +12,9 @@ namespace music
      * It is able to seperate two groups linearly. If it should not be possible to
      * seperate the groups, it might produce weird results.
      * 
+     * @tparam ScalarType The type of the scalars in the vectors. Possible values:
+     *      <code>double</code> (Standard) and <code>float</code>.
+     * 
      * @remarks Make sure that your data can be linearly seperated before you apply this classifier.
      * @ingroup classification
      * @todo Better documentation (some class members are not documented yet)
