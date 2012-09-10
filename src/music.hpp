@@ -24,6 +24,8 @@
  * @todo write something clever here
  * 
  * @section mainpage_install Install
+ * @todo prequisites, such as needed libraries
+ * 
  * @subsection mainpage_normal_install Installing on a normal *nix system
  * 
  * If you want to install the library in a normal, 
@@ -79,6 +81,14 @@
  * 
  * @section mainpage_usage Standard usage
  * Nothing here up to now.
+ * @todo write something clever here
+ * 
+ * @section mainpage_needtoknow Things you need to know when using this library
+ * This library uses some code from the book "Numerical Recipes" (see \ref bug
+ * for the occurences). The code from this book is not free software, it may not
+ * be used in the context it is used. If you plan to release this software
+ * to the wild, you need to replace these parts in order to be in line
+ * with the license.
  * 
  */
 
