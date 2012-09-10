@@ -18,6 +18,12 @@ namespace music
     {
         
     }
+    template <typename ScalarType>
+    Gaussian<ScalarType>::Gaussian(const Gaussian<ScalarType>& other) :
+        weight(other.weight), mean(other.mean), preFactor(), rng(new NormalRNG<ScalarType>())
+    {
+        
+    }
     
     template <typename ScalarType>
     ScalarType GaussianDiagCov<ScalarType>::calculateValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector)
@@ -74,7 +80,19 @@ namespace music
     GaussianDiagCov<ScalarType>::GaussianDiagCov(unsigned int dimension) :
         Gaussian<ScalarType>(dimension)
     {
-        
+        calculatePrefactor();
+    }
+    template <typename ScalarType>
+    GaussianDiagCov<ScalarType>::GaussianDiagCov(ScalarType weight, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& mean) :
+        Gaussian<ScalarType>(weight, mean), diagCov(mean.size())
+    {
+        calculatePrefactor();
+    }
+    template <typename ScalarType>
+    GaussianDiagCov<ScalarType>::GaussianDiagCov(const GaussianDiagCov<ScalarType>& other) :
+        Gaussian<ScalarType>(other), diagCov(other.diagCov)
+    {
+        calculatePrefactor();
     }
     
     template <typename ScalarType>
@@ -131,6 +149,18 @@ namespace music
     template <typename ScalarType>
     GaussianFullCov<ScalarType>::GaussianFullCov(unsigned int dimension) :
         Gaussian<ScalarType>(dimension), fullCov(dimension, dimension), ldlt()
+    {
+        calculatePrefactor();
+    }
+    template <typename ScalarType>
+    GaussianFullCov<ScalarType>::GaussianFullCov(ScalarType weight, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& mean) :
+        Gaussian<ScalarType>(weight, mean), fullCov(mean.size(), mean.size())
+    {
+        calculatePrefactor();
+    }
+    template <typename ScalarType>
+    GaussianFullCov<ScalarType>::GaussianFullCov(const GaussianFullCov<ScalarType>& other) :
+        Gaussian<ScalarType>(other), fullCov(other.fullCov)
     {
         calculatePrefactor();
     }
@@ -618,6 +648,31 @@ namespace music
         reader.parse(is, root, false);
         model.loadFromJsonValue(root);
         return is;
+    }
+    
+    template <typename ScalarType>
+    GaussianMixtureModel<ScalarType>* GaussianMixtureModel<ScalarType>::operator+(const GaussianMixtureModel<ScalarType>& other)
+    {
+        GaussianMixtureModel<ScalarType>* newgmm = NULL;
+        std::vector<Gaussian<ScalarType>*> gaussians1 = this->getGaussians();
+        std::vector<Gaussian<ScalarType>*> gaussians2 = other.getGaussians();
+        
+        //determine wether or not the matricies are all diagonal.
+        bool fullCov = false;
+        for (typename std::vector<Gaussian<ScalarType>*>::const_iterator it = gaussians1.begin(); it != gaussians1.end(); it++)
+        {
+            fullCov |= !isDiagonal((*it)->getCovarianceMatrix());
+        }
+        for (typename std::vector<Gaussian<ScalarType>*>::const_iterator it = gaussians2.begin(); it != gaussians1.end(); it++)
+        {
+            fullCov |= !isDiagonal((*it)->getCovarianceMatrix());
+        }
+        
+        if (fullCov)
+            newgmm = new GaussianMixtureModelFullCov<ScalarType>();
+        else
+            newgmm = new GaussianMixtureModelDiagCov<ScalarType>();
+        
     }
     
     template class GaussianFullCov<double>;
