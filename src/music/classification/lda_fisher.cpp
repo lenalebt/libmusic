@@ -4,29 +4,30 @@
 
 namespace music
 {
-    Eigen::MatrixXd FisherLDAClassifier::doPCA(const std::vector<std::pair<Eigen::VectorXd, double> >& trainingData)
+    template <typename ScalarType>
+    Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> FisherLDAClassifier<ScalarType>::doPCA(const std::vector<std::pair<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>, double> >& trainingData)
     {
         int vectorSize = trainingData[0].first.size();
         
         //calculate covariance matrix of training data
-        Eigen::VectorXd mean(vectorSize);
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> mean(vectorSize);
         mean.setZero();
-        for (std::vector<std::pair<Eigen::VectorXd, double> >::const_iterator it = trainingData.begin(); it != trainingData.end(); it++)
+        for (typename std::vector<std::pair<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>, double> >::const_iterator it = trainingData.begin(); it != trainingData.end(); it++)
         {
             mean += it->first;
         }
         mean /= trainingData.size();
         
-        Eigen::MatrixXd covariance(vectorSize, vectorSize);
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> covariance(vectorSize, vectorSize);
         covariance.setZero();
-        for (std::vector<std::pair<Eigen::VectorXd, double> >::const_iterator it = trainingData.begin(); it != trainingData.end(); it++)
+        for (typename std::vector<std::pair<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>, double> >::const_iterator it = trainingData.begin(); it != trainingData.end(); it++)
         {
-            Eigen::VectorXd tmpVec = it->first - mean;
+            Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> tmpVec = it->first - mean;
             covariance += tmpVec * tmpVec.transpose();
         }
         DEBUG_VAR_OUT(covariance, 250);
         
-        Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eigensolver(covariance);
+        Eigen::SelfAdjointEigenSolver<Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> > eigensolver(covariance);
         if (eigensolver.info() != Eigen::Success)
         {
             ERROR_OUT("eigenvalues could not be calculated!", 10);
@@ -34,8 +35,8 @@ namespace music
         }
         DEBUG_VAR_OUT(eigensolver.eigenvalues(), 250);
         DEBUG_VAR_OUT(eigensolver.eigenvectors(), 250);
-        Eigen::MatrixXd u = eigensolver.eigenvectors();
-        Eigen::VectorXd eigenvalues = eigensolver.eigenvalues();
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> u = eigensolver.eigenvectors();
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> eigenvalues = eigensolver.eigenvalues();
         int nonzeroEigenvalueCount = eigenvalues.size();
         for (int i=0; i<eigenvalues.size(); i++)
         {
@@ -53,38 +54,40 @@ namespace music
         DEBUG_VAR_OUT(u, 250);
         
         //u.cols() ersetzen durch die richtigen eigenwerte)
-        Eigen::MatrixXd reducedU = u.block(0, eigenvalues.size() - nonzeroEigenvalueCount, u.rows(), nonzeroEigenvalueCount);
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> reducedU = u.block(0, eigenvalues.size() - nonzeroEigenvalueCount, u.rows(), nonzeroEigenvalueCount);
         DEBUG_VAR_OUT(reducedU, 250);
         return reducedU;
         
         //below here: something with singular values, which works as well.
         //take SVD of covariance matrix
-        //Eigen::JacobiSVD<Eigen::MatrixXd> svd(covariance, Eigen::ComputeFullU);
-        //Eigen::MatrixXd u = svd.matrixU();
+        //Eigen::JacobiSVD<Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> > svd(covariance, Eigen::ComputeFullU);
+        //Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> u = svd.matrixU();
         
-        //Eigen::VectorXd svds = svd.singularValues();
+        //Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> svds = svd.singularValues();
         //DEBUG_VAR_OUT(svds, 0);
         
         //take largest SVDs (which criterion?)
         //TODO: for now, take all nonzero values. might suffice.
         
         //give matrix back that does the transform
-        //Eigen::MatrixXd reducedU = u.block(0, 0, u.rows(), svd.nonzeroSingularValues());
+        //Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> reducedU = u.block(0, 0, u.rows(), svd.nonzeroSingularValues());
         
         //return reducedU;
     }
     
-    FisherLDAClassifier::FisherLDAClassifier(bool applyPCA) :
+    template <typename ScalarType>
+    FisherLDAClassifier<ScalarType>::FisherLDAClassifier(bool applyPCA) :
         applyPCA(applyPCA)
     {
         
     }
-    bool FisherLDAClassifier::learnModel(const std::vector<std::pair<Eigen::VectorXd, double> >& trainingData, ProgressCallbackCaller* callback)
+    template <typename ScalarType>
+    bool FisherLDAClassifier<ScalarType>::learnModel(const std::vector<std::pair<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>, double> >& trainingData, ProgressCallbackCaller* callback)
     {
         double steps = 5.0;
         int vectorSize=0;
         
-        const std::vector<std::pair<Eigen::VectorXd, double> >* data = NULL;
+        const std::vector<std::pair<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>, double> >* data = NULL;
         
         if (callback != NULL)
             callback->progress(0.0, "initializing...");
@@ -98,11 +101,11 @@ namespace music
                 callback->progress(0.50/steps, "PCA finished, changing data vectors...");
             
             //calculate new data (apply matrix)
-            std::vector<std::pair<Eigen::VectorXd, double> >* newData = new std::vector<std::pair<Eigen::VectorXd, double> >();
+            std::vector<std::pair<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>, double> >* newData = new std::vector<std::pair<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>, double> >();
             newData->reserve(trainingData.size());
-            for (std::vector<std::pair<Eigen::VectorXd, double> >::const_iterator it = trainingData.begin(); it != trainingData.end(); it++)
+            for (typename std::vector<std::pair<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>, double> >::const_iterator it = trainingData.begin(); it != trainingData.end(); it++)
             {
-                newData->push_back(std::pair<Eigen::VectorXd, double>(reducedU.transpose() * it->first, it->second));
+                newData->push_back(std::pair<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>, double>(reducedU.transpose() * it->first, it->second));
             }
             data=newData;
             
@@ -125,15 +128,15 @@ namespace music
         if (callback != NULL)
             callback->progress(1.0/steps, "calculating means...");
         
-        Eigen::VectorXd tmpVec;
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> tmpVec;
         
         //first: calculate means.
         int class1Count=0, class2Count=0;
-        mean1 = Eigen::VectorXd(vectorSize);
+        mean1 = Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>(vectorSize);
         mean1.setZero();
-        mean2 = Eigen::VectorXd(vectorSize);
+        mean2 = Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>(vectorSize);
         mean2.setZero();
-        for (std::vector<std::pair<Eigen::VectorXd, double> >::const_iterator it = data->begin(); it != data->end(); it++)
+        for (typename std::vector<std::pair<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>, double> >::const_iterator it = data->begin(); it != data->end(); it++)
         {
             if (it->second < 0.5)
             {
@@ -163,11 +166,11 @@ namespace music
             callback->progress(2.0/steps, "calculating covariance matrices...");
         
         //calculate covariance matricies
-        covariance1 = Eigen::MatrixXd(vectorSize, vectorSize);
+        covariance1 = Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>(vectorSize, vectorSize);
         covariance1.setZero();
-        covariance2 = Eigen::MatrixXd(vectorSize, vectorSize);
+        covariance2 = Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>(vectorSize, vectorSize);
         covariance2.setZero();
-        for (std::vector<std::pair<Eigen::VectorXd, double> >::const_iterator it = data->begin(); it != data->end(); it++)
+        for (typename std::vector<std::pair<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>, double> >::const_iterator it = data->begin(); it != data->end(); it++)
         {
             if (it->second < 0.5)
             {
@@ -197,8 +200,8 @@ namespace music
         Sw = covariance1 + covariance2;
         DEBUG_VAR_OUT(Sw, 250);
         /*{
-            Eigen::VectorXd m1 = mean1 - mean;
-            Eigen::VectorXd m2 = mean2 - mean;
+            Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> m1 = mean1 - mean;
+            Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> m2 = mean2 - mean;
             
             //DEBUG_VAR_OUT(m1, 0);
             //DEBUG_VAR_OUT(m2, 0);
@@ -213,7 +216,7 @@ namespace music
         
         if ((*data)[0].first.size() == 1)
         {
-            w = Eigen::MatrixXd(1,1);
+            w = Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>(1,1);
             w(0,0)=1.0;
             w0 = mean[0];
         }
@@ -235,7 +238,8 @@ namespace music
         
         return true;
     }
-    double FisherLDAClassifier::classifyVector(const Eigen::VectorXd& vector)
+    template <typename ScalarType>
+    double FisherLDAClassifier<ScalarType>::classifyVector(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& vector)
     {
         if (applyPCA)
         {
@@ -246,4 +250,7 @@ namespace music
             return -(w.transpose() * vector - w0);
         }
     }
+    
+    template class FisherLDAClassifier<double>;
+    template class FisherLDAClassifier<float>;
 }
