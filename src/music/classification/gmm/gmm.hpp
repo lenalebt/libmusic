@@ -375,6 +375,16 @@ namespace music
          */
         void loadFromJSONString(const std::string& jsonString);
         
+        /**
+         * @brief Creates a new GMM, which is a mixture of the two GMMs that are added.
+         * 
+         * @remarks The pointer returned will not be deleted by this class,
+         *      you need to take care of it on your own. If you call
+         *      <code>gmm1 + gmm2</code> without deleting the resulting pointer,
+         *      you will get memory leaks.
+         * 
+         * @return A pointer to the new GMM.
+         */
         GaussianMixtureModel<ScalarType>* operator+(const GaussianMixtureModel<ScalarType>& other);
         
         template <typename S>
