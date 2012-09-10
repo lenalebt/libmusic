@@ -237,6 +237,10 @@ namespace music
         UniformRNG<ScalarType> uniRNG;
         ScalarType normalizationFactor;
         
+        /**
+         * @brief Load the JSON from a JSON representation in memory.
+         * @see loadFromJSONString()
+         */
         void loadFromJsonValue(Json::Value& jsonValue);
         
         /**
@@ -306,14 +310,63 @@ namespace music
         
         /**
          * @brief Create a JSON string that represents this model.
+         * @param styledWriter If a styled writer should be used, or not. With a styled writer,
+         *      the format is easier to read for humans, but takes up more
+         *      memory. If you don't supply this parameter, a condensed
+         *      JSON will be produced.
          * @return A JSON string representing this model.
+         * @see loadFromJSONString() for the structure of the JSON string.
          */
         std::string toJSONString(bool styledWriter=false) const;
         /**
          * @brief Loads a model directly from a JSON string.
-         * @param jsonString A JSON string describing a gaussian mixture model.
-         * @todo Describe the structure of the JSON string
          * 
+         * The structure of the JSON string here is as follows:
+         * @code
+         * [
+         *   {
+         *      "weight"     : double
+         *      "mean"       : [double, double, ..._n]
+         *      "covariance" : [double, double, ..._m]
+         *   }
+         *   , ..._k
+         * ]
+         * @endcode
+         * Where ..._i means the number of repetitions. The following equation
+         * holds:
+         * \f[
+         *     m\in\left\{ n, \frac{n^2+n}{2n^2} \right\}
+         * \f]
+         * Typically, \f$k<20\f$ and \f$n<16\f$, but these are soft boundaries.
+         * There are no hard boundaries.
+         * 
+         * If
+         * \f$m=n\f$, then the elements of the covariance array are the diagonal
+         * elements of the covariance matrix. If \f$m=\frac{n^2+n}{2n^2}\f$,
+         * then the elements are the elements of the lower triangular of
+         * the covariance matrix. The other elements can be generated through
+         * mirroring the lower triangular on the diagonal. The order of the
+         * elements is as follows:
+         * \f[
+         *      \left(
+         *      \begin{array}{ccccc}
+         *          a_0 & a_1 & a_3 & a_6 & \cdots\\
+         *          a_1 & a_2 & a_4 & a_7 & \cdots\\
+         *          a_3 & a_4 & a_5 & a_8 & \cdots\\
+         *          a_6 & a_7 & a_8 & a_9 & \cdots\\
+         *          \vdots & \vdots & \vdots & \vdots & \ddots\\
+         *      \end{array}
+         *      \right)
+         * \f]
+         * 
+         * Typically, the JSON is condensed to save memory and speed the process up a bit.
+         * 
+         * @param jsonString A JSON string describing a gaussian mixture model.
+         * @bug If m!=n, m=(n^2+n)/(2n^2) will be assumed. This is a security problem,
+         *      as one might feed more elements to the program. In this case,
+         *      program memory might be overwritten, or a crash occurs.
+         *      The algorithm should be changed to address
+         *      this problem.
          */
         void loadFromJSONString(const std::string& jsonString);
         
