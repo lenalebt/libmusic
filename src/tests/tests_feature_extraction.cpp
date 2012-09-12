@@ -743,7 +743,7 @@ namespace tests
             //std::ofstream outstr("cqfcc-oboe_vibrato.dat");
             for (unsigned int i=0; i<data.size(); i++)
             {
-                outstr << data[i].normalized().transpose() << std::endl;
+                outstr << data[i].transpose() << std::endl;
             }
             
             music::GaussianMixtureModelDiagCov<double> gmm;

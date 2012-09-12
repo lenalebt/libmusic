@@ -53,9 +53,12 @@ namespace music
         //std::cerr << std::endl;
         
         int timbreVectorSize = 12;
+        //int timbreVectorSize = 128;
         Eigen::VectorXd timbre(timbreVectorSize);
         DEBUG_VAR_OUT(freqData[0], 0);
         for (int i=1; i<timbreVectorSize+1; i++)
+        //for (int i=0; i<timbreVectorSize; i++)
+        //    timbre[i] = freqData[i];
             timbre[i-1] = freqData[i];
         DEBUG_VAR_OUT(timbre.transpose(), 0);
         return timbre;
