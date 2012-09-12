@@ -132,7 +132,7 @@ namespace tests
             music::ConstantQTransformResult* transformResult = cqt->apply(buffer, sampleCount);
             CHECK(transformResult != NULL);
             
-            music::BPMEstimator bpmEst;
+            music::BPMEstimator<kiss_fft_scalar> bpmEst;
             bpmEst.estimateBPM(transformResult);
             
             DEBUG_OUT("measured by hand, the beat should be between " << minBPM << " and " << maxBPM << " bpm.", 10);
@@ -212,7 +212,7 @@ namespace tests
         music::ConstantQTransformResult* transformResult = cqt->apply(buffer, sampleCount);
         CHECK(transformResult != NULL);
         
-        music::PerBinStatistics perBinStatistics(transformResult);
+        music::PerBinStatistics<kiss_fft_scalar> perBinStatistics(transformResult);
         DEBUG_OUT("calculate mean, min and max vectors...", 11);
         perBinStatistics.calculateMeanMinMax();
         
@@ -289,7 +289,7 @@ namespace tests
         music::ConstantQTransformResult* transformResult = cqt->apply(buffer, sampleCount);
         CHECK(transformResult != NULL);
         
-        music::PerTimeSliceStatistics perTimeSliceStatistics(transformResult, 0.005);
+        music::PerTimeSliceStatistics<kiss_fft_scalar> perTimeSliceStatistics(transformResult, 0.005);
         int elementCount = transformResult->getOriginalDuration() / 0.005;
         
         DEBUG_OUT("calculate mean, min, max and sum vectors...", 11);
@@ -706,6 +706,22 @@ namespace tests
             music::ConstantQTransformResult* transformResult = cqt->apply(buffer, sampleCount);
             CHECK(transformResult != NULL);
             
+            /*
+            std::ofstream outstr2((std::string("./cqfcc/cqt-") + basename(filename, true) + ".dat").c_str());
+            for (int octave=transformResult->getOctaveCount()-1; octave>=0; octave--)
+            {
+                for (int bin=transformResult->getBinsPerOctave()-1; bin >= 0; bin--)
+                {
+                    for (int i=0; i < 1000*transformResult->getOriginalDuration(); i++)
+                    {
+                        double time = 0.001 * i;
+                        outstr2 << transformResult->getNoteValueMean(time, octave, bin) << " ";
+                    }
+                    outstr2 << std::endl;
+                }
+            }
+            */
+            
             music::TimbreEstimator t(transformResult);
             double time;
             std::vector<Eigen::VectorXd> data;
@@ -727,7 +743,7 @@ namespace tests
             //std::ofstream outstr("cqfcc-oboe_vibrato.dat");
             for (unsigned int i=0; i<data.size(); i++)
             {
-                outstr << data[i].transpose() << std::endl;
+                outstr << data[i].normalized().transpose() << std::endl;
             }
             
             music::GaussianMixtureModelDiagCov<double> gmm;
@@ -941,8 +957,8 @@ namespace tests
         music::ConstantQTransformResult* transformResult = cqt->apply(buffer, sampleCount);
         CHECK(transformResult != NULL);
         
-        music::PerTimeSliceStatistics perTimeSliceStatistics(transformResult, 0.005);
-        music::DynamicRangeCalculator dynamicRangeCalculator(&perTimeSliceStatistics);
+        music::PerTimeSliceStatistics<kiss_fft_scalar> perTimeSliceStatistics(transformResult, 0.005);
+        music::DynamicRangeCalculator<kiss_fft_scalar> dynamicRangeCalculator(&perTimeSliceStatistics);
         
         DEBUG_OUT("calculating dynamic range...", 10)
         dynamicRangeCalculator.calculateDynamicRange();

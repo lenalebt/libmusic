@@ -34,6 +34,9 @@ namespace music
     protected:
         ConstantQTransformResult* transformResult;
         DCT dct;
+        
+        Eigen::VectorXd estimateTimbre1(double fromTime, double toTime);
+        Eigen::VectorXd estimateTimbre2(double fromTime, double toTime);
     public:
         TimbreEstimator(ConstantQTransformResult* transformResult);
         Eigen::VectorXd estimateTimbre(double fromTime, double toTime);

@@ -89,8 +89,8 @@ namespace music
             if (callback != NULL)
                 callback->progress(5.0/stepCount, "calculating RMS...");
             
-            music::PerTimeSliceStatistics perTimeSliceStatistics(transformResult, 0.005);
-            music::DynamicRangeCalculator dynamicRangeCalculator(&perTimeSliceStatistics);
+            music::PerTimeSliceStatistics<kiss_fft_scalar> perTimeSliceStatistics(transformResult, 0.005);
+            music::DynamicRangeCalculator<kiss_fft_scalar> dynamicRangeCalculator(&perTimeSliceStatistics);
             dynamicRangeCalculator.calculateDynamicRange();
             features->setDynamicRange(dynamicRangeCalculator.getLoudnessRMS());
             //TODO: RMS Variance should also be important!
@@ -99,7 +99,7 @@ namespace music
             if (callback != NULL)
                 callback->progress(7.0/stepCount, "calculating bpm...");
             
-            music::BPMEstimator bpmEst;
+            music::BPMEstimator<kiss_fft_scalar> bpmEst;
             bpmEst.estimateBPM(transformResult);
             features->setTempo(bpmEst.getBPMMean());
             //other tempo features should also be important!

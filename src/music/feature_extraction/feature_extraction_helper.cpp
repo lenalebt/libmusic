@@ -7,7 +7,8 @@
 
 namespace music
 {
-    PerBinStatistics::PerBinStatistics(ConstantQTransformResult* transformResult) :
+    template <typename ScalarType>
+    PerBinStatistics<ScalarType>::PerBinStatistics(ConstantQTransformResult* transformResult) :
         transformResult(transformResult),
         meanVector(NULL),
         varianceVector(NULL),
@@ -16,7 +17,8 @@ namespace music
     {
         assert(transformResult != NULL);
     }
-    PerBinStatistics::~PerBinStatistics()
+    template <typename ScalarType>
+    PerBinStatistics<ScalarType>::~PerBinStatistics()
     {
         if (meanVector)
             delete meanVector;
@@ -27,23 +29,23 @@ namespace music
         if (maxVector)
             delete maxVector;
     }
-    
-    void PerBinStatistics::calculateMeanMinMax()
+    template <typename ScalarType>
+    void PerBinStatistics<ScalarType>::calculateMeanMinMax()
     {
         int binsPerOctave = transformResult->getBinsPerOctave();
         int octaveCount = transformResult->getOctaveCount();
         
-        meanVector = new Eigen::VectorXd(octaveCount * binsPerOctave);
-        minVector = new Eigen::VectorXd(octaveCount * binsPerOctave);
-        maxVector = new Eigen::VectorXd(octaveCount * binsPerOctave);
+        meanVector = new Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>(octaveCount * binsPerOctave);
+        minVector = new Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>(octaveCount * binsPerOctave);
+        maxVector = new Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>(octaveCount * binsPerOctave);
         
         for (int octave=0; octave<octaveCount; octave++)
         {
-            const Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >* octaveMatrix = transformResult->getOctaveMatrix(octave);
+            const Eigen::Matrix<std::complex<ScalarType>, Eigen::Dynamic, Eigen::Dynamic >* octaveMatrix = transformResult->getOctaveMatrix(octave);
             
-            Eigen::VectorXd mean(binsPerOctave);
-            Eigen::VectorXd min(binsPerOctave);
-            Eigen::VectorXd max(binsPerOctave);
+            Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> mean(binsPerOctave);
+            Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> min(binsPerOctave);
+            Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> max(binsPerOctave);
             
             for (int bin=0; bin<binsPerOctave; bin++)
             {
@@ -81,7 +83,8 @@ namespace music
         }
     }
     
-    void PerBinStatistics::calculateVariance()
+    template <typename ScalarType>
+    void PerBinStatistics<ScalarType>::calculateVariance()
     {
         if (meanVector == NULL)
             calculateMeanMinMax();
@@ -89,12 +92,12 @@ namespace music
         int binsPerOctave = transformResult->getBinsPerOctave();
         int octaveCount = transformResult->getOctaveCount();
         
-        varianceVector = new Eigen::VectorXd(octaveCount * binsPerOctave);
+        varianceVector = new Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>(octaveCount * binsPerOctave);
         for (int octave=0; octave<transformResult->getOctaveCount(); octave++)
         {
-            const Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >* octaveMatrix = transformResult->getOctaveMatrix(octave);
+            const Eigen::Matrix<std::complex<ScalarType>, Eigen::Dynamic, Eigen::Dynamic >* octaveMatrix = transformResult->getOctaveMatrix(octave);
             
-            Eigen::VectorXd variance(binsPerOctave);
+            Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> variance(binsPerOctave);
             
             for (int bin=0; bin<binsPerOctave; bin++)
                 variance[bin] = 0.0;
@@ -119,7 +122,8 @@ namespace music
         }
     }
     
-    PerTimeSliceStatistics::PerTimeSliceStatistics(ConstantQTransformResult* transformResult, double timeResolution) :
+    template <typename ScalarType>
+    PerTimeSliceStatistics<ScalarType>::PerTimeSliceStatistics(ConstantQTransformResult* transformResult, double timeResolution) :
         transformResult(transformResult),
         meanVector(NULL),
         varianceVector(NULL),
@@ -133,7 +137,8 @@ namespace music
         assert(timeResolution > 0.0);
     }
     
-    PerTimeSliceStatistics::~PerTimeSliceStatistics()
+    template <typename ScalarType>
+    PerTimeSliceStatistics<ScalarType>::~PerTimeSliceStatistics()
     {
         if (meanVector)
             delete meanVector;
@@ -147,13 +152,14 @@ namespace music
             delete sumVector;
     }
     
-    void PerTimeSliceStatistics::calculateSum()
+    template <typename ScalarType>
+    void PerTimeSliceStatistics<ScalarType>::calculateSum()
     {
         int binsPerOctave = transformResult->getBinsPerOctave();
         int octaveCount = transformResult->getOctaveCount();
         
         int elementCount = transformResult->getOriginalDuration() / timeResolution;
-        sumVector = new Eigen::VectorXd(elementCount);
+        sumVector = new Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>(elementCount);
         
         if (meanVector == NULL)
         {
@@ -180,15 +186,17 @@ namespace music
             (*sumVector) = (*meanVector) * (binsPerOctave * octaveCount);
         }
     }
-    void PerTimeSliceStatistics::calculateMeanMinMaxSum(bool calculateSum)
+    
+    template <typename ScalarType>
+    void PerTimeSliceStatistics<ScalarType>::calculateMeanMinMaxSum(bool calculateSum)
     {
         int binsPerOctave = transformResult->getBinsPerOctave();
         int octaveCount = transformResult->getOctaveCount();
         
         int elementCount = transformResult->getOriginalDuration() / timeResolution;
-        meanVector = new Eigen::VectorXd(elementCount);
-        minVector = new Eigen::VectorXd(elementCount);
-        maxVector = new Eigen::VectorXd(elementCount);
+        meanVector = new Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>(elementCount);
+        minVector = new Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>(elementCount);
+        maxVector = new Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>(elementCount);
         
         for (int i=0; i<elementCount; i++)
         {
@@ -216,14 +224,15 @@ namespace music
         
         if (calculateSum && (sumVector == NULL))
         {
-            sumVector = new Eigen::VectorXd(elementCount);
+            sumVector = new Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>(elementCount);
             *sumVector = *meanVector;
         }
         
         (*meanVector) /= binsPerOctave * octaveCount;
     }
     
-    void PerTimeSliceStatistics::calculateVariance()
+    template <typename ScalarType>
+    void PerTimeSliceStatistics<ScalarType>::calculateVariance()
     {
         if (meanVector == NULL)
             calculateMeanMinMaxSum(false);
@@ -232,7 +241,7 @@ namespace music
         int octaveCount = transformResult->getOctaveCount();
         
         int elementCount = transformResult->getOriginalDuration() / timeResolution;
-        varianceVector = new Eigen::VectorXd(elementCount);
+        varianceVector = new Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>(elementCount);
         for (int i=0; i<elementCount; i++)
         {
             double variance = 0.0;
@@ -248,4 +257,7 @@ namespace music
         }
         (*varianceVector) /= binsPerOctave * octaveCount;
     }
+    
+    template class PerBinStatistics<kiss_fft_scalar>;
+    template class PerTimeSliceStatistics<kiss_fft_scalar>;
 }

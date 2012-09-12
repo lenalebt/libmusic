@@ -13,18 +13,21 @@ namespace music
         return (T(0) < val) - (val < T(0));
     }
     
-    void BPMEstimator::estimateBPM(ConstantQTransformResult* transformResult)
+    template <typename ScalarType>
+    void BPMEstimator<ScalarType>::estimateBPM(ConstantQTransformResult* transformResult)
     {
         estimateBPM1(transformResult);
         //estimateBPM5(transformResult);
     }
     
-    void BPMEstimator::estimateBPM5(ConstantQTransformResult* transformResult)
+    template <typename ScalarType>
+    void BPMEstimator<ScalarType>::estimateBPM5(ConstantQTransformResult* transformResult)
     {
         //method from "Joint Beat&Tatum Tracking from Music Signals"
         
     }
-    void BPMEstimator::estimateBPM3(ConstantQTransformResult* transformResult)
+    template <typename ScalarType>
+    void BPMEstimator<ScalarType>::estimateBPM3(ConstantQTransformResult* transformResult)
     {
         DEBUG_OUT("estimating tempo of song...", 10);
         
@@ -32,7 +35,7 @@ namespace music
         //taking 5ms slices, summing values
         double timeSliceLength = 1.0/100.0;
         
-        PerTimeSliceStatistics timeSliceStatistics(transformResult, timeSliceLength);
+        PerTimeSliceStatistics<ScalarType> timeSliceStatistics(transformResult, timeSliceLength);
         timeSliceStatistics.calculateSum(/*0.0, transformResult->getOriginalDuration()*/);
         
         assert(timeSliceStatistics.getSumVector() != NULL);
@@ -254,7 +257,8 @@ namespace music
         #endif
     }
     
-    void BPMEstimator::estimateBPM1(ConstantQTransformResult* transformResult)
+    template <typename ScalarType>
+    void BPMEstimator<ScalarType>::estimateBPM1(ConstantQTransformResult* transformResult)
     {
         DEBUG_OUT("estimating tempo of song...", 10);
         
@@ -262,7 +266,7 @@ namespace music
         //taking 5ms slices, summing values
         double timeSliceLength = 1.0/100.0;
         
-        PerTimeSliceStatistics timeSliceStatistics(transformResult, timeSliceLength);
+        PerTimeSliceStatistics<ScalarType> timeSliceStatistics(transformResult, timeSliceLength);
         timeSliceStatistics.calculateSum(/*0.0, transformResult->getOriginalDuration()*/);
         
         assert(timeSliceStatistics.getSumVector() != NULL);
@@ -440,7 +444,8 @@ namespace music
         this->bpmMean = 60.0/(newMean / newDiffPosVector.size()*timeSliceLength);
     }
     
-    void BPMEstimator::estimateBPM2(ConstantQTransformResult* transformResult)
+    template <typename ScalarType>
+    void BPMEstimator<ScalarType>::estimateBPM2(ConstantQTransformResult* transformResult)
     {
         DEBUG_OUT("estimating tempo of song...", 10);
         
@@ -448,7 +453,7 @@ namespace music
         //taking 5ms slices, summing values
         double timeSliceLength = 1.0/200.0;
         
-        PerTimeSliceStatistics timeSliceStatistics(transformResult, timeSliceLength);
+        PerTimeSliceStatistics<ScalarType> timeSliceStatistics(transformResult, timeSliceLength);
         timeSliceStatistics.calculateSum(/*0.0, transformResult->getOriginalDuration()*/);
         
         assert(timeSliceStatistics.getSumVector() != NULL);
@@ -597,4 +602,5 @@ namespace music
         this->bpmVariance /= diffPosVector.size();
     }
     
+    template class BPMEstimator<kiss_fft_scalar>;
 }

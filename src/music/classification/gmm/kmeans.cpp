@@ -149,7 +149,7 @@ namespace music
         Eigen::VectorXf distances(dataSize);
         
         float distance, minDistance;
-        int minDistanceElement;
+        int minDistanceElement=0;
         double draw;
         
         //create meanCount guesses. first value has been taken.
