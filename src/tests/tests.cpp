@@ -287,6 +287,7 @@ namespace tests
         }
         std::cerr << std::endl;
         
+        DEBUG_OUT("right answer:", 10);
         for (int k=0; k<4; k++)
         {
             double sum=0.0;
@@ -297,6 +298,57 @@ namespace tests
             std::cerr << sum << " ";
         }
         std::cerr << std::endl;
+        
+        CHECK_EQ(outmem[0], 0.0);
+        CHECK_EQ(outmem[1], 1.306562964876377);
+        CHECK_EQ(outmem[2], -1.414213562373095);
+        CHECK_EQ(outmem[3], -0.541196100146197);
+        
+        DEBUG_OUT("calculating the dct of a signal of length 8...", 0);
+        mem[0] = 0.0;
+        mem[1] = 1.0;
+        mem[2] = 0.0;
+        mem[3] = -1.0;
+        mem[4] = 0.0;
+        mem[5] = 1.0;
+        mem[6] = 0.0;
+        mem[7] = -1.0;
+        
+        for(int i=0; i<8; i++)
+        {
+            std::cerr << mem[i] << " ";
+            outmem[i] = 0;
+        }
+        std::cerr << std::endl;
+        
+        dct.doDCT2(mem, 8, outmem);
+        
+        for(int i=0; i<8; i++)
+        {
+            std::cerr << outmem[i] << " ";
+        }
+        std::cerr << std::endl;
+        
+        DEBUG_OUT("right answer:", 10);
+        for (int k=0; k<8; k++)
+        {
+            double sum=0.0;
+            for (int n=0; n<8; n++)
+            {
+                sum += mem[n] * cos(M_PI/8.0 * (double(n)+0.5) * double(k));
+            }
+            std::cerr << sum << " ";
+        }
+        std::cerr << std::endl;
+        
+        CHECK_EQ(outmem[0], 0.0);
+        CHECK_EQ(outmem[1], 1.061594337670045);
+        CHECK_EQ(outmem[2], 0.0);
+        CHECK_EQ(outmem[3], 2.17273480370925);
+        CHECK_EQ(outmem[4], -2.82842712474619);
+        CHECK_EQ(outmem[5], -1.4517749817023);
+        CHECK_EQ(outmem[6], 0.0);
+        CHECK_EQ(outmem[7], -0.211164242902789);
         
         delete[] mem;
         delete[] outmem;

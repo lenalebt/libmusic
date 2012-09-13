@@ -164,6 +164,8 @@ namespace music
      * 
      * @todo documentation
      * @ingroup transforms
+     * @bug Works only for kiss_fft_scalar = float. Problem with double is that the input
+     *      is only available for float, and we would need some sonversion.
      * 
      * @author Lena Brueder
      * @date 2012-06-12

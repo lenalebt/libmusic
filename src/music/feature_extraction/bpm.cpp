@@ -41,7 +41,7 @@ namespace music
         assert(timeSliceStatistics.getSumVector() != NULL);
         
         int maxDuration = timeSliceStatistics.getSumVector()->size();
-        Eigen::VectorXd sumVec = *timeSliceStatistics.getSumVector();
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> sumVec = *timeSliceStatistics.getSumVector();
         
         //TODO: low-pass-filter sumVec (moving average, 5 values)
         double hist[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
@@ -69,7 +69,7 @@ namespace music
         DEBUG_OUT("building derivation of sum vector...", 15);
         //6 seconds maximum shift
         int maxCorrShift=std::min(int(6.0/timeSliceLength), maxDuration-1);
-        Eigen::VectorXf derivSum(maxDuration-1);
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> derivSum(maxDuration-1);
         for (int shift=0; shift<maxDuration-1; shift++)
         {
             derivSum[shift] = sumVec[shift+1] - sumVec[shift];
@@ -91,7 +91,7 @@ namespace music
         {
             DEBUG_OUT("position: " << i*timeSliceLength, 12);
             DEBUG_OUT("calculating auto correlation of derivation vector...", 15);
-            Eigen::VectorXf autoCorr(maxCorrShift);
+            Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> autoCorr(maxCorrShift);
             for (int shift=0; shift<maxCorrShift; shift++)
             {
                 double corr=0.0;
@@ -272,7 +272,7 @@ namespace music
         assert(timeSliceStatistics.getSumVector() != NULL);
         
         int maxDuration = timeSliceStatistics.getSumVector()->size();
-        Eigen::VectorXd sumVec = *timeSliceStatistics.getSumVector();
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> sumVec = *timeSliceStatistics.getSumVector();
         
         //TODO: low-pass-filter sumVec (moving average, 5 values)
         double hist[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
@@ -300,7 +300,7 @@ namespace music
         DEBUG_OUT("building derivation of sum vector...", 15);
         //6 seconds maximum shift
         int maxCorrShift=std::min(int(6.0/timeSliceLength), maxDuration-1);
-        Eigen::VectorXf derivSum(maxDuration-1);
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> derivSum(maxDuration-1);
         for (int shift=0; shift<maxDuration-1; shift++)
         {
             derivSum[shift] = sumVec[shift+1] - sumVec[shift];
@@ -317,7 +317,7 @@ namespace music
         
         
         DEBUG_OUT("calculating auto correlation of derivation vector...", 15);
-        Eigen::VectorXf autoCorr(maxCorrShift);
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> autoCorr(maxCorrShift);
         for (int shift=0; shift<maxCorrShift; shift++)
         {
             double corr=0.0;
@@ -472,7 +472,7 @@ namespace music
         DEBUG_OUT("building derivation of sum vector...", 15);
         //6 seconds maximum shift
         int maxCorrShift=std::min(int(6.0/timeSliceLength), maxDuration-1);
-        Eigen::VectorXf derivSum(maxDuration-1);
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> derivSum(maxDuration-1);
         for (int shift=0; shift<maxDuration-1; shift++)
         {
             derivSum[shift] = (*timeSliceStatistics.getSumVector())[shift+1] - (*timeSliceStatistics.getSumVector())[shift];
@@ -489,7 +489,7 @@ namespace music
         
         
         DEBUG_OUT("calculating auto correlation of derivation vector...", 15);
-        Eigen::VectorXf autoCorr(maxCorrShift);
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> autoCorr(maxCorrShift);
         for (int shift=0; shift<maxCorrShift; shift++)
         {
             double corr=0.0;
