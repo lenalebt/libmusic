@@ -747,4 +747,148 @@ namespace music
     template std::ostream& operator<<(std::ostream& os, const GaussianMixtureModel<float>& model);
     template std::istream& operator>>(std::istream& is, GaussianMixtureModel<float>& model);
     
+    template <typename ScalarType>
+    template <int GaussianType>
+    void GMM2<ScalarType>::trainGMM(const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, int gaussianCount, unsigned int maxIterations)
+    {
+        std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> > means;
+        std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> > diagCovs;
+        
+        unsigned int dimension = data[0].size();
+        unsigned int dataSize = data.size();
+        
+        DEBUG_OUT("no init vectors given. using random values...", 20);
+        //init with random data points and identity matricies as covariance matrix
+        for (int i=0; i<gaussianCount; i++)
+        {
+            DEBUG_OUT("adding gaussian distribution " << i << "...", 25);
+            
+            means.push_back(data[std::rand() % dataSize]);
+            diagCovs.push_back(10000*Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>::Identity(dimension, dimension));
+        }
+        
+        //set initial weights all equal to 1/gaussianCount
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> weights = Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>::Constant(gaussianCount, 1.0/ScalarType(gaussianCount));
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> oldWeights = weights;
+        Eigen::Array<ScalarType, Eigen::Dynamic, Eigen::Dynamic> p(dataSize, gaussianCount);
+        
+        unsigned int iteration = 0;
+        bool converged = false;
+        DEBUG_OUT("starting iteration loop...", 20);
+        while ((iteration < maxIterations) && (!converged))
+        {
+            iteration++;
+            oldWeights = weights;
+            
+            //E-step BEGIN
+            DEBUG_OUT("E-step BEGIN", 30);
+            //for every gaussian do...
+            for (int g=0; g<gaussianCount; g++)
+            {
+                Eigen::LDLT<Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> > ldlt(diagCovs[g].asDiagonal());
+                //diagCovs[g].prod() is equal to its determinant for diagonal matricies.
+                double factor = 1.0/(pow(2*M_PI, diagCovs[g].size()/2.0) * sqrt(diagCovs[g].prod()));
+                
+                //for every data point do...
+                for (unsigned int i=0; i < dataSize; i++)
+                {
+                    //calculate probability (non-normalized)
+                    p(i,g) = factor * std::exp(-0.5 * ((data[i] - means[g]).transpose() * ldlt.solve(data[i] - means[g]))(0));
+                }
+            }
+            
+            //DEBUG_VAR_OUT(p, 0);
+            
+            ScalarType sum;
+            for (unsigned int i=0; i<dataSize; i++)
+            {
+                //normalize p.
+                //sometimes the sum gets 0 or veeeery small, and then
+                //dividing by it leads to nan/inf values. we try to
+                //skip these values.
+                sum = p.row(i).sum();
+                if (sum <= 1.0e-280)
+                    sum = 1.0;
+                
+                //resolve aliasing issues here with calling eval()
+                p.row(i) = (p.row(i) / sum).eval();
+            }
+            DEBUG_OUT("E-step END", 30);
+            //E-step END
+            
+            //DEBUG_VAR_OUT(p, 0);
+            
+            //M-step BEGIN
+            DEBUG_OUT("M-step BEGIN", 30);
+            Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> prob(gaussianCount);
+            //calculate probabilities for all clusters
+            prob = p.colwise().mean();
+            for (int g=0; g<gaussianCount; g++)
+            {
+                //calculate mu
+                Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> mu(dimension);
+                mu.setZero();
+                for (unsigned int i=0; i<dataSize; i++)
+                {
+                    //aliasing occurs, but does not harm.
+                    mu = mu + (data[i] * p(i,g));
+                }
+                mu = mu / (dataSize * prob(g));
+                
+                //calculate sigma
+                Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> sigma(dimension);
+                sigma.setZero();
+                for (unsigned int i=0; i< dataSize; i++)
+                {
+                    sigma = sigma + (p(i,g) * (data[i] - mu).array().square()).matrix();
+                }
+                sigma = sigma / (dataSize * prob(g));
+                
+                means[g] = mu;
+                diagCovs[g] = sigma;
+            }
+            
+            DEBUG_OUT("M-step END", 30);
+            //M-step END
+            weights = prob;
+            DEBUG_OUT("check for convergence... weights: " << weights << ", relative change of weights:" << (oldWeights - weights).norm() / oldWeights.norm(), 50);
+            if ((oldWeights - weights).norm() / oldWeights.norm() < 10e-6)
+                converged = true;
+        }
+        
+        if (converged)
+        {
+            DEBUG_OUT("EM converged after " << iteration << " iterations.", 20);
+        }
+        else
+        {
+            DEBUG_OUT("EM stopped after " << iteration << " iterations.", 20);
+        }
+        
+        for (int g=0; g<gaussianCount; g++)
+        {
+            DEBUG_VAR_OUT(means[g], 0);
+            DEBUG_VAR_OUT(diagCovs[g], 0);
+        }
+        
+        #if 0
+        
+            
+            
+            
+        
+        
+        ScalarType sumOfWeights = 0.0;
+        normalizationFactor = 0.0;
+        for (int g=0; g<gaussianCount; g++)
+        {
+            sumOfWeights += weights[g];
+            gaussians[g]->setWeight(weights[g]);
+            normalizationFactor += gaussians[g]->calculateValue(gaussians[g]->getMean());
+        }
+        normalizationFactor /= gaussianCount;
+        uniRNG = UniformRNG<ScalarType>(0.0, sumOfWeights);
+        return gaussians;
+        #endif
+    }
 }
