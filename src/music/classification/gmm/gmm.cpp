@@ -55,11 +55,11 @@ namespace music
     Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> GaussianDiagCov<ScalarType>::rand()
     {
         assert(mean.size() > 0);
-        Eigen::LDLT<Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> > ldlt(diagCov.asDiagonal());
+        Eigen::LLT<Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> > llt(diagCov.asDiagonal());
         Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> y(mean.size());
         for (int i=0; i<mean.size(); i++)
             y[i] = rng->rand();
-        return ldlt.matrixL() * y + mean;
+        return llt.matrixL() * y + mean;
     }
     template <typename ScalarType>
     void GaussianDiagCov<ScalarType>::calculatePrefactor()
@@ -140,11 +140,11 @@ namespace music
     Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> GaussianFullCov<ScalarType>::rand()
     {
         assert(mean.size() > 0);
-        Eigen::LDLT<Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> > ldlt(fullCov);
+        Eigen::LLT<Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> > llt(fullCov);
         Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> y(mean.size());
         for (int i=0; i<mean.size(); i++)
             y[i] = rng->rand();
-        return ldlt.matrixL() * y + mean;
+        return llt.matrixL() * y + mean;
     }
     template <typename ScalarType>
     GaussianFullCov<ScalarType>::GaussianFullCov(unsigned int dimension) :
@@ -179,7 +179,9 @@ namespace music
         //k-means or something else should be done by somebody else beforehand.
         std::vector<Gaussian<ScalarType>*> gaussians;
         unsigned int dimension = data[0].size();
+        assert(dimension > 0);
         unsigned int dataSize = data.size();
+        assert(dataSize > 0);
         if (init.empty())
         {
             DEBUG_OUT("no init vectors given. using random values...", 20);
@@ -190,7 +192,7 @@ namespace music
                 Gaussian<ScalarType>* gaussian = new GaussianFullCov<ScalarType>(dimension);
                 
                 gaussian->setMean(data[std::rand() % dataSize]);
-                gaussian->setCovarianceMatrix(Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>::Identity(dimension, dimension));
+                gaussian->setCovarianceMatrix(10000*Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>::Identity(dimension, dimension));
                 gaussians.push_back(gaussian);
             }
         }
@@ -208,6 +210,8 @@ namespace music
         {
             iteration++;
             oldWeights = weights;
+            assert(weights.sum() > 0.95);
+            assert(weights.sum() < 1.05);
             
             //E-step BEGIN
             DEBUG_OUT("E-step BEGIN", 30);
@@ -312,7 +316,9 @@ namespace music
         //k-means or something else should be done by somebody else beforehand.
         std::vector<Gaussian<ScalarType>*> gaussians;
         unsigned int dimension = data[0].size();
+        assert(dimension > 0);
         unsigned int dataSize = data.size();
+        assert(dataSize > 0);
         if (init.empty())
         {
             DEBUG_OUT("no init vectors given. using random values...", 20);
@@ -323,7 +329,7 @@ namespace music
                 Gaussian<ScalarType>* gaussian = new GaussianDiagCov<ScalarType>(dimension);
                 
                 gaussian->setMean(data[std::rand() % dataSize]);
-                gaussian->setCovarianceMatrix(Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>::Identity(dimension, dimension));
+                gaussian->setCovarianceMatrix(10000*Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>::Identity(dimension, dimension));
                 gaussians.push_back(gaussian);
             }
         }
@@ -341,6 +347,8 @@ namespace music
         {
             iteration++;
             oldWeights = weights;
+            //assert(weights.sum() > 0.95);
+            //assert(weights.sum() < 1.05);
             
             //E-step BEGIN
             DEBUG_OUT("E-step BEGIN", 30);
@@ -355,7 +363,7 @@ namespace music
                 }
             }
             
-            //DEBUG_VAR_OUT(p, 0);
+            DEBUG_VAR_OUT(p, 50);
             
             ScalarType sum;
             for (unsigned int i=0; i<dataSize; i++)
@@ -374,7 +382,7 @@ namespace music
             DEBUG_OUT("E-step END", 30);
             //E-step END
             
-            //DEBUG_VAR_OUT(p, 0);
+            DEBUG_VAR_OUT(p, 50);
             
             //M-step BEGIN
             DEBUG_OUT("M-step BEGIN", 30);

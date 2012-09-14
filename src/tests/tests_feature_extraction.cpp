@@ -544,6 +544,103 @@ namespace tests
         return EXIT_SUCCESS;
     }
     
+    int applyTimbreEstimation(std::string filename)
+    {
+        music::ConstantQTransform* cqt = NULL;
+        musicaccess::IIRFilter* lowpassFilter = NULL;
+        
+        lowpassFilter = musicaccess::IIRFilter::createLowpassFilter(0.25);
+        CHECK_OP(lowpassFilter, !=, NULL);
+        
+        cqt = music::ConstantQTransform::createTransform(lowpassFilter, 12, 25, 11025, 22050, 2.0, 0.0, 0.0005, 0.25);
+        CHECK_OP(cqt, !=, NULL);
+        
+        musicaccess::SoundFile file;
+        CHECK(!file.isFileOpen());
+        CHECK(file.open(filename, true));
+        CHECK(file.isFileOpen());
+        
+        float* buffer = NULL;
+        buffer = new float[file.getSampleCount()];
+        CHECK(buffer != NULL);
+        
+        int sampleCount = file.readSamples(buffer, file.getSampleCount());
+        //estimated size might not be accurate!
+        CHECK_OP(sampleCount, >=, 0.9*file.getSampleCount());
+        CHECK_OP(sampleCount, <=, 1.1*file.getSampleCount());
+        
+        musicaccess::Resampler22kHzMono resampler;
+        //int sampleCount = file.getSampleCount();
+        DEBUG_OUT("resampling input file...", 10);
+        resampler.resample(file.getSampleRate(), &buffer, sampleCount, file.getChannelCount());
+        
+        CHECK_OP(sampleCount, <, file.getSampleCount());
+        
+        DEBUG_OUT("applying constant q transform...", 10);
+        music::ConstantQTransformResult* transformResult = cqt->apply(buffer, sampleCount);
+        CHECK(transformResult != NULL);
+        
+        music::TimbreEstimator t(transformResult);
+        music::PerTimeSliceStatistics<kiss_fft_scalar> ptss(transformResult, 0.02);
+        ptss.calculateSum();
+        const Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1>* sum = ptss.getSumVector();
+        
+        double time;
+        std::vector<Eigen::VectorXd> data;
+        //for (double time=0.0; time<transformResult->getOriginalDuration(); time += 0.125/8)
+        for (int i=0; i<transformResult->getOriginalDuration() * 32; i++)
+        {
+            time = (1.0/32.0) * i;
+            //DEBUG_VAR_OUT(time, 0);
+            Eigen::VectorXd tmp = t.estimateTimbre(time, time + 0.02);
+            //if (tmp.norm() > 0.1)
+            //    data.push_back(tmp.normalized());
+            if (tmp.size() != 1)
+            {
+                data.push_back(tmp);
+                DEBUG_OUT("accepted.", 10);
+            }
+        }
+        DEBUG_VAR_OUT(data.size(), 0);
+        
+        std::string outdatfile = std::string("cqfcc/") + basename(filename, true) + ".dat";
+        DEBUG_OUT("Writing CQFCCs to file\"" << outdatfile << "\"...", 10);
+        std::ofstream outstr(outdatfile.c_str());
+        //std::ofstream outstr("cqfcc-oboe_vibrato.dat");
+        for (unsigned int i=0; i<data.size(); i++)
+        {
+            outstr << data[i].transpose() << std::endl;
+        }
+        
+        /*
+        music::GaussianMixtureModelDiagCov<double> gmm;
+        gmm.trainGMM(data, 3);
+        std::vector<music::Gaussian<double>*> gaussians = gmm.getGaussians();
+        DEBUG_OUT("gaussians of gmm algorithm:", 10);
+        for(std::vector<music::Gaussian<double>*>::const_iterator it = gaussians.begin(); it != gaussians.end(); it++)
+        {
+            DEBUG_VAR_OUT((**it).getMean(), 0);
+            DEBUG_VAR_OUT((**it).getCovarianceMatrix(), 0);
+        }
+        * */
+        
+        music::KMeans<double> kmeans;
+        kmeans.trainKMeans(data, 5);
+        std::vector<Eigen::VectorXd> means = kmeans.getMeans();
+        for(std::vector<Eigen::VectorXd>::const_iterator it = means.begin(); it != means.end(); it++)
+        {
+            DEBUG_VAR_OUT(*it, 0);
+        }
+        
+        
+        delete transformResult;
+        //delete[] buffer;
+        delete cqt;
+        delete lowpassFilter;
+        
+        return EXIT_SUCCESS;
+    }
+    
     /**
      * @todo Test ist unvollständig
      */
