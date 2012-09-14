@@ -37,6 +37,7 @@ namespace music
         
         Eigen::VectorXd estimateTimbre1(double fromTime, double toTime);
         Eigen::VectorXd estimateTimbre2(double fromTime, double toTime);
+        Eigen::VectorXd estimateTimbre3(double fromTime, double toTime);
     public:
         TimbreEstimator(ConstantQTransformResult* transformResult);
         Eigen::VectorXd estimateTimbre(double fromTime, double toTime);

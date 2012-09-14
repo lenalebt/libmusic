@@ -8,7 +8,65 @@ namespace music
 {
     Eigen::VectorXd TimbreEstimator::estimateTimbre(double fromTime, double toTime)
     {
-        return this->estimateTimbre2(fromTime, toTime);
+        return this->estimateTimbre3(fromTime, toTime);
+    }
+    Eigen::VectorXd TimbreEstimator::estimateTimbre3(double fromTime, double toTime)
+    {
+        assert (fromTime <= toTime);
+        
+        kiss_fft_scalar vec[128];
+        
+        //we need less than 128 bins, otherwise we might not use the stack to store the arrays.
+        assert(transformResult->getOctaveCount() * transformResult->getBinsPerOctave() <= 128);
+        
+        int i=0;
+        double duration = toTime - fromTime;
+        double sum=0.0, sumEl, max=0.0;
+        for (int octave=0; octave<transformResult->getOctaveCount(); octave++)
+        {
+            for (int bin=0; bin<transformResult->getBinsPerOctave(); bin++)
+            {
+                //when taking the mean values, absolute values are returned.
+                vec[i] = log(sumEl=transformResult->getNoteValueMean(toTime, octave, bin, duration));
+                sum += sumEl;
+                if (sumEl > max)
+                    max = sumEl;
+                
+                if (vec[i] < -100)
+                    vec[i] = -100;
+                
+                i++;
+            }
+        }
+        
+        
+        DEBUG_VAR_OUT(sum, 0);
+        DEBUG_VAR_OUT(max, 0);
+        if (sum < 5.0)
+            return Eigen::VectorXd::Zero(1);
+        
+        
+        kiss_fft_scalar freqData[128];
+        //apply dct...
+        dct.doDCT2(vec, transformResult->getOctaveCount() * transformResult->getBinsPerOctave(), freqData);
+        
+        /*
+        for (i=0; i<transformResult->getOctaveCount() * transformResult->getBinsPerOctave(); i++)
+            std::cerr << vec[i] << " ";
+        std::cerr << std::endl;
+        for (i=0; i<transformResult->getOctaveCount() * transformResult->getBinsPerOctave(); i++)
+            std::cerr << freqData[i] << " ";
+        std::cerr << std::endl;*/
+        
+        int timbreVectorSize = 12;
+        //int timbreVectorSize = 128;
+        Eigen::VectorXd timbre(timbreVectorSize);
+        for (int i=1; i<timbreVectorSize+1; i++)
+        //for (int i=0; i<timbreVectorSize; i++)
+        //    timbre[i] = freqData[i];
+            timbre[i-1] = freqData[i];
+        DEBUG_VAR_OUT(timbre.transpose(), 0);
+        return timbre;
     }
     Eigen::VectorXd TimbreEstimator::estimateTimbre2(double fromTime, double toTime)
     {
@@ -35,12 +93,12 @@ namespace music
                     return Eigen::VectorXd();
                 }
                 
-                std::cerr << vec[i] << " ";
+                //std::cerr << vec[i] << " ";
                 i++;
             }
         }
-        std::cerr << std::endl;
-        //set the rest to zero...
+        //std::cerr << std::endl;
+        //set the rest to log(zero)...
         for (; i<128; i++)
             vec[i] = -100.0f;
         
@@ -48,11 +106,12 @@ namespace music
         //apply dct...
         dct.doDCT2(vec, 128, freqData);
         
-        //for (i=0; i<128; i++)
-        //    std::cerr << vec[i] << " ";
-        //for (i=0; i<128; i++)
-        //    std::cerr << freqData[i] << " ";
-        //std::cerr << std::endl;
+        for (i=0; i<128; i++)
+            std::cerr << vec[i] << " ";
+        std::cerr << std::endl;
+        for (i=0; i<128; i++)
+            std::cerr << freqData[i] << " ";
+        std::cerr << std::endl;
         
         int timbreVectorSize = 12;
         //int timbreVectorSize = 128;

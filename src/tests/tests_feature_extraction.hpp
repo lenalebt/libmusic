@@ -1,6 +1,8 @@
 #ifndef TESTS_FEATURE_EXTRACTION_HPP
 #define TESTS_FEATURE_EXTRACTION_HPP
 
+#include <string>
+
 namespace tests
 {
     /** @ingroup tests
@@ -9,6 +11,9 @@ namespace tests
     /** @ingroup tests
      */
     int testEstimateChords();
+    /** @ingroup tests
+     */
+    int applyTimbreEstimation(std::string filename);
     /** @ingroup tests
      */
     int testEstimateTimbre();

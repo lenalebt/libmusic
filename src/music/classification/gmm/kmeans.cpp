@@ -100,7 +100,8 @@ namespace music
             //set mean by dividing through value count in cluster
             for (unsigned int i=0; i<meanCount; i++)
             {
-                means[i] = means[i] / vectorCountInCluster[i];
+                if (vectorCountInCluster[i] != 0)
+                    means[i] = means[i] / vectorCountInCluster[i];
             }
             
             //for determining convergence
