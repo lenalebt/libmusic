@@ -458,7 +458,8 @@ namespace music
     private:
         
     public:
-        void trainGMM(const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, int gaussianount = 10, unsigned int maxIterations=50);
+        void trainGMMDiag(const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, int gaussianount = 10, unsigned int maxIterations=50);
+        void trainGMMFull(const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, int gaussianount = 10, unsigned int maxIterations=50);
     };
 }
 

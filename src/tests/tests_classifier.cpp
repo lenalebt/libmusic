@@ -207,9 +207,9 @@ namespace tests
     {
         int dimension=8;
         int dataCount=50000;
-        int gaussians=3;
+        int gaussianCount=3;
         
-        music::GMM2<double> gmm;
+        music::GaussianMixtureModelFullCov<double> gmm;
         music::KMeans<double> kmeans;
         music::GaussianDiagCov<double> gdc1(dimension);
         music::GaussianDiagCov<double> gdc2(dimension);
@@ -265,13 +265,13 @@ namespace tests
         */
         
         
-        gmm.trainGMM(data, gaussians);
-        /*std::vector<music::Gaussian<double>*> gaussians = gmm.getGaussians();
+        gmm.trainGMM(data, gaussianCount);
+        std::vector<music::Gaussian<double>*> gaussians = gmm.getGaussians();
         for (typename std::vector<music::Gaussian<double>*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
         {
             DEBUG_OUT("gaussian mean: " << (*it)->getMean(), 0);
             DEBUG_OUT("gaussian sigma: " << (*it)->getCovarianceMatrix(), 0);
-        }*/
+        }
         
         
         return EXIT_FAILURE;
