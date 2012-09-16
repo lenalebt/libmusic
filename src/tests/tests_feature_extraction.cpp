@@ -586,13 +586,13 @@ namespace tests
         const Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1>* sum = ptss.getSumVector();
         
         double time;
-        std::vector<Eigen::VectorXd> data;
+        std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > data;
         //for (double time=0.0; time<transformResult->getOriginalDuration(); time += 0.125/8)
         for (int i=0; i<transformResult->getOriginalDuration() * 32; i++)
         {
             time = (1.0/32.0) * i;
             //DEBUG_VAR_OUT(time, 0);
-            Eigen::VectorXd tmp = t.estimateTimbre(time, time + 0.02);
+            Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> tmp = t.estimateTimbre(time, time + 0.02);
             //if (tmp.norm() > 0.1)
             //    data.push_back(tmp.normalized());
             if (tmp.size() != 1)
@@ -624,10 +624,10 @@ namespace tests
         }
         * */
         
-        music::KMeans<double> kmeans;
+        music::KMeans<kiss_fft_scalar> kmeans;
         kmeans.trainKMeans(data, 5);
-        std::vector<Eigen::VectorXd> means = kmeans.getMeans();
-        for(std::vector<Eigen::VectorXd>::const_iterator it = means.begin(); it != means.end(); it++)
+        std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > means = kmeans.getMeans();
+        for(std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> >::const_iterator it = means.begin(); it != means.end(); it++)
         {
             DEBUG_VAR_OUT(*it, 0);
         }
@@ -821,13 +821,13 @@ namespace tests
             
             music::TimbreEstimator t(transformResult);
             double time;
-            std::vector<Eigen::VectorXd> data;
+            std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > data;
             //for (double time=0.0; time<transformResult->getOriginalDuration(); time += 0.125/8)
             for (int i=0; i<transformResult->getOriginalDuration() * 32; i++)
             {
                 time = (1.0/32.0) * i;
                 //DEBUG_VAR_OUT(time, 0);
-                Eigen::VectorXd tmp = t.estimateTimbre(time, time + 0.02);
+                Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> tmp = t.estimateTimbre(time, time + 0.02);
                 //if (tmp.norm() > 0.1)
                 //    data.push_back(tmp.normalized());
                 data.push_back(tmp);
@@ -843,11 +843,11 @@ namespace tests
                 outstr << data[i].transpose() << std::endl;
             }
             
-            music::GaussianMixtureModelDiagCov<double> gmm;
+            music::GaussianMixtureModelDiagCov<kiss_fft_scalar> gmm;
             gmm.trainGMM(data, 3);
-            std::vector<music::Gaussian<double>*> gaussians = gmm.getGaussians();
+            std::vector<music::Gaussian<kiss_fft_scalar>*> gaussians = gmm.getGaussians();
             DEBUG_OUT("gaussians of gmm algorithm:", 10);
-            for(std::vector<music::Gaussian<double>*>::const_iterator it = gaussians.begin(); it != gaussians.end(); it++)
+            for(std::vector<music::Gaussian<kiss_fft_scalar>*>::const_iterator it = gaussians.begin(); it != gaussians.end(); it++)
             {
                 DEBUG_VAR_OUT((**it).getMean(), 0);
                 DEBUG_VAR_OUT((**it).getCovarianceMatrix(), 0);

@@ -35,12 +35,12 @@ namespace music
         ConstantQTransformResult* transformResult;
         DCT dct;
         
-        Eigen::VectorXd estimateTimbre1(double fromTime, double toTime);
-        Eigen::VectorXd estimateTimbre2(double fromTime, double toTime);
-        Eigen::VectorXd estimateTimbre3(double fromTime, double toTime);
+        Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> estimateTimbre1(double fromTime, double toTime);
+        Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> estimateTimbre2(double fromTime, double toTime);
+        Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> estimateTimbre3(double fromTime, double toTime);
     public:
         TimbreEstimator(ConstantQTransformResult* transformResult);
-        Eigen::VectorXd estimateTimbre(double fromTime, double toTime);
+        Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> estimateTimbre(double fromTime, double toTime);
     };
     
     class TimbreModel
@@ -49,13 +49,13 @@ namespace music
         
     protected:
         ConstantQTransformResult* transformResult;
-        GaussianMixtureModel<double>* model;
+        GaussianMixtureModel<kiss_fft_scalar>* model;
     public:
         TimbreModel(ConstantQTransformResult* transformResult);
         ~TimbreModel();
         void calculateModel(int modelSize=5, double timeSliceSize=0.02);
         //Model will be property of this class. if you want a copy, go make yourself one!
-        GaussianMixtureModel<double>* getModel();
+        GaussianMixtureModel<kiss_fft_scalar>* getModel();
     };
 }
 #endif  //TIMBRE_HPP

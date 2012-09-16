@@ -6,11 +6,11 @@
 
 namespace music
 {
-    Eigen::VectorXd TimbreEstimator::estimateTimbre(double fromTime, double toTime)
+    Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> TimbreEstimator::estimateTimbre(double fromTime, double toTime)
     {
         return this->estimateTimbre3(fromTime, toTime);
     }
-    Eigen::VectorXd TimbreEstimator::estimateTimbre3(double fromTime, double toTime)
+    Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> TimbreEstimator::estimateTimbre3(double fromTime, double toTime)
     {
         assert (fromTime <= toTime);
         
@@ -43,12 +43,13 @@ namespace music
         DEBUG_VAR_OUT(sum, 0);
         DEBUG_VAR_OUT(max, 0);
         if (sum < 5.0)
-            return Eigen::VectorXd::Zero(1);
+            return Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1>::Zero(1);
         
         
         kiss_fft_scalar freqData[128];
         //apply dct...
         dct.doDCT2(vec, transformResult->getOctaveCount() * transformResult->getBinsPerOctave(), freqData);
+        //TODO: now we are calculating way too much. use the scalar product version and only calculate some part of the signal...
         
         /*
         for (i=0; i<transformResult->getOctaveCount() * transformResult->getBinsPerOctave(); i++)
@@ -60,7 +61,7 @@ namespace music
         
         int timbreVectorSize = 12;
         //int timbreVectorSize = 128;
-        Eigen::VectorXd timbre(timbreVectorSize);
+        Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> timbre(timbreVectorSize);
         for (int i=1; i<timbreVectorSize+1; i++)
         //for (int i=0; i<timbreVectorSize; i++)
         //    timbre[i] = freqData[i];
@@ -68,7 +69,7 @@ namespace music
         DEBUG_VAR_OUT(timbre.transpose(), 0);
         return timbre;
     }
-    Eigen::VectorXd TimbreEstimator::estimateTimbre2(double fromTime, double toTime)
+    Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> TimbreEstimator::estimateTimbre2(double fromTime, double toTime)
     {
         assert (fromTime <= toTime);
         
@@ -90,7 +91,7 @@ namespace music
                     DEBUG_VAR_OUT(vec[i], 0);
                     DEBUG_VAR_OUT(transformResult->getNoteValueMean(toTime, octave, bin, duration), 0);
                     ERROR_OUT("stop! something bad!", 0);
-                    return Eigen::VectorXd();
+                    return Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1>();
                 }
                 
                 //std::cerr << vec[i] << " ";
@@ -115,7 +116,7 @@ namespace music
         
         int timbreVectorSize = 12;
         //int timbreVectorSize = 128;
-        Eigen::VectorXd timbre(timbreVectorSize);
+        Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> timbre(timbreVectorSize);
         for (int i=1; i<timbreVectorSize+1; i++)
         //for (int i=0; i<timbreVectorSize; i++)
         //    timbre[i] = freqData[i];
@@ -123,7 +124,7 @@ namespace music
         DEBUG_VAR_OUT(timbre.transpose(), 0);
         return timbre;
     }
-    Eigen::VectorXd TimbreEstimator::estimateTimbre1(double fromTime, double toTime)
+    Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> TimbreEstimator::estimateTimbre1(double fromTime, double toTime)
     {
         assert (fromTime <= toTime);
         
@@ -160,7 +161,7 @@ namespace music
         //std::cerr << std::endl;
         
         int timbreVectorSize = 12;
-        Eigen::VectorXd timbre(timbreVectorSize);
+        Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> timbre(timbreVectorSize);
         DEBUG_VAR_OUT(freqData[0], 0);
         for (int i=1; i<timbreVectorSize+1; i++)
             timbre[i-1] = freqData[i];
@@ -194,12 +195,12 @@ namespace music
             delete model;
             model = NULL;
         }
-        model = new GaussianMixtureModelFullCov<double>();
+        model = new GaussianMixtureModelFullCov<kiss_fft_scalar>();
         
         //first get data vectors
         TimbreEstimator tEst(transformResult);
         double time;
-        std::vector<Eigen::VectorXd> data;
+        std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > data;
         for (int i=1; i<transformResult->getOriginalDuration()/timeSliceSize; i++)
         {
             time = i*timeSliceSize;
@@ -209,7 +210,7 @@ namespace music
         //then train the model
         model->trainGMM(data, modelSize);
     }
-    GaussianMixtureModel<double>* TimbreModel::getModel()
+    GaussianMixtureModel<kiss_fft_scalar>* TimbreModel::getModel()
     {
         return model;
     }

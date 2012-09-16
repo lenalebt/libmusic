@@ -10,6 +10,7 @@
 #include "json/json.h"
 #include "debug.hpp"
 #include "matrixhelper.hpp"
+#include "fft.hpp"
 
 namespace music
 {
@@ -45,7 +46,7 @@ namespace music
      * @author Lena Brueder
      * @date 2012-08-27
      */
-    template <typename ScalarType=double>
+    template <typename ScalarType=kiss_fft_scalar>
     class Gaussian : public StandardRNG<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >
     {
     private:
@@ -146,7 +147,7 @@ namespace music
      * @author Lena Brueder
      * @date 2012-08-27
      */
-    template <typename ScalarType=double>
+    template <typename ScalarType=kiss_fft_scalar>
     class GaussianFullCov : public Gaussian<ScalarType>
     {
     private:
@@ -184,7 +185,7 @@ namespace music
      * @author Lena Brueder
      * @date 2012-08-27
      */
-    template <typename ScalarType=double>
+    template <typename ScalarType=kiss_fft_scalar>
     class GaussianDiagCov : public Gaussian<ScalarType>
     {
     private:
@@ -234,7 +235,7 @@ namespace music
      * @author Lena Brueder
      * @date 2012-08-27
      */
-    template <typename ScalarType=double>
+    template <typename ScalarType=kiss_fft_scalar>
     class GaussianMixtureModel : public StandardRNG<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >
     {
     private:
@@ -411,7 +412,7 @@ namespace music
      * @author Lena Brueder
      * @date 2012-09-10
      */
-    template <typename ScalarType>
+    template <typename ScalarType=kiss_fft_scalar>
     class GaussianMixtureModelFullCov : public GaussianMixtureModel<ScalarType>
     {
         protected:
@@ -437,7 +438,7 @@ namespace music
      * @author Lena Brueder
      * @date 2012-09-10
      */
-    template <typename ScalarType>
+    template <typename ScalarType=kiss_fft_scalar>
     class GaussianMixtureModelDiagCov : public GaussianMixtureModel<ScalarType>
     {
         protected:
@@ -450,17 +451,6 @@ namespace music
     
     template <typename ScalarType> std::ostream& operator<<(std::ostream& os, const GaussianMixtureModel<ScalarType>& model);
     template <typename ScalarType> std::istream& operator>>(std::istream& is, GaussianMixtureModel<ScalarType>& model);
-    
-    //NEW IMPLEMENTATION
-    template <typename ScalarType>
-    class GMM2
-    {
-    private:
-        
-    public:
-        void trainGMMDiag(const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, int gaussianount = 10, unsigned int maxIterations=50);
-        void trainGMMFull(const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, int gaussianount = 10, unsigned int maxIterations=50);
-    };
 }
 
 #endif //GMM_HPP
