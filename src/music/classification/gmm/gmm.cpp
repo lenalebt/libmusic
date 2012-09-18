@@ -173,7 +173,7 @@ namespace music
     }
     
     template <typename ScalarType>
-    std::vector<Gaussian<ScalarType>*> GaussianMixtureModelFullCov<ScalarType>::emAlg(const std::vector<Gaussian<ScalarType>*>& init, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, int gaussianCount, unsigned int maxIterations)
+    std::vector<Gaussian<ScalarType>*> GaussianMixtureModelFullCov<ScalarType>::emAlg(const std::vector<Gaussian<ScalarType>*>& init, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, unsigned int gaussianCount, unsigned int maxIterations)
     {
         //if init is empty, choose some data points as initialization.
         //k-means or something else should be done by somebody else beforehand.
@@ -190,19 +190,32 @@ namespace music
         {
             DEBUG_OUT("no init vectors given. using random values...", 20);
             //init with random data points and identity matricies as covariance matrix
-            for (int i=0; i<gaussianCount; i++)
+            for (unsigned int g=0; g<gaussianCount; g++)
             {
-                DEBUG_OUT("adding gaussian distribution " << i << "...", 25);
+                DEBUG_OUT("adding gaussian distribution " << g << "...", 25);
                 
                 means.push_back(data[std::rand() % dataSize]);
                 fullCovs.push_back(10000 * Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>::Identity(dimension, dimension));
             }
         }
+        else
+        {
+            DEBUG_OUT("init vectors given. using them for means...", 20);
+            assert(init.size() == gaussianCount);
+            //init with random data points and identity matricies as covariance matrix
+            for (unsigned int g=0; g<gaussianCount; g++)
+            {
+                DEBUG_OUT("adding gaussian distribution " << g << "...", 25);
+                
+                means.push_back(init[g]->getMean());
+                fullCovs.push_back(init[g]->getCovarianceMatrix());
+            }
+        }
         
         //set initial weights all equal to 1/gaussianCount
-        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> weights = Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>::Constant(gaussianCount, 1.0/ScalarType(gaussianCount));
-        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> oldWeights = weights;
-        Eigen::Array<ScalarType, Eigen::Dynamic, Eigen::Dynamic> p(dataSize, gaussianCount);
+        Eigen::Matrix<double, Eigen::Dynamic, 1> weights = Eigen::Matrix<double, Eigen::Dynamic, 1>::Constant(gaussianCount, 1.0/double(gaussianCount));
+        Eigen::Matrix<double, Eigen::Dynamic, 1> oldWeights = weights;
+        Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic> p(dataSize, gaussianCount);
         
         unsigned int iteration = 0;
         bool converged = false;
@@ -217,7 +230,7 @@ namespace music
             //E-step BEGIN
             DEBUG_OUT("E-step BEGIN", 30);
             //for every gaussian do...
-            for (int g=0; g<gaussianCount; g++)
+            for (unsigned int g=0; g<gaussianCount; g++)
             {
                 Eigen::LDLT<Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> > ldlt(fullCovs[g]);
                 //fullCovs[g].prod() is equal to its determinant for diagonal matricies.
@@ -233,7 +246,7 @@ namespace music
             
             //DEBUG_VAR_OUT(p, 0);
             
-            ScalarType sum;
+            double sum;
             for (unsigned int i=0; i<dataSize; i++)
             {
                 //normalize p.
@@ -254,10 +267,10 @@ namespace music
             
             //M-step BEGIN
             DEBUG_OUT("M-step BEGIN", 30);
-            Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> prob(gaussianCount);
+            Eigen::Matrix<double, Eigen::Dynamic, 1> prob(gaussianCount);
             //calculate probabilities for all clusters
             prob = p.colwise().mean();
-            for (int g=0; g<gaussianCount; g++)
+            for (unsigned int g=0; g<gaussianCount; g++)
             {
                 //calculate mu
                 Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> mu(dimension);
@@ -304,7 +317,7 @@ namespace music
         gaussians.clear();
         ScalarType sumOfWeights = 0.0;
         normalizationFactor = 0.0;
-        for (int g=0; g<gaussianCount; g++)
+        for (unsigned int g=0; g<gaussianCount; g++)
         {
             sumOfWeights += weights[g];
             Gaussian<ScalarType>* gaussian = new GaussianDiagCov<ScalarType>(dimension);
@@ -322,7 +335,7 @@ namespace music
     }
     
     template <typename ScalarType>
-    std::vector<Gaussian<ScalarType>*> GaussianMixtureModelDiagCov<ScalarType>::emAlg(const std::vector<Gaussian<ScalarType>*>& init, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, int gaussianCount, unsigned int maxIterations)
+    std::vector<Gaussian<ScalarType>*> GaussianMixtureModelDiagCov<ScalarType>::emAlg(const std::vector<Gaussian<ScalarType>*>& init, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, unsigned int gaussianCount, unsigned int maxIterations)
     {
         //if init is empty, choose some data points as initialization.
         //k-means or something else should be done by somebody else beforehand.
@@ -340,19 +353,32 @@ namespace music
         {
             DEBUG_OUT("no init vectors given. using random values...", 20);
             //init with random data points and identity matricies as covariance matrix
-            for (int i=0; i<gaussianCount; i++)
+            for (unsigned int g=0; g<gaussianCount; g++)
             {
-                DEBUG_OUT("adding gaussian distribution " << i << "...", 25);
+                DEBUG_OUT("adding gaussian distribution " << g << "...", 25);
                 
                 means.push_back(data[std::rand() % dataSize]);
                 diagCovs.push_back(Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>::Constant(dimension, 1, 10000.0));
             }
         }
+        else
+        {
+            DEBUG_OUT("init vectors given. using them for means...", 20);
+            assert(init.size() == gaussianCount);
+            //init with random data points and identity matricies as covariance matrix
+            for (unsigned int g=0; g<gaussianCount; g++)
+            {
+                DEBUG_OUT("adding gaussian distribution " << g << "...", 25);
+                
+                means.push_back(init[g]->getMean());
+                diagCovs.push_back(init[g]->getCovarianceMatrix());
+            }
+        }
         
         //set initial weights all equal to 1/gaussianCount
-        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> weights = Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>::Constant(gaussianCount, 1.0/ScalarType(gaussianCount));
-        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> oldWeights = weights;
-        Eigen::Array<ScalarType, Eigen::Dynamic, Eigen::Dynamic> p(dataSize, gaussianCount);
+        Eigen::Matrix<double, Eigen::Dynamic, 1> weights = Eigen::Matrix<double, Eigen::Dynamic, 1>::Constant(gaussianCount, 1.0/double(gaussianCount));
+        Eigen::Matrix<double, Eigen::Dynamic, 1> oldWeights = weights;
+        Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic> p(dataSize, gaussianCount);
         
         unsigned int iteration = 0;
         bool converged = false;
@@ -367,12 +393,17 @@ namespace music
             //E-step BEGIN
             DEBUG_OUT("E-step BEGIN", 30);
             //for every gaussian do...
-            for (int g=0; g<gaussianCount; g++)
+            for (unsigned int g=0; g<gaussianCount; g++)
             {
                 //Eigen::LDLT<Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> > ldlt(diagCovs[g].asDiagonal());
                 Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> diagCovInv = diagCovs[g].array().inverse();
                 //diagCovs[g].prod() is equal to its determinant for diagonal matricies.
-                double factor = 1.0/(pow(2*M_PI, dimension/2.0) * sqrt(diagCovs[g].prod()));
+                //taking the sqrt first helps with some accuracy issues
+                double factor = 1.0/( pow(2*M_PI, dimension/2.0) * diagCovs[g].cwiseSqrt().prod() );
+                
+                DEBUG_VAR_OUT(factor, 0);
+                DEBUG_VAR_OUT(means[g].transpose(), 0);
+                DEBUG_VAR_OUT(diagCovs[g].transpose(), 0);
                 
                 //for every data point do...
                 for (unsigned int i=0; i < dataSize; i++)
@@ -383,9 +414,9 @@ namespace music
                 }
             }
             
-            //DEBUG_VAR_OUT(p, 0);
+            DEBUG_VAR_OUT(p, 0);
             
-            ScalarType sum;
+            double sum;
             for (unsigned int i=0; i<dataSize; i++)
             {
                 //normalize p.
@@ -406,10 +437,10 @@ namespace music
             
             //M-step BEGIN
             DEBUG_OUT("M-step BEGIN", 30);
-            Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> prob(gaussianCount);
+            Eigen::Matrix<double, Eigen::Dynamic, 1> prob(gaussianCount);
             //calculate probabilities for all clusters
             prob = p.colwise().mean();
-            for (int g=0; g<gaussianCount; g++)
+            for (unsigned int g=0; g<gaussianCount; g++)
             {
                 //calculate mu
                 Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> mu(dimension);
@@ -454,7 +485,7 @@ namespace music
         gaussians.clear();
         ScalarType sumOfWeights = 0.0;
         normalizationFactor = 0.0;
-        for (int g=0; g<gaussianCount; g++)
+        for (unsigned int g=0; g<gaussianCount; g++)
         {
             sumOfWeights += weights[g];
             Gaussian<ScalarType>* gaussian = new GaussianDiagCov<ScalarType>(dimension);
