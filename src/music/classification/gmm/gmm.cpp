@@ -6,6 +6,8 @@
 
 namespace music
 {
+    #define SMALLEST_VARIANCE_VALUE 1.0
+    
     template <typename ScalarType>
     Gaussian<ScalarType>::Gaussian(unsigned int dimension) :
         weight(1.0), mean(dimension), preFactor(), rng(new NormalRNG<ScalarType>())
@@ -232,19 +234,52 @@ namespace music
             //for every gaussian do...
             for (unsigned int g=0; g<gaussianCount; g++)
             {
+                if ((fullCovs[g].diagonal().array() < SMALLEST_VARIANCE_VALUE).any())
+                {
+                    //if there is a coefficient that is smaller than 1.0 in
+                    // magnitude, set it to 1.0. This helps with bad results
+                    Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> diag = fullCovs[g].diagonal();
+                    for (int i=0; i<diag.size(); i++)
+                    {
+                        if (fabs(diag[i]) < SMALLEST_VARIANCE_VALUE)
+                        {
+                            fullCovs[g](i, i) = SMALLEST_VARIANCE_VALUE;
+                        }
+                    }
+                }
+                
                 Eigen::LDLT<Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> > ldlt(fullCovs[g]);
                 //fullCovs[g].prod() is equal to its determinant for diagonal matricies.
-                double factor = 1.0/(pow(2*M_PI, dimension/2.0) * sqrt(fullCovs[g].determinant()));
+                double factor = 1.0/(pow(2*M_PI, dimension/2.0) * sqrt(fullCovs[g].template cast<double>().determinant()));
+                
+                /*if (factor != factor)
+                {
+                    Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> diag = fullCovs[g].diagonal();
+                    fullCovs[g].setZero();
+                    fullCovs[g].diagonal() = diag;
+                    factor = 1.0/(pow(2*M_PI, dimension/2.0) * sqrt(fullCovs[g].template cast<double>().determinant()));
+                    DEBUG_OUT("lalala, sachen ersetzt!", 10);
+                }*/
+                
+                DEBUG_VAR_OUT(fullCovs[g], 0);
+                DEBUG_VAR_OUT(fullCovs[g].template cast<double>().determinant(), 0);
+                double a=fullCovs[g].template cast<double>().determinant();
+                DEBUG_VAR_OUT(sqrt(a), 0);
+                DEBUG_VAR_OUT(factor, 0);
                 
                 //for every data point do...
                 for (unsigned int i=0; i < dataSize; i++)
                 {
                     //calculate probability (non-normalized)
                     p(i,g) = factor * std::exp(-0.5 * ((data[i] - means[g]).transpose() * ldlt.solve(data[i] - means[g]))(0));
+                    DEBUG_VAR_OUT(p(i,g), 0);
+                    DEBUG_VAR_OUT((data[i] - means[g]).transpose(), 0);
+                    DEBUG_VAR_OUT(ldlt.solve(data[i] - means[g]).transpose(), 0);
+                    DEBUG_VAR_OUT((data[i] - means[g]).transpose() * ldlt.solve(data[i] - means[g]), 0);
                 }
             }
             
-            //DEBUG_VAR_OUT(p, 0);
+            DEBUG_VAR_OUT(p, 0);
             
             double sum;
             for (unsigned int i=0; i<dataSize; i++)
@@ -263,7 +298,7 @@ namespace music
             DEBUG_OUT("E-step END", 30);
             //E-step END
             
-            //DEBUG_VAR_OUT(p, 0);
+            DEBUG_VAR_OUT(p, 0);
             
             //M-step BEGIN
             DEBUG_OUT("M-step BEGIN", 30);
@@ -320,7 +355,7 @@ namespace music
         for (unsigned int g=0; g<gaussianCount; g++)
         {
             sumOfWeights += weights[g];
-            Gaussian<ScalarType>* gaussian = new GaussianDiagCov<ScalarType>(dimension);
+            Gaussian<ScalarType>* gaussian = new GaussianFullCov<ScalarType>(dimension);
             gaussian->setMean(means[g]);
             gaussian->setCovarianceMatrix(fullCovs[g]);    //TODO: Improve this interface.
             gaussian->setWeight(weights[g]);
@@ -395,11 +430,20 @@ namespace music
             //for every gaussian do...
             for (unsigned int g=0; g<gaussianCount; g++)
             {
+                //if there is a coefficient that is smaller than 1.0 in
+                // magnitude, set it to 1.0. This helps with bad results
+                for (int i=0; i<diagCovs[g].size(); i++)
+                {
+                    if (fabs(diagCovs[g][i]) < SMALLEST_VARIANCE_VALUE)
+                    {
+                        diagCovs[g][i] = SMALLEST_VARIANCE_VALUE;
+                    }
+                }
                 //Eigen::LDLT<Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> > ldlt(diagCovs[g].asDiagonal());
                 Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> diagCovInv = diagCovs[g].array().inverse();
                 //diagCovs[g].prod() is equal to its determinant for diagonal matricies.
                 //taking the sqrt first helps with some accuracy issues
-                double factor = 1.0/( pow(2*M_PI, dimension/2.0) * diagCovs[g].cwiseSqrt().prod() );
+                double factor = 1.0/( pow(2*M_PI, dimension/2.0) * diagCovs[g].template cast<double>().cwiseSqrt().prod() );
                 
                 DEBUG_VAR_OUT(factor, 0);
                 DEBUG_VAR_OUT(means[g].transpose(), 0);
