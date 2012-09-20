@@ -267,7 +267,8 @@ namespace music
                 
                 Eigen::LDLT<Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> > ldlt(fullCovs[g]);
                 //fullCovs[g].prod() is equal to its determinant for diagonal matricies.
-                double factor = 1.0/(pow(2*M_PI, dimension/2.0) * sqrt(fullCovs[g].template cast<double>().determinant()));
+                //double factor = 1.0/(pow(2*M_PI, dimension/2.0) * sqrt(fullCovs[g].template cast<double>().determinant()));
+                double factor = -0.5*log(fullCovs[g].template cast<double>().determinant()) - (0.5*dimension) * log(2*M_PI);
                 
                 /*if (factor != factor)
                 {
@@ -278,43 +279,31 @@ namespace music
                     DEBUG_OUT("lalala, sachen ersetzt!", 10);
                 }*/
                 
-                /*
-                DEBUG_VAR_OUT(fullCovs[g], 0);
-                DEBUG_VAR_OUT(fullCovs[g].template cast<double>().determinant(), 0);
-                double a=fullCovs[g].template cast<double>().determinant();
-                DEBUG_VAR_OUT(sqrt(a), 0);
-                DEBUG_VAR_OUT(factor, 0);
-                */
-                
                 //for every data point do...
                 for (unsigned int i=0; i < dataSize; i++)
                 {
                     //calculate probability (non-normalized)
-                    p(i,g) = factor * std::exp(-0.5 * ((data[i] - means[g]).transpose() * ldlt.solve(data[i] - means[g]))(0));
-                    /*
-                    DEBUG_VAR_OUT(p(i,g), 0);
-                    DEBUG_VAR_OUT((data[i] - means[g]).transpose(), 0);
-                    DEBUG_VAR_OUT(ldlt.solve(data[i] - means[g]).transpose(), 0);
-                    DEBUG_VAR_OUT((data[i] - means[g]).transpose() * ldlt.solve(data[i] - means[g]), 0);
-                    */
+                    //p(i,g) = factor * std::exp(-0.5 * ((data[i] - means[g]).transpose() * ldlt.solve(data[i] - means[g]))(0));
+                    p(i,g) = -0.5 * ((data[i] - means[g]).transpose() * ldlt.solve(data[i] - means[g]))(0) + factor;
                 }
             }
             
-            DEBUG_VAR_OUT(p, 0);
+            //DEBUG_VAR_OUT(p, 0);
             
             double sum;
+            double max;
+            //loglike=0;
             for (unsigned int i=0; i<dataSize; i++)
             {
                 //normalize p.
-                //sometimes the sum gets 0 or veeeery small, and then
-                //dividing by it leads to nan/inf values. we try to
-                //skip these values.
-                sum = p.row(i).sum();
-                if (sum <= 1.0e-280)
-                    sum = 1.0;
+                //use the log-exp-sum-trick from "Numerical Recipes", p.844-846
+                max = p.row(i).maxCoeff();
+                sum = (p.row(i) - max).exp().sum();
                 
-                //resolve aliasing issues here with calling eval()
-                p.row(i) = (p.row(i) / sum).eval();
+                //resolve possible aliasing issues by calling eval().
+                p.row(i) = (p.row(i) - (max + log(sum))).exp().eval();
+                
+                //loglike += max + log(sum);
             }
             DEBUG_OUT("E-step END", 30);
             //E-step END
@@ -425,7 +414,7 @@ namespace music
             for (std::set<unsigned int>::iterator it = initElements.begin(); it != initElements.end(); it++)
             {
                 means.push_back(data[*it]);
-                diagCovs.push_back(Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>::Constant(dimension, 1, 10000.0));
+                diagCovs.push_back(Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>::Constant(dimension, 1, 1e-10));
             }
         }
         else
@@ -450,6 +439,8 @@ namespace music
         unsigned int iteration = 0;
         bool converged = false;
         DEBUG_OUT("starting iteration loop...", 20);
+        
+        double loglike=0.0, oldLoglike=0.0;
         while ((iteration < maxIterations) && (!converged))
         {
             iteration++;
@@ -495,7 +486,8 @@ namespace music
             
             double sum;
             double max;
-            //loglike=0;
+            oldLoglike = loglike;
+            loglike=0.0;
             for (unsigned int i=0; i<dataSize; i++)
             {
                 //normalize p.
@@ -506,7 +498,7 @@ namespace music
                 //resolve possible aliasing issues by calling eval().
                 p.row(i) = (p.row(i) - (max + log(sum))).exp().eval();
                 
-                //loglike += max + log(sum);
+                loglike += max + log(sum);
             }
             DEBUG_OUT("E-step END", 30);
             //E-step END
@@ -546,9 +538,11 @@ namespace music
             DEBUG_OUT("M-step END", 30);
             //M-step END
             weights = prob;
-            DEBUG_OUT("check for convergence... weights: " << weights << ", relative change of weights:" << (oldWeights - weights).norm() / oldWeights.norm(), 50);
-            if ((oldWeights - weights).norm() / oldWeights.norm() < 10e-6)
-                converged = true;
+            DEBUG_OUT("check for convergence... weights: " << weights << ", relative change of weights:" << (oldWeights - weights).norm() / oldWeights.norm() << std::endl << "loglikechange: " << fabs(oldLoglike - loglike), 50);
+            //if ((oldWeights - weights).norm() / oldWeights.norm() < 10e-6)
+            //    converged = true;
+            if (fabs(oldLoglike - loglike) < 1e-6)
+                converged=true;
         }
         
         if (converged)
