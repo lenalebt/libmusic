@@ -22,6 +22,10 @@ namespace music
     class StandardRNG
     {
     public:
+        /**
+         * @brief Draw a random number from the distribution.
+         * @return the random number.
+         */
         virtual T rand()=0;
     };
     
