@@ -4,6 +4,7 @@
 #include "constantq.hpp"
 #include "dct.hpp"
 #include "gmm.hpp"
+#include "progress_callback.hpp"
 
 namespace music
 {
@@ -46,6 +47,16 @@ namespace music
         Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> estimateTimbre(double fromTime, double toTime);
     };
     
+    /**
+     * @brief Calculates a model for the timbre of a song.
+     * 
+     * You can set the model size, the time slice size, and the dimensionality of the timbre vectors.
+     * 
+     * @ingroup feature_extraction
+     * 
+     * @author Lena Brueder
+     * @date 2012-09-20
+     */
     class TimbreModel
     {
     private:
@@ -54,10 +65,38 @@ namespace music
         ConstantQTransformResult* transformResult;
         GaussianMixtureModel<kiss_fft_scalar>* model;
     public:
+        /**
+         * @brief Creates a timbre model that will be built from this Constant-Q transform result.
+         * 
+         * Since a call to calculateModel() may take some time, the class
+         * will call you back at some events, if you give it a callback.
+         * 
+         * @see ConstantQTransform
+         */
         TimbreModel(ConstantQTransformResult* transformResult);
         ~TimbreModel();
-        void calculateModel(int modelSize=5, double timeSliceSize=0.02, unsigned int timbreVectorSize=12);
-        //Model will be property of this class. if you want a copy, go make yourself one!
+        /**
+         * @brief Calculates the model.
+         * 
+         * This function will start to calculate the timbre vectors and build the model.
+         * 
+         * @param modelSize The size of the model, e.g. the number of normal distribution
+         *      used to model the timbre vectors.
+         * @param timeSliceSize The time slice size in seconds that will be used to
+         *      create the timbre vectors.
+         * @param timbreVectorSize The dimensionality of the timbre vectors (and the resulting model).
+         */
+        void calculateModel(int modelSize=10, double timeSliceSize=0.02, unsigned int timbreVectorSize=12, ProgressCallbackCaller* callback = NULL);
+        /**
+         * @brief Return the model that was calculated beforehand.
+         * 
+         * This function only returns the model that was calculated by
+         * calculateModel(). You need to call that function first.
+         * 
+         * @return A pointer to the generated model. This pointer will be
+         *      property of this class. If you need a copy, you need to
+         *      clone the object.
+         */
         GaussianMixtureModel<kiss_fft_scalar>* getModel();
     };
 }

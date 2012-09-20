@@ -16,6 +16,27 @@ namespace music
      * of progress, or similar things. The function needs to support this - 
      * functions that are known to have a looong runtime should support this.
      * 
+     * To enable support for this callback mechanism, your class needs to derive from
+     * ProgressCallback and implement the function progress(). Example:
+     * @code
+     * class MyClass : public ProgressCallback
+     * {
+     * public:
+     *      progress(const std::string& id, double percent, const std::string& progressMessage)
+     *      {
+     *          std::cout << id << ":" << percent << "%, " << progressMessage << std::endl;
+     *      }
+     * }
+     * @endcode
+     * The above code would write some messages to the console whenever the function
+     * progress() is called by an external function. Similar functionality is
+     * implemented in OutputStreamCallback. Take a look at ProgressCallbackCaller
+     * to see how you would pass the object to another class.
+     * 
+     * @ingroup tools
+     * 
+     * @see ProgressCallbackCaller
+     * 
      * @author Lena Brueder
      * @date 2012-08-13
      */
@@ -46,6 +67,8 @@ namespace music
      * someOtherObject.doSomething(ProgressCallbackCaller(*this, "myName"));
      * //someOtherObject will now call this->progress() from time to time, with the string "myName" as ID.
      * @endcode
+     * 
+     * @ingroup tools
      * 
      * @author Lena Brueder
      * @date 2012-08-13
@@ -90,6 +113,22 @@ namespace music
         }
     };
     
+    /**
+     * @brief This class implements an ProgressCallback that outputs every message on the given output stream.
+     * 
+     * Usage:
+     * @code
+     * //assume that someOtherObject takes a ProgressCallback or ProgressCallbackCaller object.
+     * someOtherObject.doSomething(OutputStreamCallback(std::cout, "myName"));
+     * //someOtherObject will now call the function OutputStreamCallback::progress()
+     * @endcode
+     * from time to time, which will output messages like <code>myName: 100%, "finished"</code>.
+     * 
+     * @ingroup tools
+     * 
+     * @author Lena Brueder
+     * @date 2012-09-20
+     */
     class OutputStreamCallback : public ProgressCallbackCaller, private ProgressCallback
     {
     private:
@@ -97,7 +136,18 @@ namespace music
     protected:
         
     public:
-        OutputStreamCallback(std::ostream& os, const std::string& id = "") : ProgressCallbackCaller(*this, id), os(os) {}
+        /**
+         * @brief Create an OutputStreamCallback that can be used to direct
+         *      all outputs from an object taking an ProgressCallback object
+         *      to the console.
+         * 
+         * @param os The output stream that will be used, e.g. std::cout.
+         * @param id The id that will be printed to the output stream. None, if left empty.
+         */
+        OutputStreamCallback(std::ostream& os = std::cout, const std::string& id = "") : ProgressCallbackCaller(*this, id), os(os) {}
+        /**
+         * @brief Write the progress message together with the progress to the output stream.
+         */
         void progress(const std::string& id, double value, const std::string& progressMessage)
         {
             if (id != "")
