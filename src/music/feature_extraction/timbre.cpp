@@ -16,9 +16,6 @@ namespace music
         
         Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> vec(transformResult->getOctaveCount() * transformResult->getBinsPerOctave());
         
-        //we need less than 128 bins, otherwise we might not use the stack to store the arrays.
-        assert(transformResult->getOctaveCount() * transformResult->getBinsPerOctave());
-        
         int i=0;
         double duration = toTime - fromTime;
         double sum=0.0, sumEl, max=0.0;
@@ -40,9 +37,8 @@ namespace music
         }
         
         //on low values, do not calculate timbre. instead, give back an error value.
-        if (sum < 5.0)
+        if (sum < minEnergy)
             return Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1>::Zero(1);
-        
         
         Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> timbre(timbreVectorSize);
         //apply dct...
@@ -217,8 +213,8 @@ namespace music
         return timbre;
     }
     
-    TimbreEstimator::TimbreEstimator(ConstantQTransformResult* transformResult, unsigned int timbreVectorSize) :
-        transformResult(transformResult), timbreVectorSize(timbreVectorSize), cosValues(transformResult->getOctaveCount() * transformResult->getBinsPerOctave(), timbreVectorSize)
+    TimbreEstimator::TimbreEstimator(ConstantQTransformResult* transformResult, unsigned int timbreVectorSize, float minEnergy) :
+        transformResult(transformResult), timbreVectorSize(timbreVectorSize), cosValues(transformResult->getOctaveCount() * transformResult->getBinsPerOctave(), timbreVectorSize), minEnergy(minEnergy)
     {
         assert(timbreVectorSize > 1);
         for (unsigned int k=1; k<=timbreVectorSize; k++)
