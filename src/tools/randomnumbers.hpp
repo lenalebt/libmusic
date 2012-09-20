@@ -14,6 +14,7 @@ namespace music
      * @brief A random number generator interface.
      * 
      * @ingroup tools
+     * @tparam T The type of numbers that will be drawn.
      * 
      * @author Lena Brueder
      * @date 2012-08-27
@@ -30,9 +31,15 @@ namespace music
     };
     
     /**
-     * @brief A random number generator which produces uniformly diistributed random numbers.
+     * @brief A random number generator which produces uniformly distributed random numbers.
+     * 
+     * It draws values from the interval <code>[a, b[</code>, where <code>a</code> and
+     * <code>b</code> can be chosen.
+     * 
+     * The interval might be closed for integer values, due to rounding errors.
      * 
      * @ingroup tools
+     * @tparam T The type of numbers that will be drawn.
      * 
      * @author Lena Brueder
      * @date 2012-08-27
@@ -43,12 +50,18 @@ namespace music
     private:
         
     protected:
-        T a;
-        T b;
-        T diff;
+        T a;    //lower bound of interval
+        T b;    //upper bound of interval
+        T diff; //b-a, stored to save CPU cycles.
     public:
+        /**
+         * @brief Initializes a uniform random number generator which draws values from <code>[0, 1[</code>.
+         */
         UniformRNG() :
             a(0.0), b(1.0)  {diff = b-a;}
+        /**
+         * @brief Initializes a uniform random number generator which draws values from <code>[a, b[</code>.
+         */
         UniformRNG(T a, T b) :
             a(a), b(b)      {diff = b-a;}
         T rand()
@@ -56,7 +69,15 @@ namespace music
             return a + (diff)*(double(std::rand()) / RAND_MAX);
         }
         
+        /**
+         * @brief Returns the lower bound of the interval
+         * @return the lower bound of the interval
+         */
         T getA() const   {return a;}
+        /**
+         * @brief Returns the upper bound of the interval
+         * @return the upper bound of the interval
+         */
         T getB() const   {return b;}
     };
     
@@ -64,6 +85,7 @@ namespace music
      * @brief A random number generator which produces normally distributed numbers.
      * 
      * @ingroup tools
+     * @tparam T The type of numbers that will be drawn.
      * 
      * @author Lena Brueder
      * @date 2012-08-27
@@ -83,7 +105,7 @@ namespace music
          * 
          * @param rng The uniform random number generator which will be used to
          *      build the normal distribution. This object takes ownership of the rng!
-         *      The uniform random number generator is assumed to produce valus in [0,1[.
+         *      The uniform random number generator is assumed to draw values from [-1,1[.
          * @param mean The mean of the values produced by this random number generator
          * @param variance The variance of the values produced by this random number generator
          */
@@ -136,7 +158,15 @@ namespace music
             }
         }
         
+        /**
+         * @brief Returns the mean of the RNG.
+         * @return the mean of the RNG.
+         */
         T getMean() const       {return mean;}
+        /**
+         * @brief Returns the variance of the RNG.
+         * @return the variance of the RNG.
+         */
         T getVariance() const   {return variance;}
     };
 }
