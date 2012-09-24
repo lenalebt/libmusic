@@ -7,7 +7,7 @@
 #include <sstream>
 
 /**
- * @brief Tests, if a string ends with another string.
+ * @brief Tests if a string ends with another string.
  * @return <code>true</code>, if <code>str</code> ends with <code>ending</code>. <code>false</code>
  *      otherwise.
  * @ingroup tools
@@ -22,6 +22,17 @@ inline bool endsWith(const std::string& str, const std::string& ending)
     {
         return false;
     }
+}
+
+/**
+ * @brief Tests if a string contains another string.
+ * @return <code>true</code>, if <code>str</code> contains <code>other</code>. <code>false</code>
+ *      otherwise.
+ * @ingroup tools
+ */
+inline bool contains(const std::string& str, const std::string& other)
+{
+    return str.find(other) != std::string::npos;
 }
 
 /**
@@ -40,11 +51,6 @@ inline void tolower(std::string& string)
 inline void toupper(std::string& string)
 {
     std::transform(string.begin(), string.end(), string.begin(), (int (*)(int))::toupper);
-}
-
-inline bool contains(const std::string& string, const std::string& searchFor)
-{
-    return (std::string::npos != string.find(searchFor));
 }
 
 /**
