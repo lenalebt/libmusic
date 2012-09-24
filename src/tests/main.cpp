@@ -9,6 +9,7 @@
 #include "tests_feature_extraction.hpp"
 #include "tests_classifier.hpp"
 #include "tests_database.hpp"
+#include "tests_performance.hpp"
 #include "testframework.hpp"
 
 
@@ -59,6 +60,8 @@ int main(int argc, char *argv[])
         return tests::testFisherLDA();
     else if (testname == "gmm")
         return tests::testGMM();
+    else if (testname == "gaussian")
+        return tests::testGaussian();
     else if (testname == "kmeans")
         return tests::testKMeans();
     else if (testname == "rng")
@@ -97,6 +100,10 @@ int main(int argc, char *argv[])
             return EXIT_FAILURE;
         }
         return tests::applyTimbreEstimation(argv[2]);
+    }   //FROM HERE ON: PERFORMANCE TESTS
+    else if (testname == "instrumentsimilarityperformance")
+    {
+        return performance_tests::testInstrumentSimilarity();
     }
     else
     {

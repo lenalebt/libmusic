@@ -37,7 +37,15 @@
 
 /**
  * @defgroup tests Tests
- * @brief The testing module contains all tests.
+ * @brief The testing module contains all unit tests.
+ * 
+ * Unit tests test the integrity of the library, i.e. if the functions
+ * work as intended.
+ * 
+ * @remarks There is another group called \ref performance_tests . These
+ *      tests do not test the integrity of the library, instead they
+ *      test the performance of the library (e.g. speed and reliability
+ *      of the classifiers).
  */
 
 /**

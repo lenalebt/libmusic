@@ -15,6 +15,7 @@
 #include "bpm.hpp"
 #include "chords.hpp"
 #include "dct.hpp"
+#include "gmm.hpp"
 
 #include <list>
 #include <limits>
@@ -620,6 +621,32 @@ namespace tests
         CHECK_EQ(str, "%");
         tolower(str);
         CHECK_EQ(str, "%");
+        
+        return EXIT_SUCCESS;
+    }
+    
+    int testGaussian()
+    {
+        DEBUG_OUT("testing one-dimensional gaussian...", 10);
+        music::GaussianDiagCov<double> gdc1(1);
+        gdc1.setMean(Eigen::VectorXd::Zero(1));
+        gdc1.setCovarianceMatrix(Eigen::MatrixXd::Identity(1,1));
+        
+        CHECK_EQ(gdc1.calculateValue(Eigen::VectorXd::Zero(1)), 0.398942280401433);
+        CHECK_EQ(gdc1.calculateValue(Eigen::VectorXd::Constant(1, 1,  1.0)), gdc1.calculateValue(Eigen::VectorXd::Constant(1, 1, -1.0)));
+        CHECK_EQ(gdc1.calculateValue(Eigen::VectorXd::Constant(1, 1,  1.0)), 0.241970724519143);
+        CHECK_EQ(gdc1.calculateValue(Eigen::VectorXd::Constant(1, 1, -1.0)), 0.241970724519143);
+        
+        DEBUG_OUT("testing two-dimensional gaussian...", 10);
+        music::GaussianDiagCov<double> gdc2(2);
+        gdc2.setMean(Eigen::VectorXd::Zero(2));
+        gdc2.setCovarianceMatrix(Eigen::MatrixXd::Identity(2,2));
+        
+        CHECK_EQ(gdc2.calculateValue(Eigen::VectorXd::Zero(2)), 0.159154943091895);
+        CHECK_EQ(gdc2.calculateValue( 1.0*Eigen::VectorXd::Identity(2, 1)), gdc2.calculateValue(-1.0*Eigen::VectorXd::Identity(2, 1)));
+        CHECK_EQ(gdc2.calculateValue( 1.0*Eigen::VectorXd::Identity(2, 1)), 0.096532352630054);
+        CHECK_EQ(gdc2.calculateValue(-1.0*Eigen::VectorXd::Identity(2, 1)), 0.096532352630054);
+        
         
         return EXIT_SUCCESS;
     }

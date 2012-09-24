@@ -52,10 +52,10 @@ namespace music
     private:
         
     protected:
-        ScalarType weight;
+        double weight;
         Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> mean;
-        ScalarType preFactor;
-        ScalarType preFactorWithoutWeights;
+        double preFactor;
+        double preFactorWithoutWeights;
         NormalRNG<ScalarType>* rng;
         
         /**
@@ -68,18 +68,18 @@ namespace music
         virtual void calculatePrefactor()=0;
     public:
         Gaussian(unsigned int dimension);
-        Gaussian(ScalarType weight, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& mean);
+        Gaussian(double weight, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& mean);
         Gaussian(const Gaussian<ScalarType>& other);
         /**
          * @brief Calculate the value of the gaussian distribution at the given position.
          * @return The value of the pdf at the given position.
          */
-        virtual ScalarType calculateValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector)=0;
+        virtual double calculateValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector)=0;
         /**
          * @brief Calculate the value of the gaussian distribution at the given position without applying the weight.
          * @return The value of the pdf at the given position without the weight applied.
          */
-        virtual ScalarType calculateValueWithoutWeights(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector)=0;
+        virtual double calculateValueWithoutWeights(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector)=0;
         /**
          * @brief Calculate the value of the gaussian distribution with mean
          *      at position zero.
@@ -89,18 +89,18 @@ namespace music
          * 
          * @return The value of the pdf at the given position if the mean was zero.
          */
-        virtual ScalarType calculateNoMeanValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector)=0;
+        virtual double calculateNoMeanValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector)=0;
         
         /**
          * @brief Get the weight factor of this gaussian.
          * @return The weight factor of this gaussian distribution.
          */
-        ScalarType getWeight() const                    {return weight;}
+        double getWeight() const                    {return weight;}
         /**
          * @brief Set the weight factor of this gaussian.
          * @param weight The weight factor of this gaussian distribution.
          */
-        void setWeight(ScalarType weight)               {this->weight = weight; calculatePrefactor();}
+        void setWeight(double weight)               {this->weight = weight; calculatePrefactor();}
         
         /**
          * @brief Get the mean of this gaussian.
@@ -136,7 +136,7 @@ namespace music
          * 
          * @return A random vector following this distribution.
          */
-        virtual Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> rand()=0;
+        virtual Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> rand() const=0;
     };
     
     /**
@@ -166,15 +166,15 @@ namespace music
         void calculatePrefactor();
     public:
         GaussianFullCov(unsigned int dimension);
-        GaussianFullCov(ScalarType weight, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& mean);
+        GaussianFullCov(double weight, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& mean);
         GaussianFullCov(const GaussianFullCov<ScalarType>& other);
-        ScalarType calculateValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector);
-        ScalarType calculateValueWithoutWeights(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector);
-        ScalarType calculateNoMeanValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector);
+        double calculateValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector);
+        double calculateValueWithoutWeights(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector);
+        double calculateNoMeanValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector);
         void setCovarianceMatrix(const Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>& matrix);
         Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> getCovarianceMatrix()   {return fullCov;}
         
-        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> rand();
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> rand() const;
     };
     
     /**
@@ -204,15 +204,15 @@ namespace music
         void calculatePrefactor();
     public:
         GaussianDiagCov(unsigned int dimension);
-        GaussianDiagCov(ScalarType weight, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& mean);
+        GaussianDiagCov(double weight, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& mean);
         GaussianDiagCov(const GaussianDiagCov<ScalarType>& other);
-        ScalarType calculateValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector);
-        ScalarType calculateValueWithoutWeights(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector);
-        ScalarType calculateNoMeanValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector);
+        double calculateValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector);
+        double calculateValueWithoutWeights(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector);
+        double calculateNoMeanValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector);
         Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> getCovarianceMatrix()   {return diagCov.asDiagonal();}
         void setCovarianceMatrix(const Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>& matrix);
         
-        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> rand();
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> rand() const;
     };
     
     /**
@@ -313,7 +313,7 @@ namespace music
          *      represented by this GMM.
          * @return A random vector drawn from this probability density.
          */
-        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> rand();
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> rand() const;
         
         /**
          * @brief Computes the value of the probability density function

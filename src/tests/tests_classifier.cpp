@@ -207,10 +207,11 @@ namespace tests
     {
         int dimension=12;
         int dataCount=10000;
-        int gaussianCount=3;
+        int gaussianCount=13;
         
         music::GaussianMixtureModelDiagCov<kiss_fft_scalar> gmm1;
         music::GaussianMixtureModelDiagCov<kiss_fft_scalar> gmm2;
+        music::GaussianMixtureModelDiagCov<kiss_fft_scalar> gmm3;
         music::KMeans<kiss_fft_scalar> kmeans;
         music::GaussianDiagCov<kiss_fft_scalar> gdc1(dimension);
         music::GaussianDiagCov<kiss_fft_scalar> gdc2(dimension);
@@ -242,6 +243,12 @@ namespace tests
         
         
         std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > data;
+        std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > data2;
+        for (int i=0; i<dataCount/2; i++)
+        {
+            data2.push_back(gdc1.rand());
+            //data2.push_back(gdc2.rand());
+        }
         for (int i=0; i<dataCount/3; i++)
         {
             data.push_back(gdc1.rand());
@@ -269,6 +276,8 @@ namespace tests
         gmm1.trainGMM(data, gaussianCount);
         DEBUG_OUT("training GMM 2...", 10);
         gmm2.trainGMM(data, gaussianCount);
+        DEBUG_OUT("training GMM 3...", 10);
+        gmm3.trainGMM(data2, gaussianCount);
         DEBUG_OUT("results of GMM 1:", 10);
         std::vector<music::Gaussian<kiss_fft_scalar>*> gaussians = gmm1.getGaussians();
         for (typename std::vector<music::Gaussian<kiss_fft_scalar>*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
@@ -283,8 +292,26 @@ namespace tests
             DEBUG_OUT("gaussian mean: " << (*it)->getMean(), 0);
             DEBUG_OUT("gaussian sigma: " << (*it)->getCovarianceMatrix(), 0);
         }
+        DEBUG_OUT("results of GMM 3:", 10);
+        gaussians = gmm3.getGaussians();
+        for (typename std::vector<music::Gaussian<kiss_fft_scalar>*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
+        {
+            DEBUG_OUT("gaussian mean: " << (*it)->getMean(), 0);
+            DEBUG_OUT("gaussian sigma: " << (*it)->getCovarianceMatrix(), 0);
+        }
+        
+        DEBUG_OUT("first testing basic functionality of GMMs...", 10);
+        CHECK_OP(gmm1.calculateValue(gmm1.rand()), >, 0);
+        CHECK_OP(gmm2.calculateValue(gmm2.rand()), >, 0);
+        CHECK_OP(gmm3.calculateValue(gmm3.rand()), >, 0);
+        
+        DEBUG_OUT("comparing GMMs:", 10);
         DEBUG_VAR_OUT(gmm1.compareTo(gmm2), 0);
         DEBUG_VAR_OUT(gmm2.compareTo(gmm1), 0);
+        DEBUG_VAR_OUT(gmm1.compareTo(gmm3), 0);
+        DEBUG_VAR_OUT(gmm3.compareTo(gmm1), 0);
+        DEBUG_VAR_OUT(gmm2.compareTo(gmm3), 0);
+        DEBUG_VAR_OUT(gmm3.compareTo(gmm2), 0);
         
         
         return EXIT_FAILURE;
