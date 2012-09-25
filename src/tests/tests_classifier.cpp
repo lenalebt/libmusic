@@ -207,7 +207,7 @@ namespace tests
     {
         DEBUG_OUT("testing GMMs...", 0);
         unsigned int dimension=12;
-        unsigned int dataCount=100;
+        unsigned int dataCount=10000;
         unsigned int gaussianCount=3;
         
         DEBUG_VAR_OUT(dimension, 0);

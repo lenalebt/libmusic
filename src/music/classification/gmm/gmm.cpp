@@ -389,7 +389,7 @@ namespace music
         for (unsigned int g=0; g<gaussianCount; g++)
         {
             sumOfWeights += weights[g];
-            Gaussian<ScalarType>* gaussian = new GaussianFullCov<ScalarType>(dimension, &normalRNG);
+            Gaussian<ScalarType>* gaussian = new GaussianFullCov<ScalarType>(dimension, normalRNG);
             gaussian->setMean(means[g]);
             gaussian->setCovarianceMatrix(fullCovs[g]);    //TODO: Improve this interface.
             gaussian->setWeight(weights[g]);
@@ -583,7 +583,7 @@ namespace music
         for (unsigned int g=0; g<gaussianCount; g++)
         {
             sumOfWeights += weights[g];
-            Gaussian<ScalarType>* gaussian = new GaussianDiagCov<ScalarType>(dimension, &normalRNG);
+            Gaussian<ScalarType>* gaussian = new GaussianDiagCov<ScalarType>(dimension, normalRNG);
             gaussian->setMean(means[g]);
             gaussian->setCovarianceMatrix(diagCovs[g].asDiagonal());    //TODO: Improve this interface.
             gaussian->setWeight(weights[g]);
@@ -600,6 +600,7 @@ namespace music
     template <typename ScalarType>
     ScalarType GaussianMixtureModel<ScalarType>::calculateValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& pos) const
     {
+        assert (gaussians.size() > 0);
         ScalarType retVal=0.0;
         for (typename std::vector<Gaussian<ScalarType>*>::const_iterator it = gaussians.begin(); it != gaussians.end(); it++)
         {
@@ -614,7 +615,7 @@ namespace music
         //draw some samples from the one model and take a look at the pdf values of the other.
         double value = 0.0;
         double value2=0.0;
-        const int numValues = 500;
+        const int numValues = 50;
         
         UniformRNG<float> rng(0,1);
         Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> tmp;
@@ -641,14 +642,21 @@ namespace music
             //Kullback-Leibler-Divergence
             tmp = this->rand();
             tmpVal = this->calculateValue(tmp);
+            assert(tmpVal > 0);
+            assert(tmpVal == tmpVal);
             //DEBUG_VAR_OUT(tmpVal, 0);
             double logTmpVal = log(tmpVal);
             //do not allow +-inf values...
             if (logTmpVal < -100)
                 logTmpVal = -100;
+            //if (logTmpVal > 100)
+            //    logTmpVal = 100;
             double logOtherVal = log(other.calculateValue(tmp));
+            assert(logOtherVal == logOtherVal);
             if (logOtherVal < -100)
                 logOtherVal = -100;
+            //if (logOtherVal > 100)
+            //    logOtherVal = 100;
             //DEBUG_VAR_OUT(logTmpVal, 0);
             //DEBUG_VAR_OUT(logOtherVal, 0);
             //DEBUG_VAR_OUT(logTmpVal - logOtherVal, 0);
@@ -661,7 +669,9 @@ namespace music
             
             //DEBUG_VAR_OUT(value, 0);
             assert(value == value);
+            assert(value2 == value2);
         }
+        assert(value2/numValues == value2/numValues);
         //std::cerr << value2/numValues << std::endl;
         return value2/numValues;
         
@@ -1019,6 +1029,8 @@ namespace music
     template class GaussianMixtureModel<kiss_fft_scalar>;
     template class GaussianMixtureModelFullCov<kiss_fft_scalar>;
     template class GaussianMixtureModelDiagCov<kiss_fft_scalar>;
+    
+    template <> NormalRNG<kiss_fft_scalar>* GaussianMixtureModel<kiss_fft_scalar>::normalRNG = new NormalRNG<kiss_fft_scalar>();
     
     template std::ostream& operator<<(std::ostream& os, const GaussianMixtureModel<kiss_fft_scalar>& model);
     template std::istream& operator>>(std::istream& is, GaussianMixtureModel<kiss_fft_scalar>& model);
