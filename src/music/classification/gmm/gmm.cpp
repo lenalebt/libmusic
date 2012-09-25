@@ -345,7 +345,7 @@ namespace music
                 for (unsigned int i=0; i<dataSize; i++)
                 {
                     //aliasing occurs, but does not harm.
-                    mu = mu + (data[i] * p(i,g));
+                    mu.noalias() += (data[i] * p(i,g));
                 }
                 mu = mu / (dataSize * prob(g));
                 
@@ -356,7 +356,7 @@ namespace music
                 {
                     //sigma = sigma + (p(i,g) * (data[i] - mu).array().square()).matrix();
                     Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> dist = data[i] - mu;
-                    sigma = sigma + (p(i,g) * (dist * dist.transpose()));
+                    sigma.noalias() += (p(i,g) * (dist * dist.transpose()));
                 }
                 sigma = sigma / (dataSize * prob(g));
                 
@@ -541,7 +541,7 @@ namespace music
                 for (unsigned int i=0; i<dataSize; i++)
                 {
                     //aliasing occurs, but does not harm.
-                    mu = mu + (data[i] * p(i,g));
+                    mu.noalias() += (data[i] * p(i,g));
                 }
                 mu = mu / (dataSize * prob(g));
                 
@@ -550,7 +550,7 @@ namespace music
                 sigma.setZero();
                 for (unsigned int i=0; i< dataSize; i++)
                 {
-                    sigma = sigma + (p(i,g) * (data[i] - mu).array().square()).matrix();
+                    sigma.noalias() += (p(i,g) * (data[i] - mu).array().square()).matrix();
                 }
                 sigma = sigma / (dataSize * prob(g));
                 
