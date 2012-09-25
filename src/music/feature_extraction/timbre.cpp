@@ -76,6 +76,12 @@ namespace music
     }
     void TimbreModel::calculateModel(int modelSize, double timeSliceSize, unsigned int timbreVectorSize, ProgressCallbackCaller* callback)
     {
+        //use overload to hide the possibility of getting the data vectors.
+        std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > data;
+        calculateModel(data, modelSize, timeSliceSize, timbreVectorSize, callback);
+    }
+    void TimbreModel::calculateModel(std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> >& timbreVectors, int modelSize, double timeSliceSize, unsigned int timbreVectorSize, ProgressCallbackCaller* callback)
+    {
         assert(modelSize > 0);
         assert(timeSliceSize > 0.0);
         assert(timbreVectorSize > 1);
@@ -91,21 +97,28 @@ namespace music
             callback->progress(0.0, "initialized");
         
         //first get data vectors
-        TimbreEstimator tEst(transformResult, timbreVectorSize);
-        double time;
-        std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > data;
-        for (int i=1; i<transformResult->getOriginalDuration()/timeSliceSize; i++)
+        if (timbreVectors.empty())
         {
-            time = i*timeSliceSize;
-            Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> tmp = tEst.estimateTimbre(time - timeSliceSize, time);
-            if (tmp.size() > 1)
-                data.push_back(tmp);
+            TimbreEstimator tEst(transformResult, timbreVectorSize);
+            double time;
+            for (int i=1; i<transformResult->getOriginalDuration()/timeSliceSize; i++)
+            {
+                time = i*timeSliceSize;
+                Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> tmp = tEst.estimateTimbre(time - timeSliceSize, time);
+                if (tmp.size() > 1)
+                    timbreVectors.push_back(tmp);
+            }
+            if (callback)
+                callback->progress(0.5, "calculated timbre vectors, training model now");
         }
-        if (callback)
-            callback->progress(0.5, "calculated timbre vectors, training model now");
+        else
+        {
+            if (callback)
+                callback->progress(0.5, "used old timbre vectors, training model now");
+        }
         
         //then train the model
-        model->trainGMM(data, modelSize);
+        model->trainGMM(timbreVectors, modelSize);
         
         if (callback)
             callback->progress(1.0, "finished");

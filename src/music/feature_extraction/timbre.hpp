@@ -85,6 +85,21 @@ namespace music
          */
         void calculateModel(int modelSize=10, double timeSliceSize=0.02, unsigned int timbreVectorSize=12, ProgressCallbackCaller* callback = NULL);
         /**
+         * @brief Calculates the model and preserves the calculated timbre vectors.
+         * 
+         * This function will start to calculate the timbre vectors and build the model.
+         * 
+         * @param[in,out] timbreVectors A vector which will contain the timbre vectors. If it is empty,
+         *      the timbre vectors will be recalculated. If it is not empty, these vectors will be used.
+         *      <code>dimension</code> and the dimension of the data vectors need to agree.
+         * @param modelSize The size of the model, e.g. the number of normal distribution
+         *      used to model the timbre vectors.
+         * @param timeSliceSize The time slice size in seconds that will be used to
+         *      create the timbre vectors.
+         * @param timbreVectorSize The dimensionality of the timbre vectors (and the resulting model).
+         */
+        void calculateModel(std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> >& timbreVectors, int modelSize=10, double timeSliceSize=0.02, unsigned int timbreVectorSize=12, ProgressCallbackCaller* callback = NULL);
+        /**
          * @brief Return the model that was calculated beforehand.
          * 
          * This function only returns the model that was calculated by
