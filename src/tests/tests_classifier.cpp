@@ -205,9 +205,14 @@ namespace tests
     
     int testGMM()
     {
-        int dimension=12;
-        int dataCount=10000;
-        int gaussianCount=13;
+        DEBUG_OUT("testing GMMs...", 0);
+        unsigned int dimension=12;
+        unsigned int dataCount=100;
+        unsigned int gaussianCount=3;
+        
+        DEBUG_VAR_OUT(dimension, 0);
+        DEBUG_VAR_OUT(dataCount, 0);
+        DEBUG_VAR_OUT(gaussianCount, 0);
         
         music::GaussianMixtureModelDiagCov<kiss_fft_scalar> gmm1;
         music::GaussianMixtureModelDiagCov<kiss_fft_scalar> gmm2;
@@ -217,6 +222,7 @@ namespace tests
         music::GaussianDiagCov<kiss_fft_scalar> gdc2(dimension);
         music::GaussianDiagCov<kiss_fft_scalar> gdc3(dimension);
         
+        DEBUG_OUT("generating means and covariance matricies...", 10);
         //generate data
         Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> mu1(dimension);
         Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> mu2(dimension);
@@ -241,15 +247,15 @@ namespace tests
         gdc3.setMean(mu3);
         gdc3.setCovarianceMatrix(cov3.asDiagonal());
         
-        
+        DEBUG_OUT("generating data...", 10);
         std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > data;
         std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > data2;
-        for (int i=0; i<dataCount/2; i++)
+        for (unsigned int i=0; i<dataCount/2; i++)
         {
             data2.push_back(gdc1.rand());
             //data2.push_back(gdc2.rand());
         }
-        for (int i=0; i<dataCount/3; i++)
+        for (unsigned int i=0; i<dataCount/3; i++)
         {
             data.push_back(gdc1.rand());
             data.push_back(gdc2.rand());
@@ -278,22 +284,28 @@ namespace tests
         gmm2.trainGMM(data, gaussianCount);
         DEBUG_OUT("training GMM 3...", 10);
         gmm3.trainGMM(data2, gaussianCount);
+        
         DEBUG_OUT("results of GMM 1:", 10);
         std::vector<music::Gaussian<kiss_fft_scalar>*> gaussians = gmm1.getGaussians();
+        CHECK_EQ(gaussians.size(), gaussianCount);
         for (typename std::vector<music::Gaussian<kiss_fft_scalar>*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
         {
             DEBUG_OUT("gaussian mean: " << (*it)->getMean(), 0);
             DEBUG_OUT("gaussian sigma: " << (*it)->getCovarianceMatrix(), 0);
         }
+        
         DEBUG_OUT("results of GMM 2:", 10);
         gaussians = gmm2.getGaussians();
+        CHECK_EQ(gaussians.size(), gaussianCount);
         for (typename std::vector<music::Gaussian<kiss_fft_scalar>*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
         {
             DEBUG_OUT("gaussian mean: " << (*it)->getMean(), 0);
             DEBUG_OUT("gaussian sigma: " << (*it)->getCovarianceMatrix(), 0);
         }
+        
         DEBUG_OUT("results of GMM 3:", 10);
         gaussians = gmm3.getGaussians();
+        CHECK_EQ(gaussians.size(), gaussianCount);
         for (typename std::vector<music::Gaussian<kiss_fft_scalar>*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
         {
             DEBUG_OUT("gaussian mean: " << (*it)->getMean(), 0);
@@ -305,6 +317,23 @@ namespace tests
         CHECK_OP(gmm2.calculateValue(gmm2.rand()), >, 0);
         CHECK_OP(gmm3.calculateValue(gmm3.rand()), >, 0);
         
+        DEBUG_OUT("cloning GMM...", 10);
+        music::GaussianMixtureModel<kiss_fft_scalar>* gmmptr = NULL;
+        CHECK(gmmptr == NULL);
+        gmmptr = gmm1.clone();
+        CHECK(gmmptr != NULL);
+        delete gmmptr;
+        gmmptr = NULL;
+        gmmptr = gmm2.clone();
+        CHECK(gmmptr != NULL);
+        delete gmmptr;
+        gmmptr = NULL;
+        gmmptr = gmm3.clone();
+        CHECK(gmmptr != NULL);
+        
+        DEBUG_OUT("testing basic functionality of cloned GMM...", 10);
+        CHECK_OP(gmmptr->calculateValue(gmmptr->rand()), >, 0);
+        
         DEBUG_OUT("comparing GMMs:", 10);
         DEBUG_VAR_OUT(gmm1.compareTo(gmm2), 0);
         DEBUG_VAR_OUT(gmm2.compareTo(gmm1), 0);
@@ -312,8 +341,11 @@ namespace tests
         DEBUG_VAR_OUT(gmm3.compareTo(gmm1), 0);
         DEBUG_VAR_OUT(gmm2.compareTo(gmm3), 0);
         DEBUG_VAR_OUT(gmm3.compareTo(gmm2), 0);
+        DEBUG_VAR_OUT(gmm1.compareTo(*gmmptr), 0);
+        DEBUG_VAR_OUT(gmmptr->compareTo(gmm1), 0);
         
         
+        delete gmmptr;
         return EXIT_FAILURE;
         
         #if 0
