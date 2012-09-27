@@ -59,7 +59,7 @@ namespace music
         {
             for (int n=0; n<cosValues.rows(); n++)
             {
-                cosValues(n, k-1) = cos(M_PI/double(cosValues.rows()) * (double(n)+0.5) * double(k));
+                cosValues(n, k-1) = sqrt(2.0/double(cosValues.rows())) * cos(M_PI/double(cosValues.rows()) * (double(n)+0.5) * double(k));
             }
         }
     }

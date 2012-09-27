@@ -105,9 +105,26 @@ namespace performance_tests
             DEBUG_OUT(model->toJSONString(), 10);
             gmmFile.push_back(model->clone());
             
-            std::ofstream outstr((std::string("./performance/") + tests::basename(files[i], true) + ".dat").c_str());
-            for (int j=0; j<data.size(); j++)
+            //write timbre vectors to a file...
+            DEBUG_OUT("saving timbre values to file \"./performance/timbre-" << tests::basename(files[i], true) << ".dat\"", 10);
+            std::ofstream outstr((std::string("./performance/timbre-") + tests::basename(files[i], true) + ".dat").c_str());
+            for (unsigned int j=0; j<data.size(); j++)
                 outstr << data[j].transpose() << std::endl;
+            
+            DEBUG_OUT("saving absolute values of the cqt transform result to file \"./performance/cqt-" << tests::basename(files[i], true) << ".dat\"", 10);
+            std::ofstream outstr2((std::string("./performance/cqt-") + tests::basename(files[i], true) + ".dat").c_str());
+            for (int octave=tResult->getOctaveCount()-1; octave>=0; octave--)
+            {
+                for (int bin=tResult->getBinsPerOctave()-1; bin >= 0; bin--)
+                {
+                    for (int i=0; i < 100*tResult->getOriginalDuration(); i++)
+                    {
+                        double time = 0.01 * i;
+                        outstr2 << abs(tResult->getNoteValueMean(time, octave, bin, 0.01)) << " ";
+                    }
+                    outstr2 << std::endl;
+                }
+            }
             
             delete tResult;
             delete buffer;

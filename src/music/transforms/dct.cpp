@@ -13,7 +13,7 @@ namespace music
             double sum=0.0;
             for (int n=0; n<timeLength; n++)
             {
-                sum += timeData[n] * cos(M_PI/double(timeLength) * (double(n)+0.5) * double(k));
+                sum += (k==0 ? 0.5 : 1.0) * sqrt(2.0/double(timeLength)) * timeData[n] * cos(M_PI/double(timeLength) * (double(n)+0.5) * double(k));
             }
             freqData[k] = sum;
         }
