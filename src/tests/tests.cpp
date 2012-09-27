@@ -467,6 +467,7 @@ namespace tests
         DEBUG_OUT("original length of music piece was " << double(sampleCount) / 22050.0, 15);
         //CHECK_EQ(transformResult->getOriginalDuration(), 16.149433106575962);
         
+        #if DEBUG_LEVEL > 30
         DEBUG_OUT("saving absolute values of the cqt transform result to file \"octaves.dat\"", 10);
         std::ofstream outstr("octaves.dat");
         for (int octave=transformResult->getOctaveCount()-1; octave>=0; octave--)
@@ -496,6 +497,9 @@ namespace tests
                 outstrm << std::endl;
             }
         }
+        #else
+        DEBUG_OUT("would save data to a file here if DEBUG_LEVEL were larger than 30 (is " << DEBUG_LEVEL << ").", 0);
+        #endif
         
         delete transformResult;
         //delete[] buffer;

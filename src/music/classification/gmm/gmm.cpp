@@ -80,8 +80,11 @@ namespace music
     template <typename ScalarType>
     void GaussianDiagCov<ScalarType>::calculatePrefactor()
     {
+        assert(diagCov.cwiseSqrt().prod() != 0.0);
         preFactor = weight * 1.0/(pow(2*M_PI, diagCov.size()/2.0) * diagCov.cwiseSqrt().prod());
+        assert(preFactor != 0.0);
         preFactorWithoutWeights = 1.0/(pow(2*M_PI, diagCov.size()/2.0) * diagCov.cwiseSqrt().prod());
+        assert(preFactorWithoutWeights != 0.0);
     }
     template <typename ScalarType>
     void GaussianDiagCov<ScalarType>::setCovarianceMatrix(const Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>& fullCov)
@@ -118,8 +121,11 @@ namespace music
     template <typename ScalarType>
     void GaussianFullCov<ScalarType>::calculatePrefactor()
     {
+        assert(fullCov.determinant() != 0.0);
         preFactor = weight * 1.0/(pow(2*M_PI, fullCov.rows()/2.0) * sqrt(fullCov.determinant()));
+        assert(preFactor != 0.0);
         preFactorWithoutWeights = 1.0/(pow(2*M_PI, fullCov.rows()/2.0) * sqrt(fullCov.determinant()));
+        assert(preFactorWithoutWeights != 0.0);
     }
     template <typename ScalarType>
     void GaussianFullCov<ScalarType>::setCovarianceMatrix(const Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>& fullCov)
@@ -274,8 +280,8 @@ namespace music
             {
                 if ((fullCovs[g].diagonal().array() < SMALLEST_VARIANCE_VALUE).any())
                 {
-                    //if there is a coefficient that is smaller than 1.0 in
-                    // magnitude, set it to 1.0. This helps with bad results
+                    //if there is a coefficient that is smaller than SMALLEST_VARIANCE_VALUE in
+                    // magnitude, set it to SMALLEST_VARIANCE_VALUE. This helps with bad results
                     Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> diag = fullCovs[g].diagonal();
                     for (int i=0; i<diag.size(); i++)
                     {
@@ -313,6 +319,7 @@ namespace music
             
             double sum;
             double max;
+            double logsum;
             oldLoglike = loglike;
             loglike=0.0;
             for (unsigned int i=0; i<dataSize; i++)
@@ -321,11 +328,12 @@ namespace music
                 //use the log-exp-sum-trick from "Numerical Recipes", p.844-846
                 max = p.row(i).maxCoeff();
                 sum = (p.row(i) - max).exp().sum();
+                logsum = log(sum);
                 
                 //resolve possible aliasing issues by calling eval().
-                p.row(i) = (p.row(i) - (max + log(sum))).exp().eval();
+                p.row(i) = (p.row(i) - (max + logsum)).exp().eval();
                 
-                loglike += max + log(sum);
+                loglike += max + logsum;
             }
             DEBUG_OUT("E-step END", 30);
             //E-step END
@@ -373,6 +381,25 @@ namespace music
             if (fabs(oldLoglike - loglike) < 1e-6)
                 converged=true;
         }
+        
+        //get results with all-zero covariance matricies right (quick&dirty)
+        for (unsigned int g=0; g<gaussianCount; g++)
+        {
+            if ((fullCovs[g].diagonal().array() < SMALLEST_VARIANCE_VALUE).any())
+            {
+                //if there is a coefficient that is smaller than SMALLEST_VARIANCE_VALUE in
+                // magnitude, set it to SMALLEST_VARIANCE_VALUE. This helps with bad results
+                Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> diag = fullCovs[g].diagonal();
+                for (int i=0; i<diag.size(); i++)
+                {
+                    if (fabs(diag[i]) < SMALLEST_VARIANCE_VALUE)
+                    {
+                        fullCovs[g](i, i) = SMALLEST_VARIANCE_VALUE;
+                    }
+                }
+            }
+        }
+        
         
         if (converged)
         {
@@ -476,8 +503,8 @@ namespace music
             //for every gaussian do...
             for (unsigned int g=0; g<gaussianCount; g++)
             {
-                //if there is a coefficient that is smaller than 1.0 in
-                // magnitude, set it to 1.0. This helps with bad results
+                //if there is a coefficient that is smaller than SMALLEST_VARIANCE_VALUE in
+                // magnitude, set it to SMALLEST_VARIANCE_VALUE. This helps with bad results
                 for (int i=0; i<diagCovs[g].size(); i++)
                 {
                     if (fabs(diagCovs[g][i]) < SMALLEST_VARIANCE_VALUE)
@@ -509,6 +536,7 @@ namespace music
             
             double sum;
             double max;
+            double logsum;
             oldLoglike = loglike;
             loglike=0.0;
             for (unsigned int i=0; i<dataSize; i++)
@@ -517,11 +545,12 @@ namespace music
                 //use the log-exp-sum-trick from "Numerical Recipes", p.844-846
                 max = p.row(i).maxCoeff();
                 sum = (p.row(i) - max).exp().sum();
+                logsum = log(sum);
                 
                 //resolve possible aliasing issues by calling eval().
-                p.row(i) = (p.row(i) - (max + log(sum))).exp().eval();
+                p.row(i) = (p.row(i) - (max + logsum)).exp().eval();
                 
-                loglike += max + log(sum);
+                loglike += max + logsum;
             }
             DEBUG_OUT("E-step END", 30);
             //E-step END
@@ -568,6 +597,20 @@ namespace music
                 converged=true;
         }
         
+        //get results with all-zero covariance matricies right (quick&dirty)
+        for (unsigned int g=0; g<gaussianCount; g++)
+        {
+            //if there is a coefficient that is smaller than SMALLEST_VARIANCE_VALUE in
+            // magnitude, set it to SMALLEST_VARIANCE_VALUE. This helps with bad results
+            for (int i=0; i<diagCovs[g].size(); i++)
+            {
+                if (fabs(diagCovs[g][i]) < SMALLEST_VARIANCE_VALUE)
+                {
+                    diagCovs[g][i] = SMALLEST_VARIANCE_VALUE;
+                }
+            }
+        }
+        
         if (converged)
         {
             DEBUG_OUT("EM converged after " << iteration << " iterations.", 20);
@@ -607,6 +650,20 @@ namespace music
             retVal += (**it).calculateValue(pos);
         }
         return retVal;
+    }
+    /**
+     * @todo entfernen, falls nicht mehr gebraucht, oder dokumentieren, falls doch
+     */
+    template <typename ScalarType>
+    ScalarType GaussianMixtureModel<ScalarType>::calculateValueWithoutWeights(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& pos) const
+    {
+        assert (gaussians.size() > 0);
+        ScalarType retVal=0.0;
+        for (typename std::vector<Gaussian<ScalarType>*>::const_iterator it = gaussians.begin(); it != gaussians.end(); it++)
+        {
+            retVal += (**it).calculateValueWithoutWeights(pos);
+        }
+        return retVal/gaussians.size();
     }
     
     template <typename ScalarType>

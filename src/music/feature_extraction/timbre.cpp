@@ -99,6 +99,7 @@ namespace music
         //first get data vectors
         if (timbreVectors.empty())
         {
+            assert(transformResult != NULL);
             TimbreEstimator tEst(transformResult, timbreVectorSize);
             double time;
             for (int i=1; i<transformResult->getOriginalDuration()/timeSliceSize; i++)

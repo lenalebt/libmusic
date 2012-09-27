@@ -41,6 +41,7 @@ namespace music
         
     public:
         TimbreEstimator(ConstantQTransformResult* transformResult, unsigned int timbreVectorSize=12, float minEnergy=5.0);
+        TimbreEstimator(unsigned int timbreVectorSize=12, float minEnergy=5.0);
         Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> estimateTimbre(double fromTime, double toTime);
     };
     

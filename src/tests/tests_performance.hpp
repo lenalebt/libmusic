@@ -10,6 +10,8 @@
  * classifiers.
  */
 
+#include <string>
+
 namespace performance_tests
 {
     /** @ingroup performance_tests
@@ -23,7 +25,7 @@ namespace performance_tests
      * 
      * @return <code>EXIT_SUCCESS</code> if no error occured, <code>EXIT_FAILURE</code> else.
      */
-    int testInstrumentSimilarity();
+    int testInstrumentSimilarity(const std::string& = std::string("./testdata/instrument/singlenotes/"));
 }
 
 #endif  //TESTS_PERFORMANCE_HPP

@@ -98,6 +98,7 @@ namespace music
          * @return The value of the pdf at the given position.
          */
         virtual double calculateValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector)=0;
+
         /**
          * @brief Calculate the value of the gaussian distribution at the given position without applying the weight.
          * @return The value of the pdf at the given position without the weight applied.
@@ -402,6 +403,7 @@ namespace music
          * @return The value of the probability density at the given position
          */
         ScalarType calculateValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& pos) const;
+        ScalarType calculateValueWithoutWeights(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& pos) const;
         
         /**
          * @brief Create a JSON string that represents this model.

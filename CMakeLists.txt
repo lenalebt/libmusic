@@ -11,7 +11,7 @@ SET (music_VERSION_MINOR 01)
 ADD_DEFINITIONS(-DVERSION=${music_VERSION_MAJOR}.${music_VERSION_MINOR})
 
 #this was mainly done to understand cmake
-MESSAGE ( "Choose build type by typing \"cmake -DCMAKE_BUILD_TYPE=Debug\" or \"cmake -DCMAKE_BUILD_TYPE=Release\" or \"cmake -DCMAKE_BUILD_TYPE=Profiling\".")
+MESSAGE ( "Choose build type by typing \"cmake -DCMAKE_BUILD_TYPE=Debug\" or \"cmake -DCMAKE_BUILD_TYPE=Release\" or \"cmake -DCMAKE_BUILD_TYPE=Profiling\" or \"cmake -DCMAKE_BUILD_TYPE=Valgrind\".")
 IF (CMAKE_BUILD_TYPE STREQUAL Debug)
     MESSAGE("CMAKE_BUILD_TYPE set to Debug.")
 ELSEIF (CMAKE_BUILD_TYPE STREQUAL Release)
@@ -21,6 +21,12 @@ ELSEIF (CMAKE_BUILD_TYPE STREQUAL Release)
 ELSEIF (CMAKE_BUILD_TYPE STREQUAL Profiling)
     MESSAGE("CMAKE_BUILD_TYPE set to Profiling.")
     SET(CMAKE_CXX_FLAGS_PROFILING "-pg")
+#    SET(CMAKE_EXE_LINKER_FLAGS_PROFILING "-pg")
+    #for assert.h
+    ADD_DEFINITIONS(-DNDEBUG)
+ELSEIF (CMAKE_BUILD_TYPE STREQUAL Valgrind)
+    MESSAGE("CMAKE_BUILD_TYPE set to Valgrind.")
+    SET(CMAKE_CXX_FLAGS_VALGRIND "-g -O3")
 #    SET(CMAKE_EXE_LINKER_FLAGS_PROFILING "-pg")
     #for assert.h
     ADD_DEFINITIONS(-DNDEBUG)
