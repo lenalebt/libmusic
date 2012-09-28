@@ -67,7 +67,7 @@ namespace performance_tests
             if ((basefiles.size()) > 1 && (!contains(files[i], basefiles[j])))
             {
                 music::TimbreModel iModel(NULL);
-                iModel.calculateModel(instrumentTimbre, 20, 0.01, 12, &osc);
+                iModel.calculateModel(instrumentTimbre, 20, 0.01, 25, &osc);
                 gmmBase.push_back(iModel.getModel()->clone());
                 instrumentTimbre.clear();
                 j++;
@@ -86,13 +86,18 @@ namespace performance_tests
             assert(buffer != NULL);
             int sampleCount = file.readSamples(buffer, file.getSampleCount());
             
+            musicaccess::Resampler22kHzMono resampler;
+            //int sampleCount = file.getSampleCount();
+            DEBUG_OUT("resampling input file...", 10);
+            resampler.resample(file.getSampleRate(), &buffer, sampleCount, file.getChannelCount());
+            
             //apply cqt
             music::ConstantQTransformResult* tResult = cqt->apply(buffer, sampleCount);
             music::TimbreModel tModel(tResult);
             
             //calculate model
             assert(data.empty());
-            tModel.calculateModel(data, 3, 0.01, 12, &osc);
+            tModel.calculateModel(data, 3, 0.01, 25, &osc);
             
             if (basefiles.size() > 1)
             {
@@ -110,21 +115,6 @@ namespace performance_tests
             std::ofstream outstr((std::string("./performance/timbre-") + tests::basename(files[i], true) + ".dat").c_str());
             for (unsigned int j=0; j<data.size(); j++)
                 outstr << data[j].transpose() << std::endl;
-            
-            DEBUG_OUT("saving absolute values of the cqt transform result to file \"./performance/cqt-" << tests::basename(files[i], true) << ".dat\"", 10);
-            std::ofstream outstr2((std::string("./performance/cqt-") + tests::basename(files[i], true) + ".dat").c_str());
-            for (int octave=tResult->getOctaveCount()-1; octave>=0; octave--)
-            {
-                for (int bin=tResult->getBinsPerOctave()-1; bin >= 0; bin--)
-                {
-                    for (int i=0; i < 100*tResult->getOriginalDuration(); i++)
-                    {
-                        double time = 0.01 * i;
-                        outstr2 << abs(tResult->getNoteValueMean(time, octave, bin, 0.01)) << " ";
-                    }
-                    outstr2 << std::endl;
-                }
-            }
             
             delete tResult;
             delete buffer;

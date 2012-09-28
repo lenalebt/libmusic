@@ -622,7 +622,7 @@ namespace tests
                 for (int i=0; i < 100*transformResult->getOriginalDuration(); i++)
                 {
                     double time = 0.01 * i;
-                    outstr << abs(transformResult->getNoteValueMean(time, octave, bin)) << " ";
+                    outstr << transformResult->getNoteValueMean(time, octave, bin) << " ";
                 }
                 outstr << std::endl;
             }
