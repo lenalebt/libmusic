@@ -23,9 +23,26 @@ namespace performance_tests
      * The matricies will be displayed on the screen and additionally
      * be written to the files <code>performance/instrument-single-{perfile,perinstrument}.dat</code>
      * 
-     * @return <code>EXIT_SUCCESS</code> if no error occured, <code>EXIT_FAILURE</code> else.
+     * @param folder The folder containing the test files.
+     * 
+     * @return <code>EXIT_SUCCESS</code> if no error occured, otherwise <code>EXIT_FAILURE</code>.
      */
-    int testInstrumentSimilarity(const std::string& = std::string("./testdata/instrument/singlenotes/"));
+    int testInstrumentSimilarity(const std::string& folder = std::string("./testdata/instrument/singlenotes/"));
+    
+    /**
+     * @brief This test helps in finding the best parameters for timbre models.
+     * 
+     * The main parameters that will be tested are the model size and the model dimensionality.
+     * The timbre vector time length will remain fixed, but can be chosen.
+     * 
+     * @param timbreVectorTimeLength The time slice length with which the timbre vectors will be calculated.
+     * @param folder The folder containing the test files.
+     * 
+     * @return <code>EXIT_SUCCESS</code> if no error occured, otherwise <code>EXIT_FAILURE</code>.
+     * @todo 
+     */
+    int testTimbreParameters(const std::string& timbreVectorTimeLength = std::string("0.01"),
+        const std::string& folder = std::string("./testdata/instrument/singlenotes/"));
 }
 
 #endif  //TESTS_PERFORMANCE_HPP
