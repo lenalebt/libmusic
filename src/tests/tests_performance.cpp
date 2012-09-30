@@ -6,6 +6,8 @@
 #include "stringhelper.hpp"
 
 #include <algorithm>
+#include <vector>
+#include <queue>
 
 #include "constantq.hpp"
 #include "gmm.hpp"
@@ -19,9 +21,11 @@
 #include <unistd.h>
 
 #include <fstream>
+#include <sstream>
 
 namespace performance_tests
 {
+    
     int testInstrumentSimilarity(const std::string& folder)
     {
         DEBUG_OUT("running instrument similarity performance test...", 0);
@@ -226,7 +230,178 @@ namespace performance_tests
     
     int testTimbreParameters(const std::string& timbreVectorTimeLength, const std::string& folder)
     {
+        DEBUG_OUT("running timbre vector parameters test...", 0);
+        DEBUG_OUT("first step: load files and learn their constant-q spectrum.", 0);
+        DEBUG_OUT("be prepared: this step needs large portions of memory!", 0);
         
+        mkdir("./performance/", 0777);
+        
+        double timeSliceLength = 0.01;
+        std::stringstream tsl(timbreVectorTimeLength);
+        tsl >> timeSliceLength;
+        
+        std::vector<std::string> files;
+        std::vector<music::ConstantQTransformResult*> cqtResults;
+        loadFilenames(folder, files, ".mp3");
+        sort(files.begin(), files.end());
+        
+        music::ConstantQTransform* cqt = NULL;
+        musicaccess::IIRFilter* lowpassFilter = NULL;
+        lowpassFilter = musicaccess::IIRFilter::createLowpassFilter(0.25);
+        CHECK_OP(lowpassFilter, !=, NULL);
+        cqt = music::ConstantQTransform::createTransform(lowpassFilter, 12, 25, 11025, 22050, 2.0, 0.0, 0.0005, 0.25);
+        CHECK_OP(cqt, !=, NULL);
+        music::OutputStreamCallback osc(std::cout);
+        
+        //open file
+        musicaccess::SoundFile file;
+        assert(!file.isFileOpen());
+        musicaccess::Resampler22kHzMono resampler;
+        
+        for (unsigned int i = 0; i < files.size(); i++)
+        {
+            bool retVal = file.open(folder + files[i], true);
+            assert(retVal);
+            assert(file.isFileOpen());
+            DEBUG_OUT("loading file contents: " << i << " of " << files.size() << "...", 10);
+            float* buffer = NULL;
+            buffer = new float[file.getSampleCount()];
+            assert(buffer != NULL);
+            int sampleCount = file.readSamples(buffer, file.getSampleCount());
+            if (sampleCount==0)
+            {
+                ERROR_OUT("some error happened while decoding audio stream, skipping this file...", 0);
+                files.erase(files.begin() + i);
+                i--;
+                continue;
+            }
+            DEBUG_OUT("resampling input file...", 10);
+            resampler.resample(file.getSampleRate(), &buffer, sampleCount, file.getChannelCount());
+            
+            //apply cqt
+            music::ConstantQTransformResult* tResult = cqt->apply(buffer, sampleCount);
+            cqtResults.push_back(tResult);
+            
+            delete[] buffer;
+        }
+        
+        delete lowpassFilter;
+        
+        DEBUG_OUT("finished calculating constant-Q results. training models now and estimating parameters.", 0);
+        DEBUG_OUT("using time slice length " << timeSliceLength, 0);
+        
+        std::queue<unsigned int> modelSizeQueue;
+        std::queue<unsigned int> modelDimensionQueue;
+        std::queue<unsigned int> saveModelDimensionQueue;
+        
+        modelSizeQueue.push( 1);
+        modelSizeQueue.push( 2);
+        modelSizeQueue.push( 3);
+        modelSizeQueue.push( 4);
+        modelSizeQueue.push( 5);
+        modelSizeQueue.push( 6);
+        modelSizeQueue.push( 7);
+        modelSizeQueue.push( 8);
+        modelSizeQueue.push( 9);
+        modelSizeQueue.push(10);
+        modelSizeQueue.push(12);
+        modelSizeQueue.push(14);
+        modelSizeQueue.push(16);
+        modelSizeQueue.push(18);
+        modelSizeQueue.push(20);
+        modelSizeQueue.push(23);
+        modelSizeQueue.push(26);
+        modelSizeQueue.push(30);
+        modelSizeQueue.push(35);
+        modelSizeQueue.push(40);
+        modelSizeQueue.push(45);
+        modelSizeQueue.push(50);
+        modelSizeQueue.push(55);
+        
+        modelDimensionQueue.push( 2);
+        modelDimensionQueue.push( 4);
+        modelDimensionQueue.push( 6);
+        modelDimensionQueue.push( 8);
+        modelDimensionQueue.push(10);
+        modelDimensionQueue.push(12);
+        modelDimensionQueue.push(14);
+        modelDimensionQueue.push(16);
+        modelDimensionQueue.push(18);
+        modelDimensionQueue.push(20);
+        modelDimensionQueue.push(22);
+        modelDimensionQueue.push(24);
+        modelDimensionQueue.push(26);
+        modelDimensionQueue.push(28);
+        modelDimensionQueue.push(30);
+        modelDimensionQueue.push(32);
+        modelDimensionQueue.push(34);
+        modelDimensionQueue.push(36);
+        saveModelDimensionQueue = modelDimensionQueue;
+        
+        while (!modelSizeQueue.empty())
+        {
+            DEBUG_OUT("now using model size " << modelSizeQueue.front(), 0);
+            while (!modelDimensionQueue.empty())
+            {
+                DEBUG_OUT("now using model dimension " << modelDimensionQueue.front(), 0);
+                
+                DEBUG_OUT("learning model for every constant-q result...", 0);
+                std::vector<music::GaussianMixtureModel<kiss_fft_scalar>*> gmms;
+                for (unsigned int i=0; i<cqtResults.size(); i++)
+                {
+                    music::TimbreModel tModel(cqtResults[i]);
+                    
+                    if (!tModel.calculateModel(modelSizeQueue.front(), timeSliceLength, modelDimensionQueue.front(), &osc))
+                    {
+                        ERROR_OUT("some error happened while building the model, skipping this file...", 0);
+                        files.erase(files.begin() + i);
+                        delete cqtResults[i];
+                        cqtResults.erase(cqtResults.begin() + i);
+                        i--;
+                        continue;
+                    }
+                    
+                    gmms.push_back(tModel.getModel()->clone());
+                }
+                DEBUG_OUT("learned models, now: comparing models.", 0);
+                
+                Eigen::MatrixXd similarity(cqtResults.size(), cqtResults.size());
+                std::cerr << std::endl;
+                for (unsigned int i=0; i<cqtResults.size(); i++)
+                {
+                    for (unsigned int j=0; j<cqtResults.size(); j++)
+                    {
+                        similarity(i, j) = gmms[i]->compareTo(*gmms[j]);
+                    }
+                    std::cerr << "\r" << i+1 << "/" << cqtResults.size() << ", " << std::fixed << std::setprecision(2) << double(i+1)/double(cqtResults.size())*100 << "%";
+                }
+                std::cerr << std::endl;
+                
+                std::stringstream s;
+                s << "./performance/parameters-size" << modelSizeQueue.front() << "-dimension" << modelDimensionQueue.front() << ".dat";
+                
+                std::ofstream outstr(s.str().c_str());
+                outstr << similarity << std::endl;
+                
+                for (unsigned int i=0; i<gmms.size(); i++)
+                    delete gmms[i];
+                
+                modelDimensionQueue.pop();
+            }
+            modelDimensionQueue = saveModelDimensionQueue;
+            
+            modelSizeQueue.pop();
+        }
+        
+        //delete pointers to memory where applicable...
+        
+        for (unsigned int i=0; i<cqtResults.size(); i++)
+        {
+            delete cqtResults[i];
+            cqtResults[i] = NULL;
+        }
+        delete cqt;
+                
         return EXIT_SUCCESS;
     }
 }

@@ -196,6 +196,7 @@ namespace music
         }
         
         Eigen::VectorXd weightVec(maxBPos - maxAPos - 2*int(1.0/q) + 1);
+        weightVec.setZero();
         for (int j=maxAPos + 1.0/q; j<=maxBPos - 1.0/q; j++)
         {
             double sum=0.0;
@@ -590,6 +591,7 @@ namespace music
             delete octaveMatrix[i];
         }
         delete[] octaveMatrix;
+        delete[] drop;
     }
     
     double ConstantQTransformResult::getBinMax(int octave, int bin) const
