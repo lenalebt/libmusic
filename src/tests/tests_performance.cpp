@@ -380,6 +380,8 @@ namespace performance_tests
                 std::stringstream s;
                 s << "./performance/parameters-size" << modelSizeQueue.front() << "-dimension" << modelDimensionQueue.front() << ".dat";
                 
+                DEBUG_OUT("saving data to file " << s.str(), 0);
+                
                 std::ofstream outstr(s.str().c_str());
                 outstr << similarity << std::endl;
                 
