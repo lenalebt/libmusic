@@ -74,6 +74,26 @@ namespace music
         if (model)
             delete model;
     }
+    bool TimbreModel::calculateTimbreVectors(std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> >& timbreVectors, double timeSliceSize, unsigned int timbreVectorSize)
+    {
+        assert(timeSliceSize > 0.0);
+        assert(timbreVectorSize > 1);
+        
+        unsigned int foundTimbreVectors=0;
+        TimbreEstimator tEst(transformResult, timbreVectorSize);
+        double time;
+        for (int i=1; i<transformResult->getOriginalDuration()/timeSliceSize; i++)
+        {
+            time = i*timeSliceSize;
+            Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> tmp = tEst.estimateTimbre(time - timeSliceSize, time);
+            if (tmp.size() > 1)
+            {
+                timbreVectors.push_back(tmp);
+                foundTimbreVectors++;
+            }
+        }
+        return foundTimbreVectors>0;
+    }
     bool TimbreModel::calculateModel(int modelSize, double timeSliceSize, unsigned int timbreVectorSize, ProgressCallbackCaller* callback)
     {
         //use overload to hide the possibility of getting the data vectors.

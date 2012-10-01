@@ -316,7 +316,7 @@ namespace music
             int fftlength=0;
             
             transformResult->drop[octave] = (emptyHops<<(octave)) - emptyHops;
-            DEBUG_OUT("drop[" << octave << "] = " << transformResult->drop[octave], 12);
+            DEBUG_OUT("drop[" << octave << "] = " << transformResult->drop[octave], 30);
             
             octaveResult = NULL;
             octaveResult = new Eigen::Matrix<std::complex<kiss_fft_scalar>, Eigen::Dynamic, Eigen::Dynamic >(binsPerOctave, sampleCountWithBlock / fftHop * atomNr);

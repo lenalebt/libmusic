@@ -263,7 +263,7 @@ namespace performance_tests
             bool retVal = file.open(folder + files[i], true);
             assert(retVal);
             assert(file.isFileOpen());
-            DEBUG_OUT("loading file contents: " << i << " of " << files.size() << "...", 10);
+            DEBUG_OUT("loading file contents: " << i+1 << " of " << files.size() << "...", 10);
             float* buffer = NULL;
             buffer = new float[file.getSampleCount()];
             assert(buffer != NULL);
@@ -278,6 +278,7 @@ namespace performance_tests
             DEBUG_OUT("resampling input file...", 10);
             resampler.resample(file.getSampleRate(), &buffer, sampleCount, file.getChannelCount());
             
+            DEBUG_OUT("applying constant-Q transform...", 10);
             //apply cqt
             music::ConstantQTransformResult* tResult = cqt->apply(buffer, sampleCount);
             cqtResults.push_back(tResult);
@@ -300,17 +301,14 @@ namespace performance_tests
         modelSizeQueue.push( 4);
         modelSizeQueue.push( 5);
         modelSizeQueue.push( 6);
-        modelSizeQueue.push( 7);
         modelSizeQueue.push( 8);
-        modelSizeQueue.push( 9);
         modelSizeQueue.push(10);
         modelSizeQueue.push(12);
-        modelSizeQueue.push(14);
-        modelSizeQueue.push(16);
+        modelSizeQueue.push(15);
         modelSizeQueue.push(18);
-        modelSizeQueue.push(20);
-        modelSizeQueue.push(23);
-        modelSizeQueue.push(26);
+        modelSizeQueue.push(21);
+        modelSizeQueue.push(24);
+        modelSizeQueue.push(27);
         modelSizeQueue.push(30);
         modelSizeQueue.push(35);
         modelSizeQueue.push(40);
@@ -347,11 +345,32 @@ namespace performance_tests
                 
                 DEBUG_OUT("learning model for every constant-q result...", 0);
                 std::vector<music::GaussianMixtureModel<kiss_fft_scalar>*> gmms;
-                for (unsigned int i=0; i<cqtResults.size(); i++)
+                
+                unsigned int i=0;
+                class MyCallback : public music::ProgressCallback
                 {
-                    music::TimbreModel tModel(cqtResults[i]);
+                    const unsigned int& i;
+                    unsigned int size;
+                public:
+                    MyCallback(const unsigned int& i, unsigned int size) : i(i), size(size) {}
+                    void progress(const std::string& id, double percent, const std::string& progressMessage)
+                    {
+                        std::cerr << "\r" << i+1 << "/" << size << ", " << std::fixed << std::setprecision(2) << double(i+percent)/double(size)*100 << "%";
+                    }
+                } callback(i, cqtResults.size()/8);
+                music::ProgressCallbackCaller callbackCaller(callback);
+                
+                for (i=0; i<cqtResults.size()/8; i++)
+                {
+                    std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > timbreVectors;
+                    for (unsigned int j=0; j<8; j++)
+                    {
+                        music::TimbreModel tModel(cqtResults[i*8+j]);
+                        tModel.calculateTimbreVectors(timbreVectors, timeSliceLength, modelDimensionQueue.front());
+                    }
                     
-                    if (!tModel.calculateModel(modelSizeQueue.front(), timeSliceLength, modelDimensionQueue.front(), &osc))
+                    music::TimbreModel tModel(NULL);
+                    if (!tModel.calculateModel(timbreVectors, modelSizeQueue.front(), timeSliceLength, modelDimensionQueue.front(), &callbackCaller))
                     {
                         ERROR_OUT("some error happened while building the model, skipping this file...", 0);
                         files.erase(files.begin() + i);
@@ -360,20 +379,20 @@ namespace performance_tests
                         i--;
                         continue;
                     }
-                    
                     gmms.push_back(tModel.getModel()->clone());
                 }
+                std::cerr << std::endl;
                 DEBUG_OUT("learned models, now: comparing models.", 0);
                 
-                Eigen::MatrixXd similarity(cqtResults.size(), cqtResults.size());
-                std::cerr << std::endl;
-                for (unsigned int i=0; i<cqtResults.size(); i++)
+                Eigen::MatrixXd similarity(cqtResults.size()/8, cqtResults.size()/8);
+                for (unsigned int i=0; i<cqtResults.size()/8; i++)
                 {
-                    for (unsigned int j=0; j<cqtResults.size(); j++)
+                    assert(gmms[i] != NULL);
+                    for (unsigned int j=0; j<cqtResults.size()/8; j++)
                     {
                         similarity(i, j) = gmms[i]->compareTo(*gmms[j]);
                     }
-                    std::cerr << "\r" << i+1 << "/" << cqtResults.size() << ", " << std::fixed << std::setprecision(2) << double(i+1)/double(cqtResults.size())*100 << "%";
+                    std::cerr << "\r" << i+1 << "/" << cqtResults.size()/8 << ", " << std::fixed << std::setprecision(2) << double(i+1)/double(cqtResults.size()/8)*100 << "%";
                 }
                 std::cerr << std::endl;
                 
