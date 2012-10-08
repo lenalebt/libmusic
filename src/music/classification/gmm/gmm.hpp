@@ -319,11 +319,22 @@ namespace music
         static NormalRNG<ScalarType>* normalRNG;
         ScalarType normalizationFactor;
         
+        double aic, aicc, bic, loglike;
+        
         /**
          * @brief Load the JSON from a JSON representation in memory.
          * @see loadFromJSONString()
          */
         void loadFromJsonValue(Json::Value& jsonValue);
+        
+        /**
+         * @brief Calculates the AIC, AICc, BIC and stores them internally.
+         * 
+         * @param k The number of free parameters in the model
+         * @param n The number of data points used to calculate the model
+         * @param loglike The log-likelihood of the model
+         */
+        void calculateInformationCriteria(int k, int n, double loglike);
         
         /**
          * @brief Starts the expectation-maximization algorithm (EM algorithm) for
@@ -368,6 +379,51 @@ namespace music
          * 
          */
         void trainGMM(const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, int gaussianCount=10);
+        
+        /**
+         * @brief Returns the Akaike Information Criterion of the model.
+         * 
+         * @see http://en.wikipedia.org/wiki/Akaike_information_criterion
+         * @attention This value only is available if the model has been trained. If it has been loaded
+         *      via JSON, it might not be available and thus be zero. The reason is that it is mostly
+         *      useful for model selection, and this has to be done right after training.
+         * 
+         * @return the AIC of the model
+         */
+        double getModelAIC()            {return aic;}
+        /**
+         * @brief Returns the corrected Akaike Information Criterion for small sample sizes of the model.
+         * 
+         * @see http://en.wikipedia.org/wiki/Akaike_information_criterion
+         * @attention This value only is available if the model has been trained. If it has been loaded
+         *      via JSON, it might not be available and thus be zero. The reason is that it is mostly
+         *      useful for model selection, and this has to be done right after training.
+         * 
+         * @return the AICc of the model
+         */
+        double getModelAICc()           {return aicc;}
+        /**
+         * @brief Returns the Bayesian Information Criterion of the model.
+         * 
+         * @see http://en.wikipedia.org/wiki/Bayesian_information_criterion
+         * @attention This value only is available if the model has been trained. If it has been loaded
+         *      via JSON, it might not be available and thus be zero. The reason is that it is mostly
+         *      useful for model selection, and this has to be done right after training.
+         * 
+         * @return the BIC of the model
+         */
+        double getModelBIC()            {return bic;}
+        /**
+         * @brief Returns the log-likelihood of the model as calculated in the EM-algorithm.
+         * 
+         * @attention This value only is available if the model has been trained. If it has been loaded
+         *      via JSON, it might not be available and thus be zero. The reason is that it is mostly
+         *      useful for model selection, and this has to be done right after training.
+         * 
+         * @return the log-likelihood of the model
+         */
+        double getModelLogLikelihood()  {return loglike;}
+        
         /**
          * @brief Compare this gaussian mixture model with another one.
          * 
