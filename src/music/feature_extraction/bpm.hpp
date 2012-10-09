@@ -18,7 +18,7 @@ namespace music
         double bpmMedian;
         double bpmVariance;
         
-        void estimateBPM1(ConstantQTransformResult* transformResult);
+        bool estimateBPM1(ConstantQTransformResult* transformResult);
         void estimateBPM2(ConstantQTransformResult* transformResult);
         void estimateBPM3(ConstantQTransformResult* transformResult);
         void estimateBPM4(ConstantQTransformResult* transformResult);
@@ -26,7 +26,7 @@ namespace music
     protected:
         
     public:
-        void estimateBPM(ConstantQTransformResult* transformResult);
+        bool estimateBPM(ConstantQTransformResult* transformResult);
         
         double getBPMMean() const       {return bpmMean;}
         double getBPMMedian() const     {return bpmMedian;}

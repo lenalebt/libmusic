@@ -26,7 +26,11 @@ int main(int argc, char *argv[])
     std::string testname(argv[1]);
     std::transform(testname.begin(), testname.end(), testname.begin(), ::tolower);
     
-    std::cerr << "DEBUG_LEVEL: " << DEBUG_LEVEL << std::endl;
+    #ifdef DEBUG_LEVEL
+        std::cerr << "DEBUG_LEVEL: " << DEBUG_LEVEL << std::endl;
+    #else
+        std::cerr << "DEBUG_LEVEL not defined." << std::endl;
+    #endif
     std::cerr << "running test \"" << testname << "\"..." << std::endl;
     
     if (testname == "basename")

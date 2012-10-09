@@ -49,9 +49,22 @@ namespace music
                 callback->progress(1.0/stepCount, "opening file...");
             file.open(filename);
             
+            /*
             if (file.getSampleRate() != 44100)
             {
                 ERROR_OUT("cannot handle files with a sample rate different from 44100Hz at the moment.", 10);
+                return false;
+            }
+            */
+            if (file.getSampleCount() < file.getSampleRate() * 10)
+            {
+                DEBUG_OUT("skipping file with less than 10 seconds of audio...", 10);
+                delete recording;
+                delete features;
+                
+                if (callback != NULL)
+                    callback->progress(stepCount, "aborted, file is shorter than 10 seconds.");
+                
                 return false;
             }
             
@@ -100,7 +113,11 @@ namespace music
                 callback->progress(7.0/stepCount, "calculating bpm...");
             
             music::BPMEstimator<kiss_fft_scalar> bpmEst;
-            bpmEst.estimateBPM(transformResult);
+            if (!bpmEst.estimateBPM(transformResult))
+            {
+                dbconnection->rollbackTransaction();
+                return false;
+            }
             features->setTempo(bpmEst.getBPMMean());
             //other tempo features should also be important!
             
@@ -109,8 +126,8 @@ namespace music
             
             //TODO: calculate features.
             music::TimbreModel timbreModel(transformResult);
-            //build model from 15 gaussians, 10ms slices
-            timbreModel.calculateModel(15, 0.01);
+            //build model from 30 gaussians, 10ms slices, 20-dimensional vectors
+            timbreModel.calculateModel(30, 0.01, 20);
             features->setTimbreModel(timbreModel.getModel()->toJSONString());
             
             

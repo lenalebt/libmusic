@@ -354,9 +354,12 @@ namespace tests
             if (endsWith(loweredFilename, ".mp3"))
             {
                 music::ProgressCallbackCaller* callback = new music::OutputStreamCallback(std::cout);
-                preprop.preprocessFile(newPath + filename, recordingID, conn, callback);
+                if (!preprop.preprocessFile(newPath + filename, recordingID, conn, callback))
+                    ERROR_OUT("adding file \"" << filename << "\" failed. proceeding with next file...", 15)
             }
         }
+        
+        DEBUG_OUT("finished.", 0);
         
         return EXIT_FAILURE;    //TEST NOT FINISHED YET
     }

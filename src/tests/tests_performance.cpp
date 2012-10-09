@@ -112,7 +112,7 @@ namespace performance_tests
             
             //calculate model
             assert(data.empty());
-            if (!tModel.calculateModel(data, 15, 0.01, 16, &osc))
+            if (!tModel.calculateModel(data, 5, 0.01, 16, &osc))
             {
                 ERROR_OUT("some error happened while building the model, skipping this file...", 0);
                 files.erase(files.begin() + i);
