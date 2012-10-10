@@ -242,7 +242,7 @@ namespace music
         for (std::vector<float>::iterator it = diffPosVector.begin(); it != diffPosVector.end(); it++)
         {
             double val = 60.0/(double(*it)*timeSliceLength) - bpmMean;
-            std::cerr << val << "; " << stdDeriv << std::endl;
+            DEBUG_OUT(val << "; " << stdDeriv << std::endl, 40);
             if (fabs(val) > stdDeriv + 5)
             {
                 DEBUG_OUT("cancel out " << *it, 20);
@@ -433,7 +433,7 @@ namespace music
         for (std::vector<float>::iterator it = diffPosVector.begin(); it != diffPosVector.end(); it++)
         {
             double val = 60.0/(double(*it)*timeSliceLength) - bpmMean;
-            std::cerr << val << "; " << stdDeriv << std::endl;
+            DEBUG_OUT(val << "; " << stdDeriv << std::endl, 40);
             if (fabs(val) > stdDeriv + 5)
             {
                 DEBUG_OUT("cancel out " << *it, 20);

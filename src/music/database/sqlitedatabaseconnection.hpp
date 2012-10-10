@@ -40,6 +40,7 @@ namespace music
         
         bool getRecordingByID(databaseentities::Recording& recording, bool readFeatures=false);
         bool updateRecordingByID(databaseentities::Recording& recording, bool updateFeatures=false);
+        bool deleteRecordingByID(databaseentities::id_datatype& recordingID);
         
         bool getRecordingIDByFilename(databaseentities::id_datatype& recordingID, const std::string& filename);
         /**
@@ -65,6 +66,9 @@ namespace music
         bool addCategoryDescription(databaseentities::CategoryDescription& categoryDescription);
         bool getCategoryDescriptionByID(databaseentities::CategoryDescription& categoryDescription);
         
+        bool deleteRecordingToCategoryScoresByRecordingID(databaseentities::id_datatype& recordingID);
+        bool deleteCategoryExampleScoresByRecordingID(databaseentities::id_datatype& recordingID);
+        
         bool getRecordingToCategoryScore(databaseentities::id_datatype recordingID, databaseentities::id_datatype categoryID, double& score);
         bool updateRecordingToCategoryScore(databaseentities::id_datatype recordingID, databaseentities::id_datatype categoryID, double score);
         bool getRecordingIDsInCategory(std::vector<std::pair<databaseentities::id_datatype, double> >& recordingIDsAndScores, databaseentities::id_datatype categoryID, double minScore, double maxScore=1.0, int limit=1000);
@@ -84,10 +88,13 @@ namespace music
         sqlite3_stmt* _getRecordingIDByFilenameStatement;
         sqlite3_stmt* _getRecordingIDsByArtistTitleAlbumStatement;
         sqlite3_stmt* _getRecordingIDsByCategoryMembershipScoresStatement;
+        sqlite3_stmt* _deleteRecordingByIDStatement;
+        
         
         sqlite3_stmt* _saveRecordingFeaturesStatement;
         sqlite3_stmt* _updateRecordingFeaturesStatement;
         sqlite3_stmt* _getRecordingFeaturesByIDStatement;
+        sqlite3_stmt* _deleteRecordingFeaturesByIDStatement;
         
         sqlite3_stmt* _saveArtistStatement;
         sqlite3_stmt* _getArtistByIDStatement;
@@ -111,10 +118,12 @@ namespace music
         
         sqlite3_stmt* _getRecordingToCategoryScoreByIDsStatement;
         sqlite3_stmt* _deleteRecordingToCategoryScoreByIDsStatement;
+        sqlite3_stmt* _deleteRecordingToCategoryScoresByIDStatement;
         sqlite3_stmt* _saveRecordingToCategoryScoreStatement;
         
         sqlite3_stmt* _getCategoryExampleScoreByIDsStatement;
         sqlite3_stmt* _deleteCategoryExampleScoreByIDsStatement;
+        sqlite3_stmt* _deleteCategoryExampleScoresByRecordingIDStatement;
         sqlite3_stmt* _saveCategoryExampleScoreStatement;
         
         /**

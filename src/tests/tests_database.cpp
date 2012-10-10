@@ -153,11 +153,14 @@ namespace tests
         music::databaseentities::Recording rec;
         rec.setID(-1);
         CHECK(conn->getRecordingByID(rec));
+        CHECK_EQ(rec.getID(), -1);
         rec.setID(456);
         CHECK(conn->getRecordingByID(rec));
+        CHECK_EQ(rec.getID(), -1);
         //or found...
         rec.setID(1);
         CHECK(conn->getRecordingByID(rec));
+        CHECK_EQ(rec.getID(), 1);
         
         DEBUG_OUT("testing now everything about categories...", 10);
         music::databaseentities::Category* category = new music::databaseentities::Category();
@@ -298,8 +301,25 @@ namespace tests
         CHECK(conn->getRecordingIDsInCategory(recordingIDScores, punkrock.getID(), 0.5, 1.0, 2000));
         CHECK_EQ(recordingIDScores.size(), 1001u);
         
-        CHECK(conn->close());
+        music::databaseentities::id_datatype recID=1;
+        DEBUG_OUT("now testing to remove a recording", 10);
+        rec.setID(1);
+        CHECK(conn->getRecordingByID(rec));
+        CHECK_EQ(rec.getID(), 1);
         
+        recID=1;
+        CHECK(conn->deleteRecordingByID(recID));
+        CHECK_OP(recID, !=, -1);
+        CHECK_EQ(recID, 1);
+        
+        CHECK(conn->deleteCategoryExampleScoresByRecordingID(recID));
+        CHECK(conn->deleteRecordingToCategoryScoresByRecordingID(recID));
+        
+        rec.setID(1);
+        CHECK(conn->getRecordingByID(rec));
+        CHECK_EQ(rec.getID(), -1);
+        
+        CHECK(conn->close());
         return EXIT_SUCCESS;
     }
     
