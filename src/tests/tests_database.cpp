@@ -164,7 +164,7 @@ namespace tests
         
         DEBUG_OUT("testing now everything about categories...", 10);
         music::databaseentities::Category* category = new music::databaseentities::Category();
-        category->setCategoryName("rock music");
+        category->setCategoryName("rock_ music");
         CHECK(conn->addCategory(*category));
         category->setCategoryName("");
         category->setID(1);
@@ -174,7 +174,19 @@ namespace tests
         CHECK(conn->getCategoryByID(*category, true));
         CHECK_OP(category->getID(), !=, -1);
         CHECK(category->getCategoryDescription() != NULL);
+        CHECK_EQ(category->getCategoryName(), std::string("rock_ music"));
+        
+        category->setCategoryName("rock music");
+        category->getCategoryDescription()->setTimbreModel("blabla1");
+        category->getCategoryDescription()->setClassifierDescription("blabla2");
+        CHECK(conn->updateCategory(*category, true));
+        category->setCategoryName("rock music_");
+        category->getCategoryDescription()->setTimbreModel("blabla1_");
+        category->getCategoryDescription()->setClassifierDescription("blabla2_");
+        CHECK(conn->getCategoryByID(*category, true));
         CHECK_EQ(category->getCategoryName(), std::string("rock music"));
+        CHECK_EQ(category->getCategoryDescription()->getTimbreModel(), std::string("blabla1"));
+        CHECK_EQ(category->getCategoryDescription()->getClassifierDescription(), std::string("blabla2"));
         
         category->setCategoryName("classical music");
         CHECK(conn->addCategory(*category));
