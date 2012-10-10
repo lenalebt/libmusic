@@ -39,6 +39,7 @@ namespace music
         _getGenreByNameStatement                        (NULL),
         
         _saveCategoryStatement                          (NULL),
+        _updateCategoryByIDStatement                    (NULL),
         _getCategoryByIDStatement                       (NULL),
         _getCategoryByNameStatement                     (NULL),
         _getCategoryIDsByNameStatement                  (NULL),
@@ -115,6 +116,8 @@ namespace music
         
         if (_saveCategoryStatement != NULL)
             sqlite3_finalize(_saveCategoryStatement);
+        if (_updateCategoryByIDStatement != NULL)
+            sqlite3_finalize(_updateCategoryByIDStatement);
         if (_getCategoryByIDStatement != NULL)
             sqlite3_finalize(_getCategoryByIDStatement);
         if (_getCategoryByNameStatement != NULL)
@@ -1395,6 +1398,44 @@ namespace music
         return true;
     }
     
+    bool SQLiteDatabaseConnection::updateCategory(const databaseentities::Category& category, bool updateCategoryDescription_)
+    {
+        DEBUG_OUT("updating category description...", 30);
+        
+        int rc;
+        if (_updateCategoryByIDStatement == NULL)
+        {
+            rc = sqlite3_prepare_v2(_db, "UPDATE category SET categoryName=@categoryName, WHERE categoryID=@categoryID;", -1, &_updateCategoryByIDStatement, NULL);
+            if (rc != SQLITE_OK)
+            {
+                ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        sqlite3_bind_text( _updateCategoryByIDStatement, 1, category.getCategoryName().c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_int64(_updateCategoryByIDStatement, 2, category.getID());
+        
+        rc = sqlite3_step(_updateCategoryByIDStatement);
+        if (rc != SQLITE_DONE)
+        {
+            ERROR_OUT("Failed to execute statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        rc = sqlite3_reset(_updateCategoryByIDStatement);
+        if (rc != SQLITE_OK)
+        {
+            ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        if (updateCategoryDescription_)
+            return updateCategoryDescription(*category.getCategoryDescription());
+        else
+            return true;
+    }
+    
     bool SQLiteDatabaseConnection::getCategoryIDsByName(std::vector<databaseentities::id_datatype>& categoryIDs, const std::string& categoryName)
     {
         DEBUG_OUT("will read categoryIDs by artist, title and album now...", 35);
@@ -1444,7 +1485,7 @@ namespace music
         return true;
     }
     
-    bool SQLiteDatabaseConnection::updateCategoryDescriptionByID(databaseentities::CategoryDescription& categoryDescription)
+    bool SQLiteDatabaseConnection::updateCategoryDescription(const databaseentities::CategoryDescription& categoryDescription)
     {
         DEBUG_OUT("updating category description...", 30);
         
@@ -1479,6 +1520,7 @@ namespace music
         
         return true;
     }
+    
     bool SQLiteDatabaseConnection::addCategoryDescription(databaseentities::CategoryDescription& categoryDescription)
     {
         int rc;
