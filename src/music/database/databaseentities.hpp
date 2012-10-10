@@ -141,12 +141,21 @@ namespace music
         {
         private:
             id_datatype id;
+            std::string timbreModel;
+            std::string classifierDescription;
         protected:
             
         public:
             CategoryDescription();
             void setID(id_datatype id)                      {this->id = id;}
             id_datatype getID()                             {return id;}
+            
+            void setTimbreModel(const std::string& model)   {this->timbreModel = model;}
+            std::string getTimbreModel() const              {return timbreModel;}
+            
+            void setClassifierDescription(const std::string& classifierDescription)
+                                                            {this->classifierDescription = classifierDescription;}
+            std::string getClassifierDescription() const    {return classifierDescription;}
         };
         
         class Category

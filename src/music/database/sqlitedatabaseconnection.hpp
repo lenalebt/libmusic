@@ -64,6 +64,7 @@ namespace music
          */
         bool getCategoryIDsByName(std::vector<databaseentities::id_datatype>& categoryIDs, const std::string& categoryName);
         bool addCategoryDescription(databaseentities::CategoryDescription& categoryDescription);
+        bool updateCategoryDescriptionByID(databaseentities::CategoryDescription& categoryDescription);
         bool getCategoryDescriptionByID(databaseentities::CategoryDescription& categoryDescription);
         
         bool deleteRecordingToCategoryScoresByRecordingID(databaseentities::id_datatype& recordingID);
@@ -114,6 +115,7 @@ namespace music
         sqlite3_stmt* _getCategoryIDsByNameStatement;
         
         sqlite3_stmt* _saveCategoryDescriptionStatement;
+        sqlite3_stmt* _updateCategoryDescriptionByIDStatement;
         sqlite3_stmt* _getCategoryDescriptionByIDStatement;
         
         sqlite3_stmt* _getRecordingToCategoryScoreByIDsStatement;

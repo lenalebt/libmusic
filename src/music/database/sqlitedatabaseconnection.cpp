@@ -44,6 +44,7 @@ namespace music
         _getCategoryIDsByNameStatement                  (NULL),
         
         _saveCategoryDescriptionStatement               (NULL),
+        _updateCategoryDescriptionByIDStatement         (NULL),
         _getCategoryDescriptionByIDStatement            (NULL),
         
         _getRecordingToCategoryScoreByIDsStatement      (NULL),
@@ -123,6 +124,8 @@ namespace music
         
         if (_saveCategoryDescriptionStatement != NULL)
             sqlite3_finalize(_saveCategoryDescriptionStatement);
+        if (_updateCategoryDescriptionByIDStatement != NULL)
+            sqlite3_finalize(_updateCategoryDescriptionByIDStatement);
         if (_getCategoryDescriptionByIDStatement != NULL)
             sqlite3_finalize(_getCategoryDescriptionByIDStatement);
         
@@ -247,7 +250,8 @@ namespace music
             "categoryDescriptionID INTEGER NOT NULL,"
             "FOREIGN KEY(categoryDescriptionID) REFERENCES categoryDescription(categoryDescriptionID)"
             ");");
-        ctstatements.push_back("CREATE TABLE IF NOT EXISTS categoryDescription(categoryDescriptionID INTEGER PRIMARY KEY, dummy TEXT"
+        ctstatements.push_back("CREATE TABLE IF NOT EXISTS categoryDescription(categoryDescriptionID INTEGER PRIMARY KEY, timbreModel TEXT, "
+            "classifierDescription TEXT"
             ");");
         
         ctstatements.push_back("CREATE TABLE IF NOT EXISTS categoryExample(categoryID INTEGER NOT NULL, "
@@ -1440,13 +1444,48 @@ namespace music
         return true;
     }
     
+    bool SQLiteDatabaseConnection::updateCategoryDescriptionByID(databaseentities::CategoryDescription& categoryDescription)
+    {
+        DEBUG_OUT("updating category description...", 30);
+        
+        int rc;
+        if (_updateCategoryDescriptionByIDStatement == NULL)
+        {
+            rc = sqlite3_prepare_v2(_db, "UPDATE categoryDescription SET timbreModel=@timbreModel, classifierDescription=@classifierDescription WHERE categoryDescriptionID=@categoryDescriptionID;", -1, &_updateCategoryDescriptionByIDStatement, NULL);
+            if (rc != SQLITE_OK)
+            {
+                ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        sqlite3_bind_text( _updateCategoryDescriptionByIDStatement, 1, categoryDescription.getTimbreModel().c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text( _updateCategoryDescriptionByIDStatement, 2, categoryDescription.getClassifierDescription().c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_int64(_updateCategoryDescriptionByIDStatement, 3, categoryDescription.getID());
+        
+        rc = sqlite3_step(_updateCategoryDescriptionByIDStatement);
+        if (rc != SQLITE_DONE)
+        {
+            ERROR_OUT("Failed to execute statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        rc = sqlite3_reset(_updateCategoryDescriptionByIDStatement);
+        if (rc != SQLITE_OK)
+        {
+            ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        return true;
+    }
     bool SQLiteDatabaseConnection::addCategoryDescription(databaseentities::CategoryDescription& categoryDescription)
     {
         int rc;
         
         if (_saveCategoryDescriptionStatement == NULL)
         {
-            rc = sqlite3_prepare_v2(_db, "INSERT INTO categoryDescription VALUES(@categoryDescriptionID, @dummy);", -1, &_saveCategoryDescriptionStatement, NULL);
+            rc = sqlite3_prepare_v2(_db, "INSERT INTO categoryDescription VALUES(@categoryDescriptionID, @timbreModel, @classifierDescription);", -1, &_saveCategoryDescriptionStatement, NULL);
             if (rc != SQLITE_OK)
             {
                 ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
@@ -1456,7 +1495,8 @@ namespace music
         
         //bind parameters
         sqlite3_bind_null(_saveCategoryDescriptionStatement, 1);
-        sqlite3_bind_text(_saveCategoryDescriptionStatement, 2, "", -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(_saveCategoryDescriptionStatement, 2, categoryDescription.getTimbreModel().c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(_saveCategoryDescriptionStatement, 3, categoryDescription.getClassifierDescription().c_str(), -1, SQLITE_TRANSIENT);
         
         rc = sqlite3_step(_saveCategoryDescriptionStatement);
         if (rc != SQLITE_DONE)
@@ -1489,7 +1529,7 @@ namespace music
         
         if (_getCategoryDescriptionByIDStatement == NULL)
         {
-            rc = sqlite3_prepare_v2(_db, "SELECT categoryDescriptionID, dummy FROM categoryDescription WHERE categoryDescriptionID=@categoryDescriptionID;", -1, &_getCategoryDescriptionByIDStatement, NULL);
+            rc = sqlite3_prepare_v2(_db, "SELECT categoryDescriptionID, timbreModel, classifierDescription FROM categoryDescription WHERE categoryDescriptionID=@categoryDescriptionID;", -1, &_getCategoryDescriptionByIDStatement, NULL);
             if (rc != SQLITE_OK)
             {
                 ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
@@ -1504,7 +1544,9 @@ namespace music
         {
             if (rc == SQLITE_ROW)
             {
-                //categoryDescription.setDummy(std::string(reinterpret_cast<const char*>(sqlite3_column_text(_getCategoryDescriptionByIDStatement, 0))));
+                categoryDescription.setID(categoryDescriptionID);
+                categoryDescription.setTimbreModel(std::string(reinterpret_cast<const char*>(sqlite3_column_text(_getCategoryDescriptionByIDStatement, 1))));
+                categoryDescription.setClassifierDescription(std::string(reinterpret_cast<const char*>(sqlite3_column_text(_getCategoryDescriptionByIDStatement, 2))));
                 
             }
             else

@@ -239,13 +239,30 @@ namespace music
          * 
          * 
          * @remarks The category description will be a new one, no matter if
-         *      the id of <code>category</code> already exists.
+         *      the id of <code>category</code> already exists. See
+         *      updateCategoryDescriptionByID() if you want to change a
+         *      description.
          * 
+         * @see updateCategoryDescriptionByID()
          * @param[in,out] categoryDescription The category description that will be added to the database.
          *      A new id will be generated and stored in this parameter.
          * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
          */
         virtual bool addCategoryDescription(databaseentities::CategoryDescription& categoryDescription)=0;
+        
+        /**
+         * @brief Updates the category description of a category in the database.
+         * 
+         * @remarks Updates the category description only if it is found
+         *       in the database.
+         * 
+         * @todo what will happen if it is not found? up to now: nothing!
+         * 
+         * @param[in,out] categoryDescription The category description that will be added to the database.
+         *      A new id will be generated and stored in this parameter.
+         * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
+         */
+        virtual bool updateCategoryDescriptionByID(databaseentities::CategoryDescription& categoryDescription)=0;
         
         /**
          * @brief Reads a category description from the database by giving the id.
