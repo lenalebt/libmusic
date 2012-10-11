@@ -125,6 +125,9 @@ namespace music
             music::BPMEstimator<kiss_fft_scalar> bpmEst;
             if (!bpmEst.estimateBPM(transformResult))
             {
+                delete recording;
+                delete transformResult;
+                delete[] buffer;
                 dbconnection->rollbackTransaction();
                 return false;
             }
@@ -144,7 +147,13 @@ namespace music
             //this adds the recording, as well as its features.
             success = dbconnection->addRecording(*recording);
             if (!success)
+            {
+                delete recording;
+                delete transformResult;
+                delete[] buffer;
+                dbconnection->rollbackTransaction();
                 return false;
+            }
             
             recordingID = recording->getID();
             
@@ -154,7 +163,7 @@ namespace music
             
             delete recording;
             delete transformResult;
-            delete buffer;
+            delete[] buffer;
             
             dbconnection->endTransaction();
             return true;

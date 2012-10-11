@@ -580,6 +580,7 @@ namespace music
             GaussianMixtureModel<ScalarType>* clone();
             GaussianMixtureModelFullCov(const GaussianMixtureModelFullCov<ScalarType>& other);
             GaussianMixtureModelFullCov();
+            ~GaussianMixtureModelFullCov() {}
     };
     
     /**
@@ -610,6 +611,7 @@ namespace music
             GaussianMixtureModel<ScalarType>* clone();
             GaussianMixtureModelDiagCov(const GaussianMixtureModelDiagCov<ScalarType>& other);
             GaussianMixtureModelDiagCov();
+            ~GaussianMixtureModelDiagCov() {}
     };
     
     template <typename ScalarType> std::ostream& operator<<(std::ostream& os, const GaussianMixtureModel<ScalarType>& model);
