@@ -325,7 +325,7 @@ namespace music
          * @brief Load the JSON from a JSON representation in memory.
          * @see loadFromJSONString()
          */
-        void loadFromJsonValue(Json::Value& jsonValue);
+        static GaussianMixtureModel<ScalarType>* loadFromJsonValue(Json::Value& jsonValue);
         
         /**
          * @brief Calculates the AIC, AICc, BIC and stores them internally.
@@ -521,7 +521,7 @@ namespace music
          *      The algorithm should be changed to address
          *      this problem.
          */
-        void loadFromJSONString(const std::string& jsonString);
+        static GaussianMixtureModel<ScalarType>* loadFromJSONString(const std::string& jsonString);
         
         /**
          * @brief Creates a new GMM, which is a mixture of the two GMMs that are added.

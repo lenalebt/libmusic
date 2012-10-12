@@ -41,7 +41,7 @@ namespace music
          * 
          * @return <code>true</code> if the operation succeeded, <code>false</code> if it failed for some reason
          */
-        bool recalculateCategory(const databaseentities::Category& category, bool recalculateCategoryMembershipScores_ = true, ProgressCallbackCaller* callback = NULL);
+        bool recalculateCategory(databaseentities::Category& category, bool recalculateCategoryMembershipScores_ = true, ProgressCallbackCaller* callback = NULL);
         
         //first delete all scores, then it is possible to read from the db with another thread all the new scores. or from the callback, then no other thread is necessary.
         //recalulates all scores for songs to this category.

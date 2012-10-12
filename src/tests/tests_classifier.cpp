@@ -172,9 +172,10 @@ namespace tests
         DEBUG_OUT("Model as JSON from string: " << gmmJSON, 0);
         
         DEBUG_OUT("loading model from JSON string...", 0);
-        gmm2.loadFromJSONString(gmmJSON);
+        //gmm2.loadFromJSONString(gmmJSON);
+        music::GaussianMixtureModel<ScalarType>* gmmLoaded = music::GaussianMixtureModel<ScalarType>::loadFromJSONString(gmmJSON);
         
-        gaussians = gmm2.getGaussians();
+        gaussians = gmmLoaded->getGaussians();
         
         for (typename std::vector<music::Gaussian<ScalarType>*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
         {
@@ -193,8 +194,8 @@ namespace tests
         gaussians[1]->setMean(mu2 * 1.1);
         */
         
-        DEBUG_VAR_OUT(gmm.compareTo(gmm2), 0);
-        DEBUG_VAR_OUT(gmm2.compareTo(gmm), 0);
+        DEBUG_VAR_OUT(gmm.compareTo(*gmmLoaded), 0);
+        DEBUG_VAR_OUT(gmmLoaded->compareTo(gmm), 0);
         DEBUG_VAR_OUT(gmm.compareTo(gmm3), 0);
         DEBUG_VAR_OUT(gmm3.compareTo(gmm), 0);
         DEBUG_VAR_OUT(gmm.compareTo(gmm4), 0);

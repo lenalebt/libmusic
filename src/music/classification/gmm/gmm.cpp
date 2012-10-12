@@ -924,21 +924,22 @@ namespace music
     }
     
     template <typename ScalarType>
-    void GaussianMixtureModel<ScalarType>::loadFromJSONString(const std::string& jsonString)
+    GaussianMixtureModel<ScalarType>* GaussianMixtureModel<ScalarType>::loadFromJSONString(const std::string& jsonString)
     {
         Json::Value root;
         Json::Reader reader;
         reader.parse(jsonString, root, false);
-        loadFromJsonValue(root);
+        return loadFromJsonValue(root);
     }
     template <typename ScalarType>
-    void GaussianMixtureModel<ScalarType>::loadFromJsonValue(Json::Value& jsonValue)
+    GaussianMixtureModel<ScalarType>* GaussianMixtureModel<ScalarType>::loadFromJsonValue(Json::Value& jsonValue)
     {
         DEBUG_OUT("load model from JSON...", 20);
+        GaussianMixtureModel<ScalarType>* gmm = NULL;
         //first: empty list of old gaussians.
-        for (unsigned int g=0; g<gaussians.size(); g++)
-            delete gaussians[g];
-        gaussians.clear();
+        //for (unsigned int g=0; g<gaussians.size(); g++)
+        //    delete gaussians[g];
+        //gaussians.clear();
         
         //read gaussians from json input.
         for (unsigned int g=0; g<jsonValue.size(); g++)
@@ -958,6 +959,15 @@ namespace music
                 DEBUG_OUT("loading as full covariance matrix", 30);
                 gauss = new GaussianFullCov<ScalarType>(dimension);
                 varianceIsFull = true;
+            }
+            
+            if ((g==0) && varianceIsFull)
+            {
+                gmm = new GaussianMixtureModelFullCov<ScalarType>();
+            }
+            else
+            {
+                gmm = new GaussianMixtureModelDiagCov<ScalarType>();
             }
             
             //read weight
@@ -1006,18 +1016,20 @@ namespace music
             }
             gauss->setCovarianceMatrix(variance);
             
-            gaussians.push_back(gauss);
+            gmm->gaussians.push_back(gauss);
         }
         
         //set normalization factor
         double sumOfWeights = 0.0;
-        normalizationFactor = 0.0;
-        for (unsigned int g=0; g<gaussians.size(); g++)
+        double normalizationFactor = 0.0;
+        for (unsigned int g=0; g<gmm->gaussians.size(); g++)
         {
-            sumOfWeights += gaussians[g]->getWeight();
-            normalizationFactor += gaussians[g]->calculateValue(gaussians[g]->getMean());
+            sumOfWeights += gmm->gaussians[g]->getWeight();
+            normalizationFactor += gmm->gaussians[g]->calculateValue(gmm->gaussians[g]->getMean());
         }
-        normalizationFactor /= gaussians.size();
+        gmm->normalizationFactor /= gmm->gaussians.size();
+        
+        return gmm;
     }
     
     template <typename ScalarType>
