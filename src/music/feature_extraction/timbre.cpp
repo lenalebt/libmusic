@@ -141,7 +141,7 @@ namespace music
         if (timbreVectors.size() < timbreVectorSize)
             return false;
         
-        //then train the model.
+        //then train the model (best-of-three).
         if (callback)
             callback->progress(0.5,  "calculating model 1");
         model->trainGMM(timbreVectors, modelSize);

@@ -100,7 +100,7 @@ SET(
     src/music/classification/classifier.cpp
     src/music/classification/lda_fisher.cpp
     src/music/classification/classificationprocessor.cpp
-    src/music/classification/category.cpp
+    src/music/classification/classificationcategory.cpp
     src/music/classification/gmm/gmm.cpp
     src/music/classification/gmm/kmeans.cpp
     
@@ -152,7 +152,7 @@ SET(
     src/music/classification/classifier.hpp
     src/music/classification/lda_fisher.hpp
     src/music/classification/classificationprocessor.hpp
-    src/music/classification/category.hpp
+    src/music/classification/classificationcategory.hpp
     src/music/classification/gmm/gmm.hpp
     src/music/classification/gmm/kmeans.hpp
     
