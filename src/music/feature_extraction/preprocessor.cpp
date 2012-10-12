@@ -11,8 +11,8 @@
 
 namespace music
 {
-    FilePreprocessor::FilePreprocessor() :
-        lowpassFilter(NULL), cqt(NULL)
+    FilePreprocessor::FilePreprocessor(DatabaseConnection* conn) :
+        lowpassFilter(NULL), cqt(NULL), conn(conn)
     {
         lowpassFilter = musicaccess::IIRFilter::createLowpassFilter(0.25);
         
@@ -26,12 +26,12 @@ namespace music
             delete lowpassFilter;
     }
     
-    bool FilePreprocessor::preprocessFile(std::string filename, databaseentities::id_datatype& recordingID, DatabaseConnection* dbconnection, ProgressCallbackCaller* callback)
+    bool FilePreprocessor::preprocessFile(std::string filename, databaseentities::id_datatype& recordingID, ProgressCallbackCaller* callback)
     {
         try
         {
             //start transaction, will be able to rollback.
-            dbconnection->beginTransaction();
+            conn->beginTransaction();
             
             float stepCount = 17.0;
             bool success;
@@ -128,7 +128,7 @@ namespace music
                 delete recording;
                 delete transformResult;
                 delete[] buffer;
-                dbconnection->rollbackTransaction();
+                conn->rollbackTransaction();
                 return false;
             }
             features->setTempo(bpmEst.getBPMMean());
@@ -145,13 +145,13 @@ namespace music
             
             
             //this adds the recording, as well as its features.
-            success = dbconnection->addRecording(*recording);
+            success = conn->addRecording(*recording);
             if (!success)
             {
                 delete recording;
                 delete transformResult;
                 delete[] buffer;
-                dbconnection->rollbackTransaction();
+                conn->rollbackTransaction();
                 return false;
             }
             
@@ -165,13 +165,13 @@ namespace music
             delete transformResult;
             delete[] buffer;
             
-            dbconnection->endTransaction();
+            conn->endTransaction();
             return true;
         }
         catch (...)
         {
             ERROR_OUT("An unknown error occurred. Normally, the program would have been terminated here. Rolling back database transaction and trying to go on.", 0);
-            dbconnection->rollbackTransaction();
+            conn->rollbackTransaction();
             return false;
         }
     }

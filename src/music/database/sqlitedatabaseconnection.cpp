@@ -19,6 +19,7 @@ namespace music
         _getRecordingIDByFilenameStatement              (NULL),
         _getRecordingIDsByArtistTitleAlbumStatement     (NULL),
         _getRecordingIDsByCategoryMembershipScoresStatement(NULL),
+        _getRecordingIDsByCategoryExampleScoresStatement(NULL),
         _deleteRecordingByIDStatement                   (NULL),
         
         _saveRecordingFeaturesStatement                 (NULL),
@@ -81,6 +82,8 @@ namespace music
             sqlite3_finalize(_getRecordingIDsByArtistTitleAlbumStatement);
         if (_getRecordingIDsByCategoryMembershipScoresStatement != NULL)
             sqlite3_finalize(_getRecordingIDsByCategoryMembershipScoresStatement);
+        if (_getRecordingIDsByCategoryExampleScoresStatement != NULL)
+            sqlite3_finalize(_getRecordingIDsByCategoryExampleScoresStatement);
         if (_deleteRecordingByIDStatement != NULL)
             sqlite3_finalize(_deleteRecordingByIDStatement);
             
@@ -1268,6 +1271,61 @@ namespace music
         }
         
         rc = sqlite3_reset(_getRecordingIDsByCategoryMembershipScoresStatement);
+        if (rc != SQLITE_OK)
+        {
+            ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        return true;
+    }
+    
+    bool SQLiteDatabaseConnection::getCategoryExampleRecordingIDs(std::vector<std::pair<databaseentities::id_datatype, double> >& recordingIDsAndScores, databaseentities::id_datatype categoryID, int limit)
+    {
+        DEBUG_OUT("will read recordingIDs and their scores by category ID and score now (examples)...", 35);
+        
+        int rc;
+        recordingIDsAndScores.clear();
+        
+        if (_getRecordingIDsByCategoryExampleScoresStatement == NULL)
+        {
+            rc = sqlite3_prepare_v2(_db, "SELECT recordingID, score FROM categoryExample WHERE categoryID=@categoryID LIMIT @limit;", -1, &_getRecordingIDsByCategoryExampleScoresStatement, NULL);
+            if (rc != SQLITE_OK)
+            {
+                ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        //bind parameters
+        sqlite3_bind_int64(_getRecordingIDsByCategoryExampleScoresStatement, 1, categoryID);
+        sqlite3_bind_int(_getRecordingIDsByCategoryExampleScoresStatement, 2, limit);
+        
+        while ((rc = sqlite3_step(_getRecordingIDsByCategoryExampleScoresStatement)) != SQLITE_DONE)
+        {
+            if (rc == SQLITE_ROW)
+            {
+                recordingIDsAndScores.push_back(
+                    std::pair<databaseentities::id_datatype, double>(
+                        sqlite3_column_int64(_getRecordingIDsByCategoryExampleScoresStatement, 0),
+                        sqlite3_column_double(_getRecordingIDsByCategoryExampleScoresStatement, 1)
+                        )
+                    );
+            }
+            else
+            {
+                ERROR_OUT("Failed to read data from database. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        if (rc != SQLITE_DONE)
+        {
+            ERROR_OUT("Failed to execute statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        rc = sqlite3_reset(_getRecordingIDsByCategoryExampleScoresStatement);
         if (rc != SQLITE_OK)
         {
             ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);

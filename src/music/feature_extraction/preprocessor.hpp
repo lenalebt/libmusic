@@ -23,10 +23,11 @@ namespace music
     protected:
         musicaccess::IIRFilter* lowpassFilter;
         ConstantQTransform* cqt;
+        DatabaseConnection* conn;
     public:
-        FilePreprocessor();
+        FilePreprocessor(DatabaseConnection* conn);
         ~FilePreprocessor();
-        bool preprocessFile(std::string filename, databaseentities::id_datatype& recordingID, DatabaseConnection* dbconnection, ProgressCallbackCaller* callback = NULL);
+        bool preprocessFile(std::string filename, databaseentities::id_datatype& recordingID, ProgressCallbackCaller* callback = NULL);
     };
 }
 
