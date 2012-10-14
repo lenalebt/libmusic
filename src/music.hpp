@@ -14,6 +14,8 @@
 #include "music/dynamic_range.hpp"
 #include "music/timbre.hpp"
 #include "music/preprocessor.hpp"
+#include "music/classificationprocessor.hpp"
+#include "music/classificationcategory.hpp"
 
 
 /**
