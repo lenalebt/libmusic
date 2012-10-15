@@ -961,13 +961,16 @@ namespace music
                 varianceIsFull = true;
             }
             
-            if ((g==0) && varianceIsFull)
+            if (g==0)
             {
-                gmm = new GaussianMixtureModelFullCov<ScalarType>();
-            }
-            else
-            {
-                gmm = new GaussianMixtureModelDiagCov<ScalarType>();
+                if (varianceIsFull)
+                {
+                    gmm = new GaussianMixtureModelFullCov<ScalarType>();
+                }
+                else
+                {
+                    gmm = new GaussianMixtureModelDiagCov<ScalarType>();
+                }
             }
             
             //read weight
