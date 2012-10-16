@@ -1289,7 +1289,7 @@ namespace music
         
         if (_getAllRecordingIDsStatement == NULL)
         {
-            rc = sqlite3_prepare_v2(_db, "SELECT recordingID FROM recording WHERE recordingID>=@minID LIMIT @limit;", -1, &_getAllRecordingIDsStatement, NULL);
+            rc = sqlite3_prepare_v2(_db, "SELECT recordingID FROM recording WHERE recordingID>=@minID ORDER BY ASC recordingID LIMIT @limit;", -1, &_getAllRecordingIDsStatement, NULL);
             if (rc != SQLITE_OK)
             {
                 ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
