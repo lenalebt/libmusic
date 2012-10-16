@@ -14,7 +14,7 @@ namespace music
         
         std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > samples;
         int i=0;
-        #if 0
+        
         for (std::vector<GaussianMixtureModel<kiss_fft_scalar>*>::iterator it = components.begin(); it != components.end(); it++)
         {
             for (unsigned int j=0; j<samplesPerGMM; j++)
@@ -26,16 +26,6 @@ namespace music
                 callback->progress(0.5 * double(i)/components.size(), "generating samples...");
             i++;
         }
-        #else
-        for (unsigned int j=0; j<samplesPerGMM; j++)
-        {
-            for (std::vector<GaussianMixtureModel<kiss_fft_scalar>*>::iterator it = components.begin(); it != components.end(); it++)
-            {
-                samples.push_back((*it)->rand());
-                i++;
-            }
-        }
-        #endif
         
         if (callback)
             callback->progress(0.5, "training timbre model...");

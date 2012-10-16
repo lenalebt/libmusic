@@ -11,11 +11,11 @@
 
 namespace music
 {
-    FilePreprocessor::FilePreprocessor(DatabaseConnection* conn, unsigned int timbreModelSize, unsigned int timbreDimension, double timeSliceSize) :
+    FilePreprocessor::FilePreprocessor(DatabaseConnection* conn, unsigned int timbreModelSize, unsigned int timbreDimension, double timbreTimeSliceSize) :
         lowpassFilter(NULL), cqt(NULL), conn(conn),
         timbreModelSize(timbreModelSize),
         timbreDimension(timbreDimension),
-        timeSliceSize(timeSliceSize)
+        timbreTimeSliceSize(timbreTimeSliceSize)
     {
         assert(conn != NULL);
         
@@ -144,7 +144,7 @@ namespace music
             //TODO: calculate features.
             music::TimbreModel timbreModel(transformResult);
             //build model from 30 gaussians, 10ms slices, 20-dimensional vectors
-            timbreModel.calculateModel(timbreModelSize, timeSliceSize, timbreDimension);
+            timbreModel.calculateModel(timbreModelSize, timbreTimeSliceSize, timbreDimension);
             features->setTimbreModel(timbreModel.getModel()->toJSONString());
             
             //start transaction, will be able to rollback.

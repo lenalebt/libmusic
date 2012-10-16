@@ -76,7 +76,8 @@ namespace music
             if (callback)
                 callback->progress(0.5, "recalculate membership scores");
             //TODO: ID des callbacks stimmt evtl so nicht. neu anpassen, dafür funktionen von progresscallbackcaller ändern?
-            recalculateCategoryMembershipScores(category, callback);
+            if (!recalculateCategoryMembershipScores(category, callback))
+                return false;
         }
         
         //delete timbreModels
