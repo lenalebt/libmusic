@@ -52,6 +52,7 @@ namespace music
          *      If you want a field to not be of interest, fill it with a <code>%</code> character.
          */
         bool getRecordingIDsByProperties(std::vector<databaseentities::id_datatype>& recordingIDs, const std::string& artist, const std::string& title, const std::string& album);
+        bool getRecordingIDs(std::vector<databaseentities::id_datatype>& recordingIDs, databaseentities::id_datatype minID=0, unsigned int limit = 10000);
         
         bool getRecordingFeaturesByID(databaseentities::RecordingFeatures& recordingFeatures);
         bool updateRecordingFeaturesByID(databaseentities::RecordingFeatures& recordingFeatures);
@@ -93,6 +94,7 @@ namespace music
         sqlite3_stmt* _updateRecordingByIDStatement;
         sqlite3_stmt* _getRecordingByIDStatement;
         sqlite3_stmt* _getRecordingIDByFilenameStatement;
+        sqlite3_stmt* _getAllRecordingIDsStatement;
         sqlite3_stmt* _getRecordingIDsByArtistTitleAlbumStatement;
         sqlite3_stmt* _getRecordingIDsByCategoryMembershipScoresStatement;
         sqlite3_stmt* _getRecordingIDsByCategoryExampleScoresStatement;

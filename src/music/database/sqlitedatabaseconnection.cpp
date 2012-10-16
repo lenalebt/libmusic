@@ -20,6 +20,7 @@ namespace music
         _updateRecordingByIDStatement                   (NULL),
         _getRecordingByIDStatement                      (NULL),
         _getRecordingIDByFilenameStatement              (NULL),
+        _getAllRecordingIDsStatement                    (NULL),
         _getRecordingIDsByArtistTitleAlbumStatement     (NULL),
         _getRecordingIDsByCategoryMembershipScoresStatement(NULL),
         _getRecordingIDsByCategoryExampleScoresStatement(NULL),
@@ -81,6 +82,8 @@ namespace music
             sqlite3_finalize(_getRecordingByIDStatement);
         if (_getRecordingIDByFilenameStatement != NULL)
             sqlite3_finalize(_getRecordingIDByFilenameStatement);
+        if (_getAllRecordingIDsStatement != NULL)
+            sqlite3_finalize(_getAllRecordingIDsStatement);
         if (_getRecordingIDsByArtistTitleAlbumStatement != NULL)
             sqlite3_finalize(_getRecordingIDsByArtistTitleAlbumStatement);
         if (_getRecordingIDsByCategoryMembershipScoresStatement != NULL)
@@ -1268,6 +1271,56 @@ namespace music
         }
         
         rc = sqlite3_reset(_getRecordingIDsByArtistTitleAlbumStatement);
+        if (rc != SQLITE_OK)
+        {
+            ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        return true;
+    }
+    
+    bool SQLiteDatabaseConnection::getRecordingIDs(std::vector<databaseentities::id_datatype>& recordingIDs, databaseentities::id_datatype minID, unsigned int limit)
+    {
+        DEBUG_OUT("will read all recordingIDs now...", 35);
+        
+        int rc;
+        recordingIDs.clear();
+        
+        if (_getAllRecordingIDsStatement == NULL)
+        {
+            rc = sqlite3_prepare_v2(_db, "SELECT recordingID FROM recording WHERE recordingID>=@minID LIMIT @limit;", -1, &_getAllRecordingIDsStatement, NULL);
+            if (rc != SQLITE_OK)
+            {
+                ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        //bind parameters
+        sqlite3_bind_int64(_getAllRecordingIDsStatement, 1, minID);
+        sqlite3_bind_int(_getAllRecordingIDsStatement, 2, limit);
+        
+        while ((rc = sqlite3_step(_getAllRecordingIDsStatement)) != SQLITE_DONE)
+        {
+            if (rc == SQLITE_ROW)
+            {
+                recordingIDs.push_back(sqlite3_column_int64(_getAllRecordingIDsStatement, 0));
+            }
+            else
+            {
+                ERROR_OUT("Failed to read data from database. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        if (rc != SQLITE_DONE)
+        {
+            ERROR_OUT("Failed to execute statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        rc = sqlite3_reset(_getAllRecordingIDsStatement);
         if (rc != SQLITE_OK)
         {
             ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
