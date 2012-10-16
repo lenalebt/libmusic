@@ -4,6 +4,8 @@
 #include "databaseconnection.hpp"
 #include <sqlite3.h>
 
+#include <stack>
+
 namespace music
 {
     /**
@@ -82,6 +84,8 @@ namespace music
     protected:
         bool _dbOpen;
         sqlite3* _db;
+        
+        std::stack<std::string> _transactionStack;
         
         sqlite3_stmt* _getLastInsertRowIDStatement;
         

@@ -60,8 +60,12 @@ namespace music
         
         /**
          * @brief Tells the database backend to open a transaction.
+         * 
+         * Nested transactions are possible. You need to call endTransaction()
+         * or rollbackTransaction()
+         * for each beginTransaction().
+         * 
          * @return if the operation failed
-         * @remarks Transactions cannot be nested.
          * @see endTransaction()
          * @see rollbackTransaction()
          */
@@ -81,7 +85,9 @@ namespace music
         /**
          * @brief Tells the database to rollback the last open transaction.
          * 
-         * Automatically ends the transaction. You do not need to end it.
+         * This operation closes exactly one transaction from the transaction stack.
+         * If there were more transactions, you need to close all of
+         * them seperately.
          * 
          * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
          * @see beginTransaction()

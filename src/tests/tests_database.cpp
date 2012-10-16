@@ -261,6 +261,24 @@ namespace tests
         CHECK(conn->updateCategoryExampleScore(3, 1, 5.1));
         CHECK(conn->updateCategoryExampleScore(4, 1, 5.2));
         CHECK(conn->updateCategoryExampleScore(5, 1, 5.3));
+        CHECK(conn->beginTransaction());
+        CHECK(conn->updateCategoryExampleScore(2, 1, 6.0));
+        CHECK(conn->updateCategoryExampleScore(3, 1, 6.1));
+        CHECK(conn->updateCategoryExampleScore(4, 1, 6.2));
+        CHECK(conn->updateCategoryExampleScore(5, 1, 6.3));
+        CHECK(conn->rollbackTransaction());
+        DEBUG_OUT("first: partial rollback, the semi-old values should still be visible.", 0);
+        score=0.0;
+        CHECK(conn->getCategoryExampleScore(1, 1, score));
+        CHECK_EQ(score, 1.0);
+        CHECK(conn->getCategoryExampleScore(2, 1, score));
+        CHECK_EQ(score, 5.0);
+        CHECK(conn->getCategoryExampleScore(3, 1, score));
+        CHECK_EQ(score, 5.1);
+        CHECK(conn->getCategoryExampleScore(4, 1, score));
+        CHECK_EQ(score, 5.2);
+        CHECK(conn->getCategoryExampleScore(5, 1, score));
+        CHECK_EQ(score, 5.3);
         CHECK(conn->rollbackTransaction());
         DEBUG_OUT("after rollback, the old values should still be visible.", 0);
         
