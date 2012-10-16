@@ -35,7 +35,8 @@ namespace music
      * @endcode
      * 
      * If you need greater control
-     * of the features, you need to re-implement the behaviour of this class.
+     * of the features, or need the features themselves,
+     * you need to re-implement the behaviour of this class.
      * 
      * You may set the
      * dimension and time slice size of the timbre vectors, as well as
@@ -64,7 +65,7 @@ namespace music
         
         unsigned int timbreModelSize;
         unsigned int timbreDimension;
-        double timeSliceSize;
+        double timbreTimeSliceSize;
     public:
         /**
          * @brief Constructs a new FilePreprocessor object.
@@ -103,13 +104,41 @@ namespace music
          */
         bool preprocessFile(std::string filename, databaseentities::id_datatype& recordingID, ProgressCallbackCaller* callback = NULL);
         
-        void setTimeSliceSize(double timeSliceSize)       {this->timeSliceSize = timeSliceSize;}
-        unsigned int getTimeSliceSize()                   {return timeSliceSize;}
+        /**
+         * @brief Sets the time slice size for timbre extraction.
+         * 
+         * Typical values are in the range of <code>0.005 - 0.03</code>.
+         */
+        void setTimbreTimeSliceSize(double timeSliceSize) {this->timbreTimeSliceSize = timeSliceSize;}
+        /**
+         * @brief Returns the time slice size for timbre extraction.
+         * @return the time slice size for timbre extraction.
+         */
+        unsigned int getTimbreTimeSliceSize()             {return timbreTimeSliceSize;}
         
+        /**
+         * @brief Sets the dimension of the timbre vectors.
+         * 
+         * Typical values are in the range of <code>4-40</code>.
+         */
         void setTimbreDimension(unsigned int dimension)   {this->timbreDimension = dimension;}
+        /**
+         * @brief Returns the dimension of the timbre vectors.
+         * @return the dimension of the timbre vectors.
+         */
         unsigned int getTimbreDimension()                 {return timbreDimension;}
         
+        /**
+         * @brief Sets the model size for the timbre vector model.
+         * 
+         * Typical values are in the range of <code>5-50</code>.
+         * You may set larger values, but you risk overfitting.
+         */
         void setTimbreModelSize(unsigned int modelSize)   {this->timbreModelSize = modelSize;}
+        /**
+         * @brief Returns the model size for the timbre vector model.
+         * @return the model size for the timbre vector model.
+         */
         unsigned int getTimbreModelSize()                 {return timbreModelSize;}
     };
 }

@@ -13,8 +13,8 @@ namespace music
 {
     FilePreprocessor::FilePreprocessor(DatabaseConnection* conn, unsigned int timbreModelSize, unsigned int timbreDimension, double timeSliceSize) :
         lowpassFilter(NULL), cqt(NULL), conn(conn),
-        timbreDimension(timbreDimension),
         timbreModelSize(timbreModelSize),
+        timbreDimension(timbreDimension),
         timeSliceSize(timeSliceSize)
     {
         assert(conn != NULL);
