@@ -662,7 +662,7 @@ namespace tests
         
         std::queue<std::string> files;
         
-        /*files << "./testdata/chords/chord-major-a-guitar.mp3";
+        files << "./testdata/chords/chord-major-a-guitar.mp3";
         files << "./testdata/chords/chord-major-c7-guitar.mp3";
         files << "./testdata/chords/chord-major-c-guitar.mp3";
         files << "./testdata/chords/chord-major-d4-guitar.mp3";
@@ -730,8 +730,8 @@ namespace tests
         files << "./testdata/instrument/multiplenotes/instrument-screamb4.mp3";
         files << "./testdata/instrument/multiplenotes/instrument-viola_vibrato.mp3";
         files << "./testdata/instrument/multiplenotes/instrument-viola_warm_section.mp3";
-        files << "./testdata/instrument/multiplenotes/instrument-violin_warm_section.mp3";*/
-        /*
+        files << "./testdata/instrument/multiplenotes/instrument-violin_warm_section.mp3";
+        
         DEBUG_OUT("adding files in \"./testdata/instrument/singlenotes/\" to the file list...", 10);
         DIR* dir = NULL;        //POSIX standard calls
         struct dirent *ent;
@@ -771,8 +771,9 @@ namespace tests
         files << "./testdata/dead_rocks.mp3";
         files << "./testdata/tenpenny_joke.mp3";
         files << "./testdata/test.mp3";
-        */
         
+        
+        /*
         files << "./testdata/instrument/singlenotes/brass-trumpet3-d.mp3";
         files << "./testdata/instrument/singlenotes/strings-violin-c.mp3";
         files << "./testdata/instrument/singlenotes/strings-violin-d.mp3";
@@ -789,7 +790,7 @@ namespace tests
         files << "./testdata/instrument/singlenotes/synth-fatbass-d.mp3";
         files << "./testdata/instrument/singlenotes/brass-trumpet1-d.mp3";
         files << "./testdata/instrument/singlenotes/brass-trumpet2-d.mp3";
-        files << "./testdata/instrument/singlenotes/synth-sine-d.mp3";
+        files << "./testdata/instrument/singlenotes/synth-sine-d.mp3";*/
         
         musicaccess::SoundFile file;
         musicaccess::Resampler22kHzMono resampler;
@@ -854,7 +855,8 @@ namespace tests
                 if (tmp.size() > 1)
                     data.push_back(tmp);
             }
-            DEBUG_VAR_OUT(data.size(), 0);
+            CHECK_OP(data.size(), >, 0);
+            DEBUG_VAR_OUT(data.size(), 10);
             
             std::string outdatfile = std::string("cqfcc/") + basename(filename, true) + ".dat";
             DEBUG_OUT("Writing CQFCCs to file\"" << outdatfile << "\"...", 10);
@@ -871,11 +873,12 @@ namespace tests
             DEBUG_OUT("gaussians of gmm algorithm:", 10);
             for(std::vector<music::Gaussian<kiss_fft_scalar>*>::const_iterator it = gaussians.begin(); it != gaussians.end(); it++)
             {
-                DEBUG_VAR_OUT((**it).getMean(), 0);
-                DEBUG_VAR_OUT((**it).getCovarianceMatrix(), 0);
-                std::cerr << (**it).getWeight() << ":\t " << (**it).getMean().transpose() << std::endl;
+                DEBUG_VAR_OUT((**it).getMean(), 10);
+                DEBUG_VAR_OUT((**it).getCovarianceMatrix(), 10);
+                //std::cerr << (**it).getWeight() << ":\t " << (**it).getMean().transpose() << std::endl;
             }
             
+            #if 0
             if (!first)
             {
                 /*
@@ -892,6 +895,7 @@ namespace tests
                 violingmm = gmm;
                 first=false;
             }
+            #endif
             
             delete buffer;
             buffer = NULL;
@@ -907,10 +911,10 @@ namespace tests
         DEBUG_VAR_OUT(data[2], 0);
         DEBUG_VAR_OUT(data[3], 0);
         */
-        int gaussianCount = 4;
+        //int gaussianCount = 4;
         
         
-        return EXIT_FAILURE;
+        return EXIT_SUCCESS;
         /*
         music::GaussianMixtureModelFullCov<double> gmm1;
         gmm1.trainGMM(data, gaussianCount);

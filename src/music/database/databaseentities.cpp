@@ -40,13 +40,17 @@ namespace music
             length(0.0),
             tempo(0.0),
             dynamicRange(0.0),
-            timbreModel("")
+            timbreModel(""),
+            chordsModel("")
         {
             
         }
         
         CategoryDescription::CategoryDescription() :
-            id(-1)
+            id(-1),
+            timbreModel(""),
+            chordsModel(""),
+            classifierDescription("")
         {
             
         }

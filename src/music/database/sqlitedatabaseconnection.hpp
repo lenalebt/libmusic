@@ -51,7 +51,7 @@ namespace music
          *      wildcards: <code>_</code> is a single character, <code>%</code> may be any number of characters.
          *      If you want a field to not be of interest, fill it with a <code>%</code> character.
          */
-        bool getRecordingIDsByProperties(std::vector<databaseentities::id_datatype>& recordingIDs, const std::string& artist, const std::string& title, const std::string& album);
+        bool getRecordingIDsByProperties(std::vector<databaseentities::id_datatype>& recordingIDs, const std::string& artist="%", const std::string& title="%", const std::string& album="%", const std::string& filename="%");
         bool getRecordingIDs(std::vector<databaseentities::id_datatype>& recordingIDs, databaseentities::id_datatype minID=0, unsigned int limit = 10000);
         
         bool getRecordingFeaturesByID(databaseentities::RecordingFeatures& recordingFeatures);

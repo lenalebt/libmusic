@@ -192,7 +192,9 @@ namespace music
                 
                 delete recordingModel;
                 i++;
+                minID = *it;
             }
+            minID++;
         } while (!recordingIDs.empty());
         
         delete categoryModel;
@@ -209,9 +211,41 @@ namespace music
     {
         return false;
     }
-    bool ClassificationProcessor::addRecording(const databaseentities::Recording&)
+    bool ClassificationProcessor::addRecording(const databaseentities::Recording& recording)
     {
-        return false;
+        std::vector<databaseentities::id_datatype> categoryIDs;
+        conn->getCategoryIDsByName(categoryIDs, "%");   //read all category IDs
+        
+        GaussianMixtureModel<kiss_fft_scalar>* recordingModel =
+            GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(
+                recording.getRecordingFeatures()->getTimbreModel()
+            );
+        
+        conn->beginTransaction();
+        for (std::vector<databaseentities::id_datatype>::const_iterator it = categoryIDs.begin(); it != categoryIDs.end(); ++it)
+        {
+            databaseentities::Category category;
+            category.setID(*it);
+            conn->getCategoryByID(category, true);
+            GaussianMixtureModel<kiss_fft_scalar>* categoryModel =
+                GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(
+                    category.getCategoryDescription()->getTimbreModel()
+                );
+            
+            if (!conn->updateRecordingToCategoryScore(recording.getID(), category.getID(), recordingModel->compareTo(*categoryModel)))
+            {
+                conn->rollbackTransaction();
+                delete categoryModel;
+                delete recordingModel;
+                return false;
+            }
+            
+            delete categoryModel;
+        }
+        conn->endTransaction();
+        
+        delete recordingModel;
+        return true;
     }
     bool ClassificationProcessor::setRecordingCategoryExampleScore(const databaseentities::Recording& recording, const databaseentities::Category& category, double score, bool recalculateCategory_)
     {

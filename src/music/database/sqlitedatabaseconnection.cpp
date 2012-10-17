@@ -255,16 +255,15 @@ namespace music
         ctstatements.push_back("CREATE TABLE IF NOT EXISTS features(featuresID INTEGER PRIMARY KEY, length REAL, "
             "tempo REAL, dynamicrange REAL, "
             "timbreModel TEXT, "
-            "chordsID INTEGER, "   //TODO: NOT NULL
-            "FOREIGN KEY(chordsID)  REFERENCES chords(chordsID)"    //TODO: add more elements
+            "chordsModel TEXT"
             ");");
-        ctstatements.push_back("CREATE TABLE IF NOT EXISTS chords(chordsID INTEGER NOT NULL, starttime REAL, endtime REAL, chordVector TEXT);");
         
         ctstatements.push_back("CREATE TABLE IF NOT EXISTS category(categoryID INTEGER PRIMARY KEY, categoryName TEXT UNIQUE, "
             "categoryDescriptionID INTEGER NOT NULL,"
             "FOREIGN KEY(categoryDescriptionID) REFERENCES categoryDescription(categoryDescriptionID)"
             ");");
         ctstatements.push_back("CREATE TABLE IF NOT EXISTS categoryDescription(categoryDescriptionID INTEGER PRIMARY KEY, timbreModel TEXT, "
+            "chordsModel TEXT, "
             "classifierDescription TEXT"
             ");");
         
@@ -580,7 +579,7 @@ namespace music
         
         if (_saveRecordingFeaturesStatement == NULL)
         {
-            rc = sqlite3_prepare_v2(_db, "INSERT INTO features VALUES(@featuresID, @length, @tempo, @dynamicrange, @timbreModel, @chordsID);", -1, &_saveRecordingFeaturesStatement, NULL);
+            rc = sqlite3_prepare_v2(_db, "INSERT INTO features VALUES(@featuresID, @length, @tempo, @dynamicrange, @timbreModel, @chordsModel);", -1, &_saveRecordingFeaturesStatement, NULL);
             if (rc != SQLITE_OK)
             {
                 ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
@@ -595,7 +594,7 @@ namespace music
         sqlite3_bind_double(_saveRecordingFeaturesStatement, 3, recordingFeatures.getTempo());
         sqlite3_bind_double(_saveRecordingFeaturesStatement, 4, recordingFeatures.getDynamicRange());
         sqlite3_bind_text(_saveRecordingFeaturesStatement, 5, recordingFeatures.getTimbreModel().c_str(), -1, SQLITE_TRANSIENT);
-        sqlite3_bind_null(_saveRecordingFeaturesStatement, 6);
+        sqlite3_bind_text(_saveRecordingFeaturesStatement, 6, recordingFeatures.getChordsModel().c_str(), -1, SQLITE_TRANSIENT);
         
         rc = sqlite3_step(_saveRecordingFeaturesStatement);
         if (rc != SQLITE_DONE)
@@ -1229,7 +1228,7 @@ namespace music
         return true;
     }
     
-    bool SQLiteDatabaseConnection::getRecordingIDsByProperties(std::vector<databaseentities::id_datatype>& recordingIDs, const std::string& artist, const std::string& title, const std::string& album)
+    bool SQLiteDatabaseConnection::getRecordingIDsByProperties(std::vector<databaseentities::id_datatype>& recordingIDs, const std::string& artist, const std::string& title, const std::string& album, const std::string& filename)
     {
         DEBUG_OUT("will read recordingIDs by artist, title and album now...", 35);
         
@@ -1238,7 +1237,7 @@ namespace music
         
         if (_getRecordingIDsByArtistTitleAlbumStatement == NULL)
         {
-            rc = sqlite3_prepare_v2(_db, "SELECT recordingID FROM recording NATURAL JOIN artist NATURAL JOIN album WHERE (artistName LIKE @artistName) AND (title LIKE @title) AND (albumName LIKE @albumName);", -1, &_getRecordingIDsByArtistTitleAlbumStatement, NULL);
+            rc = sqlite3_prepare_v2(_db, "SELECT recordingID FROM recording NATURAL JOIN artist NATURAL JOIN album WHERE (artistName LIKE @artistName) AND (title LIKE @title) AND (albumName LIKE @albumName) AND (filename LIKE @filename);", -1, &_getRecordingIDsByArtistTitleAlbumStatement, NULL);
             if (rc != SQLITE_OK)
             {
                 ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
@@ -1250,6 +1249,7 @@ namespace music
         sqlite3_bind_text(_getRecordingIDsByArtistTitleAlbumStatement, 1, artist.c_str(), -1, SQLITE_TRANSIENT);
         sqlite3_bind_text(_getRecordingIDsByArtistTitleAlbumStatement, 2, title.c_str(), -1, SQLITE_TRANSIENT);
         sqlite3_bind_text(_getRecordingIDsByArtistTitleAlbumStatement, 3, album.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(_getRecordingIDsByArtistTitleAlbumStatement, 4, filename.c_str(), -1, SQLITE_TRANSIENT);
         
         while ((rc = sqlite3_step(_getRecordingIDsByArtistTitleAlbumStatement)) != SQLITE_DONE)
         {
@@ -1289,7 +1289,7 @@ namespace music
         
         if (_getAllRecordingIDsStatement == NULL)
         {
-            rc = sqlite3_prepare_v2(_db, "SELECT recordingID FROM recording WHERE recordingID>=@minID ORDER BY ASC recordingID LIMIT @limit;", -1, &_getAllRecordingIDsStatement, NULL);
+            rc = sqlite3_prepare_v2(_db, "SELECT recordingID FROM recording WHERE recordingID>=@minID ORDER BY recordingID ASC LIMIT @limit;", -1, &_getAllRecordingIDsStatement, NULL);
             if (rc != SQLITE_OK)
             {
                 ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
@@ -1455,7 +1455,7 @@ namespace music
         
         if (_getRecordingFeaturesByIDStatement == NULL)
         {
-            rc = sqlite3_prepare_v2(_db, "SELECT length, tempo, dynamicrange, timbreModel FROM features WHERE featuresID=@featuresID;", -1, &_getRecordingFeaturesByIDStatement, NULL);
+            rc = sqlite3_prepare_v2(_db, "SELECT length, tempo, dynamicrange, timbreModel, chordsModel FROM features WHERE featuresID=@featuresID;", -1, &_getRecordingFeaturesByIDStatement, NULL);
             if (rc != SQLITE_OK)
             {
                 ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
@@ -1475,6 +1475,7 @@ namespace music
                 recordingFeatures.setTempo(       sqlite3_column_double(_getRecordingFeaturesByIDStatement, 1));
                 recordingFeatures.setDynamicRange(sqlite3_column_double(_getRecordingFeaturesByIDStatement, 2));
                 recordingFeatures.setTimbreModel( std::string(reinterpret_cast<const char*>(sqlite3_column_text(_getRecordingFeaturesByIDStatement, 3))));
+                recordingFeatures.setChordsModel( std::string(reinterpret_cast<const char*>(sqlite3_column_text(_getRecordingFeaturesByIDStatement, 4))));
             }
             else
             {
@@ -1660,7 +1661,7 @@ namespace music
         int rc;
         if (_updateCategoryDescriptionByIDStatement == NULL)
         {
-            rc = sqlite3_prepare_v2(_db, "UPDATE categoryDescription SET timbreModel=@timbreModel, classifierDescription=@classifierDescription WHERE categoryDescriptionID=@categoryDescriptionID;", -1, &_updateCategoryDescriptionByIDStatement, NULL);
+            rc = sqlite3_prepare_v2(_db, "UPDATE categoryDescription SET timbreModel=@timbreModel, chordsModel=@chordsModel, classifierDescription=@classifierDescription WHERE categoryDescriptionID=@categoryDescriptionID;", -1, &_updateCategoryDescriptionByIDStatement, NULL);
             if (rc != SQLITE_OK)
             {
                 ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
@@ -1669,8 +1670,9 @@ namespace music
         }
         
         sqlite3_bind_text( _updateCategoryDescriptionByIDStatement, 1, categoryDescription.getTimbreModel().c_str(), -1, SQLITE_TRANSIENT);
-        sqlite3_bind_text( _updateCategoryDescriptionByIDStatement, 2, categoryDescription.getClassifierDescription().c_str(), -1, SQLITE_TRANSIENT);
-        sqlite3_bind_int64(_updateCategoryDescriptionByIDStatement, 3, categoryDescription.getID());
+        sqlite3_bind_text( _updateCategoryDescriptionByIDStatement, 2, categoryDescription.getChordsModel().c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text( _updateCategoryDescriptionByIDStatement, 3, categoryDescription.getClassifierDescription().c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_int64(_updateCategoryDescriptionByIDStatement, 4, categoryDescription.getID());
         
         rc = sqlite3_step(_updateCategoryDescriptionByIDStatement);
         if (rc != SQLITE_DONE)
@@ -1695,7 +1697,7 @@ namespace music
         
         if (_saveCategoryDescriptionStatement == NULL)
         {
-            rc = sqlite3_prepare_v2(_db, "INSERT INTO categoryDescription VALUES(@categoryDescriptionID, @timbreModel, @classifierDescription);", -1, &_saveCategoryDescriptionStatement, NULL);
+            rc = sqlite3_prepare_v2(_db, "INSERT INTO categoryDescription VALUES(@categoryDescriptionID, @timbreModel, @chordsModel, @classifierDescription);", -1, &_saveCategoryDescriptionStatement, NULL);
             if (rc != SQLITE_OK)
             {
                 ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
@@ -1706,7 +1708,8 @@ namespace music
         //bind parameters
         sqlite3_bind_null(_saveCategoryDescriptionStatement, 1);
         sqlite3_bind_text(_saveCategoryDescriptionStatement, 2, categoryDescription.getTimbreModel().c_str(), -1, SQLITE_TRANSIENT);
-        sqlite3_bind_text(_saveCategoryDescriptionStatement, 3, categoryDescription.getClassifierDescription().c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(_saveCategoryDescriptionStatement, 3, categoryDescription.getChordsModel().c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(_saveCategoryDescriptionStatement, 4, categoryDescription.getClassifierDescription().c_str(), -1, SQLITE_TRANSIENT);
         
         rc = sqlite3_step(_saveCategoryDescriptionStatement);
         if (rc != SQLITE_DONE)
@@ -1739,7 +1742,7 @@ namespace music
         
         if (_getCategoryDescriptionByIDStatement == NULL)
         {
-            rc = sqlite3_prepare_v2(_db, "SELECT categoryDescriptionID, timbreModel, classifierDescription FROM categoryDescription WHERE categoryDescriptionID=@categoryDescriptionID;", -1, &_getCategoryDescriptionByIDStatement, NULL);
+            rc = sqlite3_prepare_v2(_db, "SELECT categoryDescriptionID, timbreModel, chordsModel, classifierDescription FROM categoryDescription WHERE categoryDescriptionID=@categoryDescriptionID;", -1, &_getCategoryDescriptionByIDStatement, NULL);
             if (rc != SQLITE_OK)
             {
                 ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
@@ -1756,7 +1759,8 @@ namespace music
             {
                 categoryDescription.setID(categoryDescriptionID);
                 categoryDescription.setTimbreModel(std::string(reinterpret_cast<const char*>(sqlite3_column_text(_getCategoryDescriptionByIDStatement, 1))));
-                categoryDescription.setClassifierDescription(std::string(reinterpret_cast<const char*>(sqlite3_column_text(_getCategoryDescriptionByIDStatement, 2))));
+                categoryDescription.setChordsModel(std::string(reinterpret_cast<const char*>(sqlite3_column_text(_getCategoryDescriptionByIDStatement, 2))));
+                categoryDescription.setClassifierDescription(std::string(reinterpret_cast<const char*>(sqlite3_column_text(_getCategoryDescriptionByIDStatement, 3))));
                 
             }
             else
@@ -1815,7 +1819,8 @@ namespace music
                 {
                     databaseentities::CategoryDescription* catDesc = new databaseentities::CategoryDescription();
                     catDesc->setID(sqlite3_column_int64(_getCategoryByIDStatement, 1));
-                    getCategoryDescriptionByID(*catDesc);
+                    if (!getCategoryDescriptionByID(*catDesc))
+                        return false;
                     category.setCategoryDescription(catDesc);
                 }
                 else
@@ -1946,7 +1951,7 @@ namespace music
         int rc;
         if (_updateRecordingFeaturesStatement == NULL)
         {
-            rc = sqlite3_prepare_v2(_db, "UPDATE features SET length=@length, tempo=@tempo, dynamicrange=@dynamicrange WHERE featuresID=@featuresID;", -1, &_updateRecordingFeaturesStatement, NULL);
+            rc = sqlite3_prepare_v2(_db, "UPDATE features SET length=@length, tempo=@tempo, dynamicrange=@dynamicrange, timbreModel=@timbreModel, chordsModel=@chordsModel WHERE featuresID=@featuresID;", -1, &_updateRecordingFeaturesStatement, NULL);
             if (rc != SQLITE_OK)
             {
                 ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
@@ -1957,7 +1962,9 @@ namespace music
         sqlite3_bind_double(_updateRecordingFeaturesStatement, 1, recordingFeatures.getLength());
         sqlite3_bind_double(_updateRecordingFeaturesStatement, 2, recordingFeatures.getTempo());
         sqlite3_bind_double(_updateRecordingFeaturesStatement, 3, recordingFeatures.getDynamicRange());
-        sqlite3_bind_int64( _updateRecordingFeaturesStatement, 4, recordingFeatures.getID());
+        sqlite3_bind_text(  _updateRecordingFeaturesStatement, 4, recordingFeatures.getTimbreModel().c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(  _updateRecordingFeaturesStatement, 5, recordingFeatures.getChordsModel().c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_int64( _updateRecordingFeaturesStatement, 6, recordingFeatures.getID());
         
         rc = sqlite3_step(_updateRecordingFeaturesStatement);
         if (rc != SQLITE_DONE)

@@ -441,7 +441,7 @@ namespace music
          * 
          * @return A distance measure of the two gaussians.
          */
-        ScalarType compareTo(const GaussianMixtureModel<ScalarType>& other);
+        ScalarType compareTo(const GaussianMixtureModel<ScalarType>& other, int sampleCount=200);
         
         /**
          * @brief Returns the list of gaussian distributions of this model.

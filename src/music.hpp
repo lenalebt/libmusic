@@ -26,7 +26,13 @@
  * @todo write something clever here
  * 
  * @section mainpage_install Install
- * @todo prequisites, such as needed libraries
+ * @subsection mainpage_install_prequisites Prequisites
+ * To install the library, you need to install some other libraries and tools:
+ *  * <code>doxygen</code>, if you want to build the documentation. This package is optional.
+ *  * <code>cmake</code>, which is the build system and needed to compile the software.
+ *  * <code>libmusicaccess</code>, which should be bundled or found at the same place you found <code>libmusic</code>.
+ *  * <code>eigen</code> >= 3.0, this library is used for matrix and vector operations.
+ *  * <code>sqlite3</code>, which is the database backend.
  * 
  * @subsection mainpage_normal_install Installing on a normal *nix system
  * 
@@ -35,13 +41,13 @@
  * type
  * 
  * @code{.sh}
- * cmake ..
+ * cmake -DCMAKE_BUILD_TYPE=Release ..
  * make -j5
  * make install
  * @endcode
  * 
  * The last step might require root privileges. If you want to build 
- * the docs, type
+ * the docs and have doxygen installed, type
  * 
  * @code{.sh}
  * make doc
@@ -49,7 +55,18 @@
  * 
  * in the very same directory. You will find the docs in the api-doc/ 
  * directory. There are two formats available, for the more common HTML
- * version open the file <code>api-doc/html/index.html</code>.
+ * version open the file <code>api-doc/html/index.html</code>. The
+ * LaTeX version needs to be compiled, which is possible via
+ * @code{.sh}
+ * cd api-doc/latex/
+ * pdflatex refman.tex
+ * pdflatex refman.tex
+ * @endcode
+ * if you have LaTeX installed. Running LaTeX twice is necessary to get
+ * cross-references and some citations right.
+ * If you don't care about them, a single run is sufficient.
+ * You may now open the file <code>refman.pdf</code> with a 
+ * <a href="http://pdfreaders.org/">PDF reader of your choice</a>..
  * 
  * @subsection mainpage_crosscompilation_install Installing for Cross-Compilation
  * 
