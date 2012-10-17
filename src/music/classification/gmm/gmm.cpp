@@ -71,7 +71,6 @@ namespace music
     Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> GaussianDiagCov<ScalarType>::rand() const
     {
         assert(mean.size() > 0);
-        Eigen::LLT<Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> > llt(diagCov.asDiagonal());
         Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> y(mean.size());
         for (int i=0; i<mean.size(); i++)
             y[i] = rng->rand();
@@ -92,6 +91,7 @@ namespace music
         assert(fullCov.rows() == mean.size());
         this->diagCov = fullCov.diagonal();
         ldlt.compute(diagCov.asDiagonal());
+        llt.compute(diagCov.asDiagonal());
         
         calculatePrefactor();
     }
@@ -133,6 +133,7 @@ namespace music
         assert(fullCov.rows() == mean.size());
         this->fullCov = fullCov;
         ldlt.compute(fullCov);
+        llt.compute(fullCov);
         
         calculatePrefactor();
     }
@@ -160,7 +161,6 @@ namespace music
     Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> GaussianFullCov<ScalarType>::rand() const
     {
         assert(mean.size() > 0);
-        Eigen::LLT<Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> > llt(fullCov);
         Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> y(mean.size());
         for (int i=0; i<mean.size(); i++)
             y[i] = rng->rand();
