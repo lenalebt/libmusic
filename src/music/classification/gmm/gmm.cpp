@@ -699,11 +699,10 @@ namespace music
     {
         //draw some samples from the one model and take a look at the pdf values of the other.
         double value = 0.0;
-        double value2=0.0;
         
         UniformRNG<float> rng(0,1);
         Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> tmp;
-        double tmpVal, tmp2Val;
+        double tmpVal;
         
         for (int i=0; i<sampleCount; i++)
         {
@@ -741,30 +740,12 @@ namespace music
                 logOtherVal = -100;
             //if (logOtherVal > 100)
             //    logOtherVal = 100;
-            //DEBUG_VAR_OUT(logTmpVal, 0);
-            //DEBUG_VAR_OUT(logOtherVal, 0);
-            //DEBUG_VAR_OUT(logTmpVal - logOtherVal, 0);
-            value += tmpVal * (logTmpVal - logOtherVal);
-            value2 += 1 * (logTmpVal - logOtherVal);
-            //std::cerr << "tmp: " << tmpVal << std::endl;
-            //std::cerr << "otp: " << other.calculateValue(tmp) << std::endl;
-            //std::cerr << "dif: " << logTmpVal - logOtherVal << std::endl;
-            //std::cerr << "t  : " << tmpVal * (logTmpVal - logOtherVal) << std::endl;;
+            value += 1.0 * (logTmpVal - logOtherVal);       //1.0 will be optimized out by the compiler
             
-            //DEBUG_VAR_OUT(value, 0);
             assert(value == value);
-            assert(value2 == value2);
         }
-        assert(value2/sampleCount == value2/sampleCount);
-        //std::cerr << value2/sampleCount << std::endl;
-        return value2/sampleCount;
-        
-        //get the mean of the pdf values. large values should mean "pdfs are similar",
-        //and small values indicate that they are not equal.
-        for (int i=0; i<sampleCount; i++)
-            value += other.calculateValue(this->rand());
-        value /= sampleCount * normalizationFactor;
-        return value;
+        assert(value/sampleCount == value/sampleCount);
+        return value/sampleCount;
     }
     
     template <typename ScalarType>
