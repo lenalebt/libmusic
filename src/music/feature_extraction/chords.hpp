@@ -43,6 +43,8 @@ namespace music
     private:
         ConstantQTransformResult* transformResult;
         double timeResolution;
+        
+        void applyNonlinearFunction(Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1>& vector);
     protected:
         ChordHypothesis* estimateChord1(double fromTime, double toTime);
         ChordHypothesis* estimateChord2(double fromTime, double toTime);
@@ -50,8 +52,19 @@ namespace music
     public:
         ChordEstimator(ConstantQTransformResult* transformResult, double timeResolution = 0.005);
         ChordHypothesis* estimateChord(double fromTime, double toTime);
+        bool estimateChords(std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > chords, double timeSliceLength = 0.01, double timeResolution = 0.005);
     };
     
     std::ostream& operator<<(std::ostream& os, const ChordHypothesis& chord);
+    
+    class ChordModel
+    {
+    private:
+        
+    protected:
+        
+    public:
+        
+    };
 }
 #endif  //CHORDS_HPP
