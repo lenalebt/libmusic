@@ -351,9 +351,23 @@ namespace tests
         
         std::queue<std::string> files;
         
-        files <<  "./goodbye.mp3";
         files <<  "./testdata/mixture-all.mp3";
         files <<  "./testdata/mixture-bass_and_rhgit.mp3";
+        
+        files <<  "./slaying.mp3";
+        files <<  "./bless_the_child.mp3";
+        
+        files <<  "./teen_spirit.mp3";
+        files <<  "./come.mp3";
+        files <<  "./knocking.mp3";
+        files <<  "./gdur1.mp3";
+        files <<  "./fdur1.mp3";
+        files <<  "./dmoll1.mp3";
+        files <<  "./unintended.mp3";
+        files <<  "./schrei.mp3";
+        files <<  "./bochum.mp3";
+        files <<  "./goodbye.mp3";
+        
         
         while (!files.empty())
         {
@@ -388,14 +402,22 @@ namespace tests
             
             //std::ofstream chordstr("chords.dat");
             
-            music::ChordEstimator chordEstimator(transformResult, 0.05);
+            music::ChromaEstimator chromaEstimator(transformResult);
             /*for (double time=0.0; time<transformResult->getOriginalDuration(); time += 0.5)
             {*/
                 //music::ChordHypothesis* chordHypothesis = chordEstimator.estimateChord(1.0, 1.5);
                 
                 //CHECK_EQ(chord, chordHypothesis->getMaxHypothesisAsString());
-                std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > chords;
-                chordEstimator.estimateChords(chords);
+                std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > chroma;
+                int mode;
+                chromaEstimator.estimateChroma(chroma, mode);
+                
+                /*
+                for (std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> >::const_iterator it = chroma.begin(); it != chroma.end(); ++it)
+                {
+                    DEBUG_OUT(it->transpose(), 10);
+                }
+                * */
                 
                 //DEBUG_OUT(ConsoleColors::yellow() << "chord at time " << 1.0 << ":" << std::endl << ConsoleColors::defaultText() << *chord, 10);
                 //chordstr << *chord << ConsoleColors::defaultText() << std::endl << std::flush;
