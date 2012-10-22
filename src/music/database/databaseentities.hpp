@@ -34,7 +34,7 @@ namespace music
             double tempo;
             double dynamicRange;
             std::string timbreModel;
-            std::string chordsModel;
+            std::string chromaModel;
         protected:
             
         public:
@@ -57,8 +57,8 @@ namespace music
             void setTimbreModel(const std::string& model) {this->timbreModel = model;}
             std::string getTimbreModel() const        {return timbreModel;}
             
-            void setChordsModel(const std::string& model) {this->chordsModel = model;}
-            std::string getChordsModel() const        {return chordsModel;}
+            void setChromaModel(const std::string& model) {this->chromaModel = model;}
+            std::string getChromaModel() const        {return chromaModel;}
         };
         
         /**
@@ -122,7 +122,7 @@ namespace music
         private:
             id_datatype id;
             std::string timbreModel;
-            std::string chordsModel;
+            std::string chromaModel;
             std::string classifierDescription;
         protected:
             
@@ -134,8 +134,8 @@ namespace music
             void setTimbreModel(const std::string& model)   {this->timbreModel = model;}
             std::string getTimbreModel() const              {return timbreModel;}
             
-            void setChordsModel(const std::string& model) {this->chordsModel = model;}
-            std::string getChordsModel() const        {return chordsModel;}
+            void setChromaModel(const std::string& model)   {this->chromaModel = model;}
+            std::string getChromaModel() const              {return chromaModel;}
             
             void setClassifierDescription(const std::string& classifierDescription)
                                                             {this->classifierDescription = classifierDescription;}

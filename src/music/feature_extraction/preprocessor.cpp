@@ -4,7 +4,7 @@
 #include "feature_extraction_helper.hpp"
 #include "dynamic_range.hpp"
 #include "bpm.hpp"
-#include "chords.hpp"
+#include "chroma.hpp"
 #include "timbre.hpp"
 
 #include "debug.hpp"

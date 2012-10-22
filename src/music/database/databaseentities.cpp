@@ -41,7 +41,7 @@ namespace music
             tempo(0.0),
             dynamicRange(0.0),
             timbreModel(""),
-            chordsModel("")
+            chromaModel("")
         {
             
         }
@@ -49,7 +49,7 @@ namespace music
         CategoryDescription::CategoryDescription() :
             id(-1),
             timbreModel(""),
-            chordsModel(""),
+            chromaModel(""),
             classifierDescription("")
         {
             

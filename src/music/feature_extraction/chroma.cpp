@@ -1,4 +1,4 @@
-#include "chords.hpp"
+#include "chroma.hpp"
 
 #include <Eigen/Dense>
 #include <complex>

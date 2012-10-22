@@ -73,7 +73,7 @@ SET(
     
     #feature extraction
     src/music/feature_extraction/bpm.cpp
-    src/music/feature_extraction/chords.cpp
+    src/music/feature_extraction/chroma.cpp
     src/music/feature_extraction/timbre.cpp
     src/music/feature_extraction/dynamic_range.cpp
     src/music/feature_extraction/feature_extraction_helper.cpp
@@ -124,7 +124,7 @@ SET(
     
     #feature extraction
     src/music/feature_extraction/bpm.hpp
-    src/music/feature_extraction/chords.hpp
+    src/music/feature_extraction/chroma.hpp
     src/music/feature_extraction/timbre.hpp
     src/music/feature_extraction/dynamic_range.hpp
     src/music/feature_extraction/feature_extraction_helper.hpp
@@ -263,7 +263,7 @@ ADD_TEST(fft                       "musictests" "fft")
 ADD_TEST(dct                       "musictests" "dct")
 ADD_TEST(sqlitedatabaseconnection  "musictests" "sqlitedatabaseconnection")
 ADD_TEST(estimatebpm               "musictests" "estimatebpm")
-ADD_TEST(estimatechords            "musictests" "estimatechords")
+ADD_TEST(estimatechroma            "musictests" "estimatechroma")
 ADD_TEST(estimatetimbre            "musictests" "estimatetimbre")
 ADD_TEST(calculatedynamicrange     "musictests" "calculatedynamicrange")
 ADD_TEST(perbinstatistics          "musictests" "perbinstatistics")
@@ -279,12 +279,12 @@ SET_TESTS_PROPERTIES(dct                     PROPERTIES DEPENDS fft)
 SET_TESTS_PROPERTIES(kmeans                  PROPERTIES DEPENDS rng)
 SET_TESTS_PROPERTIES(gmm                     PROPERTIES DEPENDS "gaussian;kmeans")
 SET_TESTS_PROPERTIES(estimatebpm             PROPERTIES DEPENDS constantq)
-SET_TESTS_PROPERTIES(estimatechords          PROPERTIES DEPENDS constantq)
+SET_TESTS_PROPERTIES(estimatechroma          PROPERTIES DEPENDS constantq)
 SET_TESTS_PROPERTIES(estimatetimbre          PROPERTIES DEPENDS "constantq;gmm")
 SET_TESTS_PROPERTIES(calculatedynamicrange   PROPERTIES DEPENDS constantq)
 SET_TESTS_PROPERTIES(perbinstatistics        PROPERTIES DEPENDS constantq)
 SET_TESTS_PROPERTIES(pertimeslicestatistics  PROPERTIES DEPENDS constantq)
-SET_TESTS_PROPERTIES(preprocessfiles         PROPERTIES DEPENDS "estimatebpm;estimatechords;estimatetimbre;calculatedynamicrange;perbinstatistics;pertimeslicestatistics")
+SET_TESTS_PROPERTIES(preprocessfiles         PROPERTIES DEPENDS "estimatebpm;estimatechroma;estimatetimbre;calculatedynamicrange;perbinstatistics;pertimeslicestatistics")
 
 ADD_EXECUTABLE(musictests
     ${music_TEST_SOURCES}

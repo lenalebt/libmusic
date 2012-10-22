@@ -14,7 +14,7 @@
 #include "dynamic_range.hpp"
 
 #include "bpm.hpp"
-#include "chords.hpp"
+#include "chroma.hpp"
 #include "timbre.hpp"
 #include "gmm.hpp"
 #include "kmeans.hpp"
@@ -332,7 +332,7 @@ namespace tests
     /**
      * @todo Test ist unvollständig: Erweitern um gemischte Instrumente, und mehr Instrumente
      */
-    int testEstimateChords()
+    int testEstimateChroma()
     {
         #if 1
         DEBUG_OUT("chord estimation", 10);

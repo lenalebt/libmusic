@@ -10,7 +10,7 @@
 #include "music/progress_callback.hpp"
 #include "music/feature_extraction_helper.hpp"
 #include "music/bpm.hpp"
-#include "music/chords.hpp"
+#include "music/chroma.hpp"
 #include "music/dynamic_range.hpp"
 #include "music/timbre.hpp"
 #include "music/preprocessor.hpp"
