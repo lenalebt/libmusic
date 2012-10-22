@@ -47,7 +47,6 @@ namespace music
             }
             timbre[k-1] = sum;
         }
-        DEBUG_VAR_OUT(timbre.transpose(), 90);
         return timbre;
     }
     
@@ -56,7 +55,7 @@ namespace music
     {
         assert(transformResult != NULL);
         assert(timbreVectorSize > 1);
-        assert(timbreVectorSize < transformResult->getOctaveCount() * transformResult->getBinsPerOctave());
+        assert(timbreVectorSize < (unsigned int)transformResult->getOctaveCount() * transformResult->getBinsPerOctave());
         for (unsigned int k=1; k<=timbreVectorSize; k++)
         {
             for (int n=0; n<cosValues.rows(); n++)

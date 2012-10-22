@@ -5,10 +5,12 @@
 
 namespace music
 {
-    ClassificationProcessor::ClassificationProcessor(DatabaseConnection* conn, unsigned int categoryTimbreModelSize, unsigned int categoryPerSongSampleCount) :
+    ClassificationProcessor::ClassificationProcessor(DatabaseConnection* conn, unsigned int categoryTimbreModelSize, unsigned int categoryTimbrePerSongSampleCount, unsigned int categoryChromaModelSize, unsigned int categoryChromaPerSongSampleCount) :
         conn(conn),
         categoryTimbreModelSize(categoryTimbreModelSize),
-        categoryPerSongSampleCount(categoryPerSongSampleCount)
+        categoryTimbrePerSongSampleCount(categoryTimbrePerSongSampleCount),
+        categoryChromaModelSize(categoryChromaModelSize),
+        categoryChromaPerSongSampleCount(categoryChromaPerSongSampleCount)
     {
         
     }
@@ -40,8 +42,12 @@ namespace music
                 negativeExamples.push_back(it->first);
         }
         
-        //for positives: load timbre models
+        if (callback)
+            callback->progress(0.05, "loading timbre and chroma models...");
+        
+        //for positives: load timbre & chroma models
         std::vector<GaussianMixtureModel<kiss_fft_scalar>*> timbreModels;
+        std::vector<GaussianMixtureModel<kiss_fft_scalar>*> chromaModels;
         for (std::vector<databaseentities::id_datatype>::const_iterator it = positiveExamples.begin(); it != positiveExamples.end(); ++it)
         {
             databaseentities::Recording rec;
@@ -52,16 +58,18 @@ namespace music
             {
                 GaussianMixtureModel<kiss_fft_scalar>* gmm = GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(rec.getRecordingFeatures()->getTimbreModel());
                 timbreModels.push_back(gmm);
+                gmm = GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(rec.getRecordingFeatures()->getChromaModel());
+                chromaModels.push_back(gmm);
             }
         }
         
         if (callback)
-            callback->progress(0.05, "loaded timbre models, combining them...");
+            callback->progress(0.05, "processing timbre models...");
         
         //combine timbre models
         if (timbreModels.size() != 0)
         {
-            if (cat.calculateTimbreModel(timbreModels, categoryTimbreModelSize, categoryPerSongSampleCount))
+            if (cat.calculateTimbreModel(timbreModels, categoryTimbreModelSize, categoryTimbrePerSongSampleCount))
             {
                 category.getCategoryDescription()->setTimbreModel(cat.getTimbreModel()->toJSONString());
             }
@@ -74,6 +82,27 @@ namespace music
         else
         {
             category.getCategoryDescription()->setTimbreModel("");
+        }
+        
+        if (callback)
+            callback->progress(0.3, "processing chroma models...");
+        
+        //combine chroma models
+        if (chromaModels.size() != 0)
+        {
+            if (cat.calculateChromaModel(chromaModels, categoryChromaModelSize, categoryChromaPerSongSampleCount))
+            {
+                category.getCategoryDescription()->setChromaModel(cat.getChromaModel()->toJSONString());
+            }
+            else
+            {
+                conn->rollbackTransaction();
+                return false;
+            }
+        }
+        else
+        {
+            category.getCategoryDescription()->setChromaModel("");
         }
         
         //up to here: combined the timbres of category example positives to a new model for the category.
@@ -95,6 +124,11 @@ namespace music
         
         //delete timbreModels
         for (std::vector<GaussianMixtureModel<kiss_fft_scalar>*>::iterator it = timbreModels.begin(); it != timbreModels.end(); ++it)
+        {
+            delete *it;
+        }
+        //delete chromaModels
+        for (std::vector<GaussianMixtureModel<kiss_fft_scalar>*>::iterator it = chromaModels.begin(); it != chromaModels.end(); ++it)
         {
             delete *it;
         }
@@ -136,9 +170,13 @@ namespace music
             return false;
         }
         
-        GaussianMixtureModel<kiss_fft_scalar>* categoryModel = 
+        GaussianMixtureModel<kiss_fft_scalar>* categoryTimbreModel = 
             GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(
               category.getCategoryDescription()->getTimbreModel()
+            );
+        GaussianMixtureModel<kiss_fft_scalar>* categoryChromaModel = 
+            GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(
+              category.getCategoryDescription()->getChromaModel()
             );
         
         if (callback)
@@ -156,7 +194,8 @@ namespace music
             {
                 std::cerr << "error..." << std::endl;
                 conn->rollbackTransaction();
-                delete categoryModel;
+                delete categoryTimbreModel;
+                delete categoryChromaModel;
                 return false;
             }
             
@@ -177,27 +216,34 @@ namespace music
                     continue;
                 }
                 
-                GaussianMixtureModel<kiss_fft_scalar>* recordingModel = 
+                GaussianMixtureModel<kiss_fft_scalar>* recordingTimbreModel = 
                     GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(
                       recording.getRecordingFeatures()->getTimbreModel()
                     );
+                GaussianMixtureModel<kiss_fft_scalar>* recordingChromaModel = 
+                    GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(
+                      recording.getRecordingFeatures()->getChromaModel()
+                    );
                 
-                if (!conn->updateRecordingToCategoryScore(recording.getID(), category.getID(), recordingModel->compareTo(*categoryModel)))
+                if (!conn->updateRecordingToCategoryScore(recording.getID(), category.getID(), recordingTimbreModel->compareTo(*categoryTimbreModel)))
                 {
                     conn->rollbackTransaction();
-                    delete categoryModel;
-                    delete recordingModel;
+                    delete categoryTimbreModel;
+                    delete categoryChromaModel;
+                    delete recordingTimbreModel;
+                    delete recordingChromaModel;
                     return false;
                 }
                 
-                delete recordingModel;
+                delete recordingTimbreModel;
                 i++;
                 minID = *it;
             }
             minID++;
         } while (!recordingIDs.empty());
         
-        delete categoryModel;
+        delete categoryTimbreModel;
+        delete categoryChromaModel;
         
         conn->endTransaction();
         
@@ -211,14 +257,19 @@ namespace music
     {
         return false;
     }
+    /** @todo ADD CHROMA MODEL!!! */
     bool ClassificationProcessor::addRecording(const databaseentities::Recording& recording)
     {
         std::vector<databaseentities::id_datatype> categoryIDs;
         conn->getCategoryIDsByName(categoryIDs, "%");   //read all category IDs
         
-        GaussianMixtureModel<kiss_fft_scalar>* recordingModel =
+        GaussianMixtureModel<kiss_fft_scalar>* recordingTimbreModel =
             GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(
                 recording.getRecordingFeatures()->getTimbreModel()
+            );
+        GaussianMixtureModel<kiss_fft_scalar>* recordingChromaModel =
+            GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(
+                recording.getRecordingFeatures()->getChromaModel()
             );
         
         conn->beginTransaction();
@@ -227,24 +278,33 @@ namespace music
             databaseentities::Category category;
             category.setID(*it);
             conn->getCategoryByID(category, true);
-            GaussianMixtureModel<kiss_fft_scalar>* categoryModel =
+            GaussianMixtureModel<kiss_fft_scalar>* categoryTimbreModel =
                 GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(
                     category.getCategoryDescription()->getTimbreModel()
                 );
+            GaussianMixtureModel<kiss_fft_scalar>* categoryChromaModel =
+                GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(
+                    category.getCategoryDescription()->getChromaModel()
+                );
             
-            if (!conn->updateRecordingToCategoryScore(recording.getID(), category.getID(), recordingModel->compareTo(*categoryModel)))
+            //TODO: ADD CHROMA MODEL!
+            if (!conn->updateRecordingToCategoryScore(recording.getID(), category.getID(), recordingTimbreModel->compareTo(*categoryTimbreModel)))
             {
                 conn->rollbackTransaction();
-                delete categoryModel;
-                delete recordingModel;
+                delete categoryTimbreModel;
+                delete categoryChromaModel;
+                delete recordingTimbreModel;
+                delete recordingChromaModel;
                 return false;
             }
             
-            delete categoryModel;
+            delete categoryTimbreModel;
+            delete categoryChromaModel;
         }
         conn->endTransaction();
         
-        delete recordingModel;
+        delete recordingTimbreModel;
+        delete recordingChromaModel;
         return true;
     }
     bool ClassificationProcessor::setRecordingCategoryExampleScore(const databaseentities::Recording& recording, const databaseentities::Category& category, double score, bool recalculateCategory_)

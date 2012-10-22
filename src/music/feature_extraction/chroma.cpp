@@ -6,6 +6,7 @@
 #include <vector>
 #include <iostream>
 #include <iomanip>
+#include <fstream>
 
 #include "console_colors.hpp"
 #include "debug.hpp"
@@ -90,7 +91,6 @@ namespace music
             //calculate unsmoothed chroma of active time slice
             for (int bin=0; bin < binsPerOctave; bin++)
             {
-                double binSum = 0.0;
                 for (int octave=0; octave<octaveCount; octave++)
                 {
                     actCQTmean[octave * binsPerOctave + bin] = std::abs(transformResult->getNoteValueMean(time, octave, bin, timeSliceLength));
@@ -101,10 +101,15 @@ namespace music
             //this step tries to cancel out overtones (hoping they are not
             //as loud as the loudest parts of the signal) and find the
             //relevant parts for chord estimation.
-            double maxValue = actCQTmean.maxCoeff();
-            actCQTmean /= maxValue;
-            applyNonlinearFunction(actCQTmean);
-            actCQTmean *= maxValue;
+            double maxValue = fabs(actCQTmean.maxCoeff());
+            if (maxValue > 1e-14)
+            {
+                actCQTmean /= maxValue;
+                applyNonlinearFunction(actCQTmean);
+                actCQTmean *= maxValue;
+            }
+            else
+                continue;
             
             //calculate new chroma values
             chroma *= 1.0-1.0/(0.125/timeSliceLength);     //exponential smoothing of the chroma vector, ca. 1/8s "half-life time"
@@ -118,9 +123,9 @@ namespace music
                 }
                 chroma[bin] += binSum/(0.25/timeSliceLength);     //exponential smoothing, see above
             }
-            chromaVectors.push_back(chroma.normalized());   //use normalized chroma vectors, don't want to depend on the volume
             
-            //DEBUG_VAR_OUT(chroma.transpose(), 0);
+            chroma.normalize();
+            chromaVectors.push_back(chroma);   //use normalized chroma vectors, don't want to depend on the volume
             
             overallChroma += chroma;
             
@@ -135,16 +140,16 @@ namespace music
             int maxLikelihoodChord = -1;
             {
                 double maxLikelihoodValue = -std::numeric_limits<double>::max();
-                for (int i = 0; i < 2*binsPerOctave; i++)
+                for (int k = 0; k < 2*binsPerOctave; k++)
                 {
-                    if (actChordLikelihood[i] > maxLikelihoodValue)
+                    if (actChordLikelihood[k] > maxLikelihoodValue)
                     {
-                        maxLikelihoodChord = i;
-                        maxLikelihoodValue = actChordLikelihood[i];
+                        maxLikelihoodChord = k;
+                        maxLikelihoodValue = actChordLikelihood[k];
                     }
                 }
+                overallChordLikelihood[maxLikelihoodChord] += 1.0;
             }
-            overallChordLikelihood[maxLikelihoodChord] += 1.0;
             
             numValues++;
         }
@@ -262,7 +267,6 @@ namespace music
     {
         assert(timeSliceLength > 0.0);
         
-        int mode = -1;
         ChromaEstimator cEst(transformResult);
         bool retVal = cEst.estimateChroma(chromaVectors, mode, timeSliceLength, makeTransposeInvariant);
         assert(mode != -1);
@@ -286,21 +290,28 @@ namespace music
         if (!this->calculateChromaVectors(chroma, timeSliceLength, makeTransposeInvariant))
             return false;
         
+        DEBUG_VAR_OUT(chroma.size(), 0);
+        
+        std::ofstream outstr("chroma.dat");
+        for (int i=0; i<chroma.size(); i++)
+            outstr << chroma[i].transpose() << std::endl;
+        outstr << std::endl;
+        
         if (chroma.size() < modelSize)
             return false;
         
         //then train the model (best-of-three).
         if (callback)
             callback->progress(0.5,  "calculating model 1");
-        model->trainGMM(chroma, modelSize);
+        model->trainGMM(chroma, modelSize, 0.01, 0.00001);
         GaussianMixtureModel<kiss_fft_scalar>* tmpModel1 = model->clone();
         if (callback)
             callback->progress(0.65, "calculating model 2");
-        model->trainGMM(chroma, modelSize);
+        model->trainGMM(chroma, modelSize, 0.01, 0.00001);
         GaussianMixtureModel<kiss_fft_scalar>* tmpModel2 = model->clone();
         if (callback)
             callback->progress(0.8,  "calculating model 3");
-        model->trainGMM(chroma, modelSize);
+        model->trainGMM(chroma, modelSize, 0.01, 0.00001);
         GaussianMixtureModel<kiss_fft_scalar>* tmpModel3 = model->clone();
         
         delete model;
@@ -345,16 +356,23 @@ namespace music
             callback->progress(0.0, "finished");
         return true;
     }
-
-    ChromaModel::ChromaModel(ConstantQTransformResult* transformResult) :
-        transformResult(transformResult)
-    {
-        assert(transformResult != NULL);
-    }
-
+    
     int ChromaModel::getMode()
     {
         return mode;
+    }
+    
+    ChromaModel::ChromaModel(ConstantQTransformResult* transformResult) :
+        transformResult(transformResult),
+        model(NULL),
+        mode(-1)
+    {
+        assert(transformResult != NULL);
+    }
+    ChromaModel::~ChromaModel()
+    {
+        if (model)
+            delete model;
     }
 }
 

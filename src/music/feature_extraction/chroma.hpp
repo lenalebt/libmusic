@@ -18,14 +18,13 @@ namespace music
     {
     private:
         ConstantQTransformResult* transformResult;
-        double timeResolution;
         
         void applyNonlinearFunction(Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1>& vector);
         static std::string getNoteName(int i);
     protected:
     public:
         ChromaEstimator(ConstantQTransformResult* transformResult);
-        bool estimateChroma(std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> >& chromaVectors, int& mode, double timeSliceLength = 0.01, bool makeTransposeInvariant = true);
+        bool estimateChroma(std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> >& chromaVectors, int& mode, double timeSliceLength = 0.05, bool makeTransposeInvariant = true);
     };
     
     /**
@@ -48,7 +47,10 @@ namespace music
         
         //bool calculateModel(std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> >& chromaVectors, int modelSize=10, double timeSliceLength=0.02, unsigned int timbreVectorSize=12, ProgressCallbackCaller* callback = NULL);
         
+        //model of the chroma vectors
         GaussianMixtureModel<kiss_fft_scalar>* getModel();
+        
+        //mode of the recording (e.g. e minor or g major)
         int getMode();
     };
 }
