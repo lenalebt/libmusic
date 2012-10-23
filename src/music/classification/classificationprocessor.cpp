@@ -64,7 +64,7 @@ namespace music
         }
         
         if (callback)
-            callback->progress(0.05, "processing timbre models...");
+            callback->progress(0.1, "processing timbre models...");
         
         //combine timbre models
         if (timbreModels.size() != 0)
@@ -85,7 +85,7 @@ namespace music
         }
         
         if (callback)
-            callback->progress(0.3, "processing chroma models...");
+            callback->progress(0.35, "processing chroma models...");
         
         //combine chroma models
         if (chromaModels.size() != 0)
@@ -192,7 +192,6 @@ namespace music
             recordingIDs.clear();
             if (!conn->getRecordingIDs(recordingIDs, minID, 20000))
             {
-                std::cerr << "error..." << std::endl;
                 conn->rollbackTransaction();
                 delete categoryTimbreModel;
                 delete categoryChromaModel;
