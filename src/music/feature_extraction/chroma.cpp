@@ -292,10 +292,12 @@ namespace music
         
         DEBUG_VAR_OUT(chroma.size(), 0);
         
-        std::ofstream outstr("chroma.dat");
-        for (int i=0; i<chroma.size(); i++)
-            outstr << chroma[i].transpose() << std::endl;
-        outstr << std::endl;
+        #if DEBUG_LEVEL > 30
+            std::ofstream outstr("chroma.dat");
+            for (int i=0; i<chroma.size(); i++)
+                outstr << chroma[i].transpose() << std::endl;
+            outstr << std::endl;
+        #endif
         
         if (chroma.size() < modelSize)
             return false;
@@ -303,15 +305,15 @@ namespace music
         //then train the model (best-of-three).
         if (callback)
             callback->progress(0.5,  "calculating model 1");
-        model->trainGMM(chroma, modelSize, 0.01, 0.00001);
+        model->trainGMM(chroma, modelSize, 1e-8, 1e-10);
         GaussianMixtureModel<kiss_fft_scalar>* tmpModel1 = model->clone();
         if (callback)
             callback->progress(0.65, "calculating model 2");
-        model->trainGMM(chroma, modelSize, 0.01, 0.00001);
+        model->trainGMM(chroma, modelSize, 1e-8, 1e-10);
         GaussianMixtureModel<kiss_fft_scalar>* tmpModel2 = model->clone();
         if (callback)
             callback->progress(0.8,  "calculating model 3");
-        model->trainGMM(chroma, modelSize, 0.01, 0.00001);
+        model->trainGMM(chroma, modelSize, 1e-8, 1e-10);
         GaussianMixtureModel<kiss_fft_scalar>* tmpModel3 = model->clone();
         
         delete model;
