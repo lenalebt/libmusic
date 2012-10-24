@@ -64,8 +64,14 @@ namespace music
          * 
          * If this function is not called before trying to read the values,
          * the results are undefined.
+         * 
+         * @param doNotCountLastSeconds Set the number of seconds from
+         *      the end of the musical piece that should not be taken
+         *      into account as they could be blended out. This value will
+         *      only be applied if the piece is longer than 2 minutes.
+         *      The last few seconds should not impact the dynamic range.
          */
-        void calculateDynamicRange();
+        void calculateDynamicRange(double doNotCountLastSeconds = 20.0);
     };
 }
 #endif //DYNAMIC_RANGE_HPP

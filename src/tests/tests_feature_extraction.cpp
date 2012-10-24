@@ -352,22 +352,55 @@ namespace tests
         std::queue<std::string> files;
         
         files <<  "./testdata/mixture-all.mp3";
+        files <<  "./testdata/mixture-all_but_bass.mp3";
+        files <<  "./testdata/mixture-all_but_drums.mp3";
+        files <<  "./testdata/mixture-all_but_rhgit.mp3";
+        files <<  "./testdata/mixture-all_but_sologit.mp3";
         files <<  "./testdata/mixture-bass_and_rhgit.mp3";
+        files <<  "./testdata/mixture-bass_and_sologit.mp3";
+        files <<  "./testdata/mixture-drums_and_bass.mp3";
+        files <<  "./testdata/mixture-drums_and_rhgit.mp3";
+        files <<  "./testdata/mixture-drums_and_sologit.mp3";
+        files <<  "./testdata/mixture-rhgit_and_sologit.mp3";
         
-        files <<  "./slaying.mp3";
-        files <<  "./bless_the_child.mp3";
         
-        files <<  "./teen_spirit.mp3";
-        files <<  "./come.mp3";
-        files <<  "./knocking.mp3";
-        files <<  "./gdur1.mp3";
-        files <<  "./fdur1.mp3";
-        files <<  "./dmoll1.mp3";
-        files <<  "./unintended.mp3";
-        files <<  "./schrei.mp3";
-        files <<  "./bochum.mp3";
-        files <<  "./goodbye.mp3";
+        std::string filename = files.front();
+        DEBUG_OUT("using file \"" << filename << "\" to compare chroma with all others...", 10);
         
+        musicaccess::SoundFile file;
+        CHECK(!file.isFileOpen());
+        CHECK(file.open(filename, true));
+        CHECK(file.isFileOpen());
+        
+        float* buffer = NULL;
+        buffer = new float[file.getSampleCount()];
+        CHECK(buffer != NULL);
+        
+        int sampleCount = file.readSamples(buffer, file.getSampleCount());
+        //estimated size might not be accurate!
+        CHECK_OP(sampleCount, >=, 0.9*file.getSampleCount());
+        CHECK_OP(sampleCount, <=, 1.1*file.getSampleCount());
+        
+        musicaccess::Resampler22kHzMono resampler;
+        //int sampleCount = file.getSampleCount();
+        DEBUG_OUT("resampling input file...", 15);
+        resampler.resample(file.getSampleRate(), &buffer, sampleCount, file.getChannelCount());
+        
+        CHECK_OP(sampleCount, <, file.getSampleCount());
+        
+        DEBUG_OUT("applying constant q transform...", 15);
+        music::ConstantQTransformResult* transformResult = cqt->apply(buffer, sampleCount);
+        CHECK(transformResult != NULL);
+        
+        music::ChromaEstimator chromaEstimator(transformResult);
+        std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > chroma;
+        int mode;
+        chromaEstimator.estimateChroma(chroma, mode);
+        
+        music::ChromaModel chromaModel(transformResult);
+        chromaModel.calculateModel();
+        
+        music::GaussianMixtureModel<kiss_fft_scalar>* cmpModel = chromaModel.getModel()->clone();
         
         while (!files.empty())
         {
@@ -400,19 +433,26 @@ namespace tests
             music::ConstantQTransformResult* transformResult = cqt->apply(buffer, sampleCount);
             CHECK(transformResult != NULL);
             
-            //std::ofstream chordstr("chords.dat");
-            
             music::ChromaEstimator chromaEstimator(transformResult);
             std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > chroma;
             int mode;
             chromaEstimator.estimateChroma(chroma, mode);
             
             music::ChromaModel chromaModel(transformResult);
-            chromaModel.calculateModel();
+            chromaModel.calculateModel(5);
             
             DEBUG_VAR_OUT(chromaModel.getModel()->toJSONString(), 0);
+            DEBUG_VAR_OUT(cmpModel->compareTo(*chromaModel.getModel(), 2000), 0);
+            DEBUG_VAR_OUT(cmpModel->compareTo(*chromaModel.getModel(), 2000), 0);
+            DEBUG_VAR_OUT(cmpModel->compareTo(*chromaModel.getModel(), 2000), 0);
+            DEBUG_VAR_OUT(cmpModel->compareTo(*chromaModel.getModel(), 2000), 0);
+            DEBUG_VAR_OUT(chromaModel.getModel()->compareTo(*cmpModel, 2000), 0);
+            DEBUG_VAR_OUT(chromaModel.getModel()->compareTo(*cmpModel, 2000), 0);
+            DEBUG_VAR_OUT(chromaModel.getModel()->compareTo(*cmpModel, 2000), 0);
+            DEBUG_VAR_OUT(chromaModel.getModel()->compareTo(*cmpModel, 2000), 0);
         }
         
+        delete cmpModel;
         
         //****************************************************************************************************************
         #else

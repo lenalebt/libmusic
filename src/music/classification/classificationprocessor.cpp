@@ -224,7 +224,7 @@ namespace music
                       recording.getRecordingFeatures()->getChromaModel()
                     );
                 
-                if (!conn->updateRecordingToCategoryScore(recording.getID(), category.getID(), recordingTimbreModel->compareTo(*categoryTimbreModel)))
+                if (!conn->updateRecordingToCategoryScore(recording.getID(), category.getID(), recordingChromaModel->compareTo(*categoryChromaModel) + recordingTimbreModel->compareTo(*categoryTimbreModel)))
                 {
                     conn->rollbackTransaction();
                     delete categoryTimbreModel;
