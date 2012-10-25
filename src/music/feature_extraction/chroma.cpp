@@ -112,7 +112,7 @@ namespace music
                 continue;
             
             //calculate new chroma values
-            chroma *= 1.0-1.0/(0.125/timeSliceLength);     //exponential smoothing of the chroma vector, ca. 1/8s "half-life time"
+            chroma *= 1.0-(timeSliceLength/0.125);     //exponential smoothing of the chroma vector, ca. 1/8s "half-life time"
             //DEBUG_VAR_OUT(chroma.transpose(), 0);
             for (int bin=0; bin < binsPerOctave; bin++)
             {
@@ -121,7 +121,7 @@ namespace music
                 {
                     binSum += actCQTmean[octave * binsPerOctave + bin];
                 }
-                chroma[bin] += binSum/(0.25/timeSliceLength);     //exponential smoothing, see above
+                chroma[bin] += binSum*(timeSliceLength/0.125);     //exponential smoothing, see above
             }
             
             chroma.normalize();
