@@ -262,14 +262,17 @@ namespace music
             "categoryDescriptionID INTEGER NOT NULL,"
             "FOREIGN KEY(categoryDescriptionID) REFERENCES categoryDescription(categoryDescriptionID)"
             ");");
-        ctstatements.push_back("CREATE TABLE IF NOT EXISTS categoryDescription(categoryDescriptionID INTEGER PRIMARY KEY, timbreModel TEXT, "
-            "chromaModel TEXT, "
+        ctstatements.push_back("CREATE TABLE IF NOT EXISTS categoryDescription(categoryDescriptionID INTEGER PRIMARY KEY, "
+            "positiveTimbreModel TEXT, "
+            "positiveChromaModel TEXT, "
+            "negativeTimbreModel TEXT, "
+            "negativeChromaModel TEXT, "
             "classifierDescription TEXT"
             ");");
         
         ctstatements.push_back("CREATE TABLE IF NOT EXISTS categoryExample(categoryID INTEGER NOT NULL, "
             "recordingID INTEGER NOT NULL, score REAL, PRIMARY KEY(categoryID, recordingID),"
-            "FOREIGN KEY(recordingID)     REFERENCES recording(recordingID),"
+            "FOREIGN KEY(recordingID) REFERENCES recording(recordingID),"
             "FOREIGN KEY(categoryID) REFERENCES category(categoryID)"
             ");");
         ctstatements.push_back("CREATE TABLE IF NOT EXISTS categoryMembership(categoryID INTEGER NOT NULL, recordingID INTEGER NOT NULL, "
@@ -1661,7 +1664,7 @@ namespace music
         int rc;
         if (_updateCategoryDescriptionByIDStatement == NULL)
         {
-            rc = sqlite3_prepare_v2(_db, "UPDATE categoryDescription SET timbreModel=@timbreModel, chromaModel=@chromaModel, classifierDescription=@classifierDescription WHERE categoryDescriptionID=@categoryDescriptionID;", -1, &_updateCategoryDescriptionByIDStatement, NULL);
+            rc = sqlite3_prepare_v2(_db, "UPDATE categoryDescription SET positiveTimbreModel=@positiveTimbreModel, positiveChromaModel=@positiveChromaModel, negativeTimbreModel=@negativeTimbreModel, negativeChromaModel=@negativeChromaModel, classifierDescription=@classifierDescription WHERE categoryDescriptionID=@categoryDescriptionID;", -1, &_updateCategoryDescriptionByIDStatement, NULL);
             if (rc != SQLITE_OK)
             {
                 ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
@@ -1669,10 +1672,12 @@ namespace music
             }
         }
         
-        sqlite3_bind_text( _updateCategoryDescriptionByIDStatement, 1, categoryDescription.getTimbreModel().c_str(), -1, SQLITE_TRANSIENT);
-        sqlite3_bind_text( _updateCategoryDescriptionByIDStatement, 2, categoryDescription.getChromaModel().c_str(), -1, SQLITE_TRANSIENT);
-        sqlite3_bind_text( _updateCategoryDescriptionByIDStatement, 3, categoryDescription.getClassifierDescription().c_str(), -1, SQLITE_TRANSIENT);
-        sqlite3_bind_int64(_updateCategoryDescriptionByIDStatement, 4, categoryDescription.getID());
+        sqlite3_bind_text( _updateCategoryDescriptionByIDStatement, 1, categoryDescription.getPositiveTimbreModel().c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text( _updateCategoryDescriptionByIDStatement, 2, categoryDescription.getPositiveChromaModel().c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text( _updateCategoryDescriptionByIDStatement, 3, categoryDescription.getNegativeTimbreModel().c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text( _updateCategoryDescriptionByIDStatement, 4, categoryDescription.getNegativeChromaModel().c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text( _updateCategoryDescriptionByIDStatement, 5, categoryDescription.getClassifierDescription().c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_int64(_updateCategoryDescriptionByIDStatement, 6, categoryDescription.getID());
         
         rc = sqlite3_step(_updateCategoryDescriptionByIDStatement);
         if (rc != SQLITE_DONE)
@@ -1697,7 +1702,7 @@ namespace music
         
         if (_saveCategoryDescriptionStatement == NULL)
         {
-            rc = sqlite3_prepare_v2(_db, "INSERT INTO categoryDescription VALUES(@categoryDescriptionID, @timbreModel, @chromaModel, @classifierDescription);", -1, &_saveCategoryDescriptionStatement, NULL);
+            rc = sqlite3_prepare_v2(_db, "INSERT INTO categoryDescription VALUES(@categoryDescriptionID, @positiveTimbreModel, @positiveChromaModel, @negativeTimbreModel, @negativeChromaModel, @classifierDescription);", -1, &_saveCategoryDescriptionStatement, NULL);
             if (rc != SQLITE_OK)
             {
                 ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
@@ -1707,9 +1712,11 @@ namespace music
         
         //bind parameters
         sqlite3_bind_null(_saveCategoryDescriptionStatement, 1);
-        sqlite3_bind_text(_saveCategoryDescriptionStatement, 2, categoryDescription.getTimbreModel().c_str(), -1, SQLITE_TRANSIENT);
-        sqlite3_bind_text(_saveCategoryDescriptionStatement, 3, categoryDescription.getChromaModel().c_str(), -1, SQLITE_TRANSIENT);
-        sqlite3_bind_text(_saveCategoryDescriptionStatement, 4, categoryDescription.getClassifierDescription().c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(_saveCategoryDescriptionStatement, 2, categoryDescription.getPositiveTimbreModel().c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(_saveCategoryDescriptionStatement, 3, categoryDescription.getPositiveChromaModel().c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(_saveCategoryDescriptionStatement, 4, categoryDescription.getNegativeTimbreModel().c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(_saveCategoryDescriptionStatement, 5, categoryDescription.getNegativeChromaModel().c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(_saveCategoryDescriptionStatement, 6, categoryDescription.getClassifierDescription().c_str(), -1, SQLITE_TRANSIENT);
         
         rc = sqlite3_step(_saveCategoryDescriptionStatement);
         if (rc != SQLITE_DONE)
@@ -1742,7 +1749,7 @@ namespace music
         
         if (_getCategoryDescriptionByIDStatement == NULL)
         {
-            rc = sqlite3_prepare_v2(_db, "SELECT categoryDescriptionID, timbreModel, chromaModel, classifierDescription FROM categoryDescription WHERE categoryDescriptionID=@categoryDescriptionID;", -1, &_getCategoryDescriptionByIDStatement, NULL);
+            rc = sqlite3_prepare_v2(_db, "SELECT categoryDescriptionID, positiveTimbreModel, positiveChromaModel, negativeTimbreModel, negativeChromaModel, classifierDescription FROM categoryDescription WHERE categoryDescriptionID=@categoryDescriptionID;", -1, &_getCategoryDescriptionByIDStatement, NULL);
             if (rc != SQLITE_OK)
             {
                 ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
@@ -1758,9 +1765,11 @@ namespace music
             if (rc == SQLITE_ROW)
             {
                 categoryDescription.setID(categoryDescriptionID);
-                categoryDescription.setTimbreModel(std::string(reinterpret_cast<const char*>(sqlite3_column_text(_getCategoryDescriptionByIDStatement, 1))));
-                categoryDescription.setChromaModel(std::string(reinterpret_cast<const char*>(sqlite3_column_text(_getCategoryDescriptionByIDStatement, 2))));
-                categoryDescription.setClassifierDescription(std::string(reinterpret_cast<const char*>(sqlite3_column_text(_getCategoryDescriptionByIDStatement, 3))));
+                categoryDescription.setPositiveTimbreModel(std::string(reinterpret_cast<const char*>(sqlite3_column_text(_getCategoryDescriptionByIDStatement, 1))));
+                categoryDescription.setPositiveChromaModel(std::string(reinterpret_cast<const char*>(sqlite3_column_text(_getCategoryDescriptionByIDStatement, 2))));
+                categoryDescription.setNegativeTimbreModel(std::string(reinterpret_cast<const char*>(sqlite3_column_text(_getCategoryDescriptionByIDStatement, 3))));
+                categoryDescription.setNegativeChromaModel(std::string(reinterpret_cast<const char*>(sqlite3_column_text(_getCategoryDescriptionByIDStatement, 4))));
+                categoryDescription.setClassifierDescription(std::string(reinterpret_cast<const char*>(sqlite3_column_text(_getCategoryDescriptionByIDStatement, 5))));
                 
             }
             else

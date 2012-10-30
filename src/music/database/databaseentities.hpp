@@ -121,25 +121,33 @@ namespace music
         {
         private:
             id_datatype id;
-            std::string timbreModel;
-            std::string chromaModel;
+            std::string positiveTimbreModel;
+            std::string positiveChromaModel;
+            std::string negativeTimbreModel;
+            std::string negativeChromaModel;
             std::string classifierDescription;
         protected:
             
         public:
             CategoryDescription();
-            void setID(id_datatype id)                      {this->id = id;}
-            id_datatype getID() const                       {return id;}
+            void setID(id_datatype id)                              {this->id = id;}
+            id_datatype getID() const                               {return id;}
             
-            void setTimbreModel(const std::string& model)   {this->timbreModel = model;}
-            std::string getTimbreModel() const              {return timbreModel;}
+            void setPositiveTimbreModel(const std::string& model)   {this->positiveTimbreModel = model;}
+            std::string getPositiveTimbreModel() const              {return positiveTimbreModel;}
             
-            void setChromaModel(const std::string& model)   {this->chromaModel = model;}
-            std::string getChromaModel() const              {return chromaModel;}
+            void setPositiveChromaModel(const std::string& model)   {this->positiveChromaModel = model;}
+            std::string getPositiveChromaModel() const              {return positiveChromaModel;}
+            
+            void setNegativeTimbreModel(const std::string& model)   {this->negativeTimbreModel = model;}
+            std::string getNegativeTimbreModel() const              {return negativeTimbreModel;}
+            
+            void setNegativeChromaModel(const std::string& model)   {this->negativeChromaModel = model;}
+            std::string getNegativeChromaModel() const              {return negativeChromaModel;}
             
             void setClassifierDescription(const std::string& classifierDescription)
-                                                            {this->classifierDescription = classifierDescription;}
-            std::string getClassifierDescription() const    {return classifierDescription;}
+                                                                    {this->classifierDescription = classifierDescription;}
+            std::string getClassifierDescription() const            {return classifierDescription;}
         };
         
         class Category
