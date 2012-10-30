@@ -264,11 +264,11 @@ namespace tests
         }
         
         
-        /*
-        for (typename std::vector<Eigen::VectorXd>::iterator it = data.begin(); it != data.end(); it++)
+        
+        for (typename std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> >::iterator it = data.begin(); it != data.end(); it++)
         {
             DEBUG_VAR_OUT((*it).transpose(), 0);
-        }*/
+        }
         
         /*
         kmeans.trainKMeans(data, 10);
