@@ -70,6 +70,7 @@ namespace music
          * so every subclass needs to calculate this value on its own.
          */
         virtual void calculatePrefactor()=0;
+        
     public:
         /**
          * @brief Creates a new gaussian with dimension <code>dimension</code>.
@@ -184,7 +185,10 @@ namespace music
          */
         virtual double calculateDistance(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& vector1, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& vector2);
         virtual double calculateDistance(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& vector1);
-        //                                        {return calculateDistance(vector1, mean);}
+        
+        static Gaussian<ScalarType>* loadFromJSONString(const std::string& jsonString);
+        std::string toJSONString(bool styledWriter=false) const;
+        static Gaussian<ScalarType>* loadFromJsonValue(Json::Value& jsonValue);
     };
     
     /**
@@ -337,12 +341,6 @@ namespace music
         ScalarType normalizationFactor;
         
         double aic, aicc, bic, loglike;
-        
-        /**
-         * @brief Load the JSON from a JSON representation in memory.
-         * @see loadFromJSONString()
-         */
-        static GaussianMixtureModel<ScalarType>* loadFromJsonValue(Json::Value& jsonValue);
         
         /**
          * @brief Calculates the AIC, AICc, BIC and stores them internally.
@@ -540,6 +538,16 @@ namespace music
          *      this problem.
          */
         static GaussianMixtureModel<ScalarType>* loadFromJSONString(const std::string& jsonString);
+        
+        /**
+         * @brief Load the JSON from a JSON representation in memory.
+         * 
+         * If you don't know about this function, you should probably use
+         * loadFromJSONString().
+         * 
+         * @see loadFromJSONString()
+         */
+        static GaussianMixtureModel<ScalarType>* loadFromJsonValue(Json::Value& jsonValue);
         
         /**
          * @brief Creates a new GMM, which is a mixture of the two GMMs that are added.
