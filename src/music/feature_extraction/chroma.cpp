@@ -292,7 +292,7 @@ namespace music
         
         #if DEBUG_LEVEL > 30
             std::ofstream outstr("chroma.dat");
-            for (int i=0; i<chroma.size(); i++)
+            for (unsigned int i=0; i<chroma.size(); i++)
                 outstr << chroma[i].transpose() << std::endl;
             outstr << std::endl;
         #endif
