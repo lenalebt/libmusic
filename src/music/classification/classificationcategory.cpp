@@ -41,27 +41,43 @@ namespace music
         return true;
     }
     
-    bool ClassificationCategory::calculateTimbreModel(std::vector<GaussianMixtureModel<kiss_fft_scalar>*> components, unsigned int gaussianCount, unsigned int samplesPerGMM, ProgressCallbackCaller* callback)
+    bool ClassificationCategory::calculatePositiveTimbreModel(std::vector<GaussianMixtureModel<kiss_fft_scalar>*> components, unsigned int gaussianCount, unsigned int samplesPerGMM, ProgressCallbackCaller* callback)
     {
-        return calculateModel(timbreModel, components, gaussianCount, samplesPerGMM, callback);
+        return calculateModel(positiveTimbreModel, components, gaussianCount, samplesPerGMM, callback);
     }
     
-    bool ClassificationCategory::calculateChromaModel(std::vector<GaussianMixtureModel<kiss_fft_scalar>*> components, unsigned int gaussianCount, unsigned int samplesPerGMM, ProgressCallbackCaller* callback)
+    bool ClassificationCategory::calculatePositiveChromaModel(std::vector<GaussianMixtureModel<kiss_fft_scalar>*> components, unsigned int gaussianCount, unsigned int samplesPerGMM, ProgressCallbackCaller* callback)
     {
-        return calculateModel(chromaModel, components, gaussianCount, samplesPerGMM, callback, 1e-8, 1e-10);
+        return calculateModel(positiveChromaModel, components, gaussianCount, samplesPerGMM, callback, 1e-8, 1e-10);
+    }
+    
+    bool ClassificationCategory::calculateNegativeTimbreModel(std::vector<GaussianMixtureModel<kiss_fft_scalar>*> components, unsigned int gaussianCount, unsigned int samplesPerGMM, ProgressCallbackCaller* callback)
+    {
+        return calculateModel(negativeTimbreModel, components, gaussianCount, samplesPerGMM, callback);
+    }
+    
+    bool ClassificationCategory::calculateNegativeChromaModel(std::vector<GaussianMixtureModel<kiss_fft_scalar>*> components, unsigned int gaussianCount, unsigned int samplesPerGMM, ProgressCallbackCaller* callback)
+    {
+        return calculateModel(negativeChromaModel, components, gaussianCount, samplesPerGMM, callback, 1e-8, 1e-10);
     }
 
     ClassificationCategory::ClassificationCategory() :
-        timbreModel(NULL),
-        chromaModel(NULL)
+        positiveTimbreModel(NULL),
+        positiveChromaModel(NULL),
+        negativeTimbreModel(NULL),
+        negativeChromaModel(NULL)
     {
         
     }
     ClassificationCategory::~ClassificationCategory()
     {
-        if (timbreModel)
-            delete timbreModel;
-        if (chromaModel)
-            delete chromaModel;
+        if (positiveTimbreModel)
+            delete positiveTimbreModel;
+        if (positiveChromaModel)
+            delete positiveChromaModel;
+        if (negativeTimbreModel)
+            delete negativeTimbreModel;
+        if (negativeChromaModel)
+            delete negativeChromaModel;
     }
 }
