@@ -172,20 +172,54 @@ namespace music
         //now: build model of category when timbre and chroma was applied.
         //first: create vectors
         
-        //positive
+        Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> vec(4);   //dimension 4, but dynamic because it might grow
         
+        //positive
+        std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > positiveExampleVectors;
+        for (std::vector<databaseentities::id_datatype>::const_iterator it = positiveExamples.begin(); it != positiveExamples.end(); ++it)
+        {
+            databaseentities::Recording rec;
+            rec.setID(*it);
+            conn->getRecordingByID(rec, true);
+            
+            vec.setZero();
+            if (rec.getRecordingFeatures() != NULL)
+            {
+                vec = createVectorForFeatures(rec.getRecordingFeatures(), categoryPositiveTimbreModel, categoryPositiveChromaModel);
+            }
+            
+            positiveExampleVectors.push_back(vec);
+        }
         
         
         //negative
-        
+        std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > negativeExampleVectors;
+        for (std::vector<databaseentities::id_datatype>::const_iterator it = negativeExamples.begin(); it != negativeExamples.end(); ++it)
+        {
+            databaseentities::Recording rec;
+            rec.setID(*it);
+            conn->getRecordingByID(rec, true);
+            
+            vec.setZero();
+            if (rec.getRecordingFeatures() != NULL)
+            {
+                vec = createVectorForFeatures(rec.getRecordingFeatures(), categoryNegativeTimbreModel, categoryNegativeChromaModel);
+            }
+            
+            negativeExampleVectors.push_back(vec);
+        }
         
         //then: learn models
         GaussianOneClassClassifier positiveClassifier;
         GaussianOneClassClassifier negativeClassifier;
         
-        //positiveClassifier.learnModel();
+        positiveClassifier.learnModel(positiveExampleVectors);
+        negativeClassifier.learnModel(negativeExampleVectors);
         
         //TODO: erweitern auf allgemeine classifier etc.
+        
+        category.getCategoryDescription()->setClassifierDescription(positiveClassifier.getClassModel()->toJSONString());
+        //TODO: add neg classifier to category
         
         if (recalculateCategoryMembershipScores_)
         {
@@ -240,6 +274,21 @@ namespace music
         return true;
     }
     
+    Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> ClassificationProcessor::createVectorForFeatures(databaseentities::RecordingFeatures* features, GaussianMixtureModel<kiss_fft_scalar>* categoryTimbreModel, GaussianMixtureModel<kiss_fft_scalar>* categoryChromaModel)
+    {
+        Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> vec;
+        
+        GaussianMixtureModel<kiss_fft_scalar>* timbreModel = GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(features->getTimbreModel());
+        GaussianMixtureModel<kiss_fft_scalar>* chromaModel = GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(features->getChromaModel());
+        
+        vec[0] = timbreModel->compareTo(*categoryTimbreModel);
+        vec[1] = chromaModel->compareTo(*categoryChromaModel);
+        vec[2] = features->getDynamicRange();
+        vec[3] = features->getLength();
+        
+        return vec;
+    }
+    
     bool ClassificationProcessor::recalculateCategoryMembershipScores(const databaseentities::Category& category, ProgressCallbackCaller* callback)
     {
         conn->beginTransaction();
@@ -276,6 +325,17 @@ namespace music
             GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(
               category.getCategoryDescription()->getNegativeChromaModel()
             );
+        
+        GaussianOneClassClassifier positiveClassifier;
+        //TODO: GaussianOneClassClassifier negativeClassifier;
+        
+        {
+            Gaussian<kiss_fft_scalar>* model = Gaussian<kiss_fft_scalar>::loadFromJSONString(
+              category.getCategoryDescription()->getClassifierDescription()
+            );
+            positiveClassifier.setClassModel(model);
+            delete model;
+        }
         
         if (callback)
             callback->progress(0.05, "calculating new scores...");
@@ -315,6 +375,14 @@ namespace music
                     continue;
                 }
                 
+                Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> recordingPositiveVector;
+                recordingPositiveVector = createVectorForFeatures(recording.getRecordingFeatures(), categoryPositiveTimbreModel, categoryPositiveChromaModel);
+                
+                Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> recordingNegativeVector;
+                recordingNegativeVector = createVectorForFeatures(recording.getRecordingFeatures(), categoryNegativeTimbreModel, categoryNegativeChromaModel);
+                
+                
+                
                 GaussianMixtureModel<kiss_fft_scalar>* recordingTimbreModel = 
                     GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(
                       recording.getRecordingFeatures()->getTimbreModel()
@@ -324,7 +392,7 @@ namespace music
                       recording.getRecordingFeatures()->getChromaModel()
                     );
                 
-                if (!conn->updateRecordingToCategoryScore(recording.getID(), category.getID(), recordingChromaModel->compareTo(*categoryPositiveChromaModel) + recordingTimbreModel->compareTo(*categoryPositiveTimbreModel)))
+                if (!conn->updateRecordingToCategoryScore(recording.getID(), category.getID(), positiveClassifier.classifyVector(recordingPositiveVector)))
                 {
                     conn->rollbackTransaction();
                     delete categoryPositiveTimbreModel;
