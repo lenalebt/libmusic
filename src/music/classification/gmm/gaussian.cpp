@@ -7,7 +7,7 @@ namespace music
 {
     template <typename ScalarType>
     Gaussian<ScalarType>::Gaussian(unsigned int dimension, NormalRNG<ScalarType>* rng) :
-        weight(1.0), mean(dimension), preFactor(), rng(rng), externalRNG(rng!=NULL)
+        weight(1.0), mean(dimension), preFactor(), rng(rng), externalRNG(rng!=NULL), pseudoInverse(NULL)
     {
         mean.setZero();
         
@@ -17,7 +17,7 @@ namespace music
     
     template <typename ScalarType>
     Gaussian<ScalarType>::Gaussian(double weight, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& mean, NormalRNG<ScalarType>* rng) :
-        weight(weight), mean(mean), preFactor(), rng(rng), externalRNG(rng!=NULL)
+        weight(weight), mean(mean), preFactor(), rng(rng), externalRNG(rng!=NULL), pseudoInverse(NULL)
     {
         assert(weight >= 0.0);
         assert(weight <= 1.0);
@@ -28,7 +28,7 @@ namespace music
     
     template <typename ScalarType>
     Gaussian<ScalarType>::Gaussian(const Gaussian<ScalarType>& other) :
-        weight(other.weight), mean(other.mean), preFactor(), rng(NULL), externalRNG(other.externalRNG)
+        weight(other.weight), mean(other.mean), preFactor(), rng(NULL), externalRNG(other.externalRNG), pseudoInverse(NULL)
     {
         if (externalRNG)
             this->rng = other.rng;
@@ -40,7 +40,14 @@ namespace music
     double Gaussian<ScalarType>::calculateDistance(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& vector1, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& vector2)
     {
         Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> tmp = vector1 - vector2;
-        return sqrt(tmp.transpose() * llt.solve(tmp));
+        if (pseudoInverse)
+        {
+            return sqrt(tmp.transpose() * (*pseudoInverse) * tmp);
+        }
+        else
+        {
+            return sqrt(tmp.transpose() * llt.solve(tmp));
+        }
     }
     
     template <typename ScalarType>
@@ -54,6 +61,8 @@ namespace music
     {
         if (!externalRNG)
             delete rng;
+        if (pseudoInverse)
+            delete pseudoInverse;
     }
     
     template <typename ScalarType>
@@ -228,11 +237,37 @@ namespace music
     template <typename ScalarType>
     void GaussianDiagCov<ScalarType>::calculatePrefactor()
     {
-        assert(diagCov.cwiseSqrt().prod() != 0.0);
-        preFactor = weight * 1.0/(pow(2*M_PI, diagCov.size()/2.0) * diagCov.cwiseSqrt().prod());
+        double determinant = diagCov.cwiseSqrt().prod();
+        assert(determinant != 0.0);
+        preFactor = weight * 1.0/(pow(2*M_PI, diagCov.size()/2.0) * determinant);
         assert(preFactor != 0.0);
-        preFactorWithoutWeights = 1.0/(pow(2*M_PI, diagCov.size()/2.0) * diagCov.cwiseSqrt().prod());
-        assert(preFactorWithoutWeights != 0.0);
+        
+        if (preFactor != preFactor) //not invertible
+        {
+            Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> eigenvalues = diagCov;
+            Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> invEigenvalues(eigenvalues.size());
+            
+            for (int i=0; i<eigenvalues.size(); i++)
+            {
+                if (eigenvalues[i] > 200.0*eigenvalues.size() * std::numeric_limits<ScalarType>::epsilon())   //sum only nonzero eigenvalues. zero are values smaller than 200.0*dimension*machineepsilon
+                {
+                    invEigenvalues[i] = 1.0/eigenvalues[i];
+                }
+                else
+                {
+                    invEigenvalues[i] = 0.0;
+                }
+            }
+            
+            if (pseudoInverse)
+                delete pseudoInverse;
+            pseudoInverse = new Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>(invEigenvalues.asDiagonal());
+        }
+        else
+        {
+            preFactorWithoutWeights = 1.0/(pow(2*M_PI, diagCov.size()/2.0) * determinant);
+            assert(preFactorWithoutWeights != 0.0);
+        }
     }
     template <typename ScalarType>
     void GaussianDiagCov<ScalarType>::setCovarianceMatrix(const Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>& fullCov)
@@ -241,6 +276,12 @@ namespace music
         this->diagCov = fullCov.diagonal();
         ldlt.compute(diagCov.asDiagonal());
         llt.compute(diagCov.asDiagonal());
+        
+        if (pseudoInverse)
+        {
+            delete pseudoInverse;
+            pseudoInverse = NULL;
+        }
         
         calculatePrefactor();
     }
@@ -273,11 +314,39 @@ namespace music
     template <typename ScalarType>
     void GaussianFullCov<ScalarType>::calculatePrefactor()
     {
-        assert(fullCov.determinant() != 0.0);
-        preFactor = weight * 1.0/(pow(2*M_PI, fullCov.rows()/2.0) * sqrt(fullCov.determinant()));
-        assert(preFactor != 0.0);
-        preFactorWithoutWeights = 1.0/(pow(2*M_PI, fullCov.rows()/2.0) * sqrt(fullCov.determinant()));
-        assert(preFactorWithoutWeights != 0.0);
+        double determinant = fullCov.determinant();
+        assert(determinant != 0.0);
+        preFactor = weight * 1.0/(pow(2*M_PI, fullCov.rows()/2.0) * sqrt(determinant));
+        
+        if (preFactor != preFactor)
+        {
+            Eigen::RealSchur<Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> > rSchur(fullCov);
+            Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> eigenvalues = rSchur.matrixT().diagonal();
+            Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> invEigenvalues(eigenvalues.size());
+            
+            for (int i=0; i<eigenvalues.size(); i++)
+            {
+                if (eigenvalues[i] > 200.0*eigenvalues.size() * std::numeric_limits<ScalarType>::epsilon())   //sum only nonzero eigenvalues. zero are values smaller than 200.0*dimension*machineepsilon
+                {
+                    invEigenvalues[i] = 1.0/eigenvalues[i];
+                }
+                else
+                {
+                    invEigenvalues[i] = 0.0;
+                }
+            }
+            
+            if (pseudoInverse)
+                delete pseudoInverse;
+            pseudoInverse = new Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>(
+                rSchur.matrixU() * invEigenvalues.asDiagonal() * rSchur.matrixU());
+        }
+        else
+        {
+            assert(preFactor != 0.0);
+            preFactorWithoutWeights = 1.0/(pow(2*M_PI, fullCov.rows()/2.0) * sqrt(determinant));
+            assert(preFactorWithoutWeights != 0.0);
+        }
     }
     template <typename ScalarType>
     void GaussianFullCov<ScalarType>::setCovarianceMatrix(const Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>& fullCov)
@@ -286,6 +355,12 @@ namespace music
         this->fullCov = fullCov;
         ldlt.compute(fullCov);
         llt.compute(fullCov);
+        
+        if (pseudoInverse)
+        {
+            delete pseudoInverse;
+            pseudoInverse = NULL;
+        }
         
         calculatePrefactor();
     }

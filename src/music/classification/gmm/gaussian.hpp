@@ -56,6 +56,8 @@ namespace music
         bool externalRNG;
         Eigen::LLT<Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> > llt;
         
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>* pseudoInverse;
+        
         /**
          * @brief Calculates the prefactor of the gaussian, which is used in
          *      every calculation of the pdf.
@@ -255,6 +257,7 @@ namespace music
         using Gaussian<ScalarType>::rng;
         using Gaussian<ScalarType>::weight;
         using Gaussian<ScalarType>::llt;
+        using Gaussian<ScalarType>::pseudoInverse;
         
         Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> fullCov;
         Eigen::LDLT<Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> > ldlt;
@@ -316,6 +319,7 @@ namespace music
         using Gaussian<ScalarType>::rng;
         using Gaussian<ScalarType>::weight;
         using Gaussian<ScalarType>::llt;
+        using Gaussian<ScalarType>::pseudoInverse;
         
         Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> diagCov;
         Eigen::LDLT<Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> > ldlt;
