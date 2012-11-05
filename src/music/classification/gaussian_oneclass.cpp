@@ -31,6 +31,7 @@ namespace music
         //TODO: If covariance matrix is singular (for whatever reason,
         //most probably not enough training samples), do something about
         //it.
+        //IDEA: Use Moore-Penrose Pseudoinverse
         
         if (classModel != NULL)
             delete classModel;

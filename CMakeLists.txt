@@ -103,6 +103,7 @@ SET(
     src/music/classification/classificationprocessor.cpp
     src/music/classification/classificationcategory.cpp
     src/music/classification/gmm/gmm.cpp
+    src/music/classification/gmm/gaussian.cpp
     src/music/classification/gmm/kmeans.cpp
     
     #kissfft source files
@@ -150,6 +151,7 @@ SET(
     src/music/uihelper/progress_callback.hpp
     
     #classification
+    src/music/classification/gmm/gaussian.hpp
     src/music/classification/classifier.hpp
     src/music/classification/lda_fisher.hpp
     src/music/classification/gaussian_oneclass.hpp
