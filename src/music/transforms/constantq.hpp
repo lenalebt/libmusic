@@ -87,18 +87,6 @@ namespace music
         int atomNr;
     public:
         ~ConstantQTransformResult();
-        /**
-         * @brief Returns the value of the constant Q transform at the given time
-         *      and interpolates linearly between samples where the transform is known.
-         * 
-         * 
-         * @param time the time in seconds
-         * @param octave the octave you want to see
-         * @param bin the bin within the octave
-         * @return the value of the constant Q transform at a given sample number
-         * @todo timing is not right: lower octaves get squeezed (they are too short)
-         */
-        std::complex<kiss_fft_scalar> getNoteValueLinearInterpolation(float time, int octave, int bin) const;
         
         /**
          * @brief Returns the value of the constant Q transform at the given time
