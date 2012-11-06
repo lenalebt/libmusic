@@ -32,8 +32,6 @@ namespace music
         unsigned int categoryChromaModelSize;
         unsigned int categoryChromaPerSongSampleCount;
         
-        Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> createVectorForFeatures(databaseentities::RecordingFeatures* features, GaussianMixtureModel<kiss_fft_scalar>* categoryTimbreModel, GaussianMixtureModel<kiss_fft_scalar>* categoryChromaModel);
-        
     public:
         ClassificationProcessor(DatabaseConnection* conn, unsigned int categoryTimbreModelSize = 60, unsigned int categoryTimbrePerSongSampleCount = 20000, unsigned int categoryChromaModelSize = 8, unsigned int categoryChromaPerSongSampleCount = 2000);
         

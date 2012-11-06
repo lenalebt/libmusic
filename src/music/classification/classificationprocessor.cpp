@@ -185,7 +185,7 @@ namespace music
             
             if (rec.getRecordingFeatures() != NULL)
             {
-                vec = createVectorForFeatures(rec.getRecordingFeatures(), categoryPositiveTimbreModel, categoryPositiveChromaModel);
+                vec = cat.createVectorForFeatures(rec.getRecordingFeatures(), categoryPositiveTimbreModel, categoryPositiveChromaModel);
             }
             
             positiveExampleVectors.push_back(vec);
@@ -203,7 +203,7 @@ namespace music
             vec.setZero();
             if (rec.getRecordingFeatures() != NULL)
             {
-                vec = createVectorForFeatures(rec.getRecordingFeatures(), categoryNegativeTimbreModel, categoryNegativeChromaModel);
+                vec = cat.createVectorForFeatures(rec.getRecordingFeatures(), categoryNegativeTimbreModel, categoryNegativeChromaModel);
             }
             
             negativeExampleVectors.push_back(vec);
@@ -275,30 +275,10 @@ namespace music
         return true;
     }
     
-    Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> ClassificationProcessor::createVectorForFeatures(databaseentities::RecordingFeatures* features, GaussianMixtureModel<kiss_fft_scalar>* categoryTimbreModel, GaussianMixtureModel<kiss_fft_scalar>* categoryChromaModel)
-    {
-        Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> vec(4);
-        
-        GaussianMixtureModel<kiss_fft_scalar>* timbreModel = GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(features->getTimbreModel());
-        GaussianMixtureModel<kiss_fft_scalar>* chromaModel = GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(features->getChromaModel());
-        
-        if (categoryTimbreModel)
-            vec[0] = timbreModel->compareTo(*categoryTimbreModel);
-        else
-            vec[0] = 0.0;
-        
-        if (categoryChromaModel)
-            vec[1] = chromaModel->compareTo(*categoryChromaModel);
-        else
-            vec[1] = 0.0;
-        vec[2] = features->getDynamicRange();
-        vec[3] = features->getLength();
-        
-        return vec;
-    }
-    
     bool ClassificationProcessor::recalculateCategoryMembershipScores(const databaseentities::Category& category, ProgressCallbackCaller* callback)
     {
+        ClassificationCategory cat;
+        
         conn->beginTransaction();
         
         if (callback)
@@ -384,10 +364,10 @@ namespace music
                 }
                 
                 Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> recordingPositiveVector;
-                recordingPositiveVector = createVectorForFeatures(recording.getRecordingFeatures(), categoryPositiveTimbreModel, categoryPositiveChromaModel);
+                recordingPositiveVector = cat.createVectorForFeatures(recording.getRecordingFeatures(), categoryPositiveTimbreModel, categoryPositiveChromaModel);
                 
                 Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> recordingNegativeVector;
-                recordingNegativeVector = createVectorForFeatures(recording.getRecordingFeatures(), categoryNegativeTimbreModel, categoryNegativeChromaModel);
+                recordingNegativeVector = cat.createVectorForFeatures(recording.getRecordingFeatures(), categoryNegativeTimbreModel, categoryNegativeChromaModel);
                 
                 
                 
@@ -438,6 +418,8 @@ namespace music
     }
     bool ClassificationProcessor::addRecording(const databaseentities::Recording& recording)
     {
+        ClassificationCategory cat;
+        
         std::vector<databaseentities::id_datatype> categoryIDs;
         conn->getCategoryIDsByName(categoryIDs, "%");   //read all category IDs
         
@@ -484,7 +466,7 @@ namespace music
                 delete model;
             }
             
-            if (!conn->updateRecordingToCategoryScore(recording.getID(), category.getID(), positiveClassifier.classifyVector(createVectorForFeatures(recording.getRecordingFeatures(), categoryPositiveTimbreModel, categoryPositiveChromaModel))))
+            if (!conn->updateRecordingToCategoryScore(recording.getID(), category.getID(), positiveClassifier.classifyVector(cat.createVectorForFeatures(recording.getRecordingFeatures(), categoryPositiveTimbreModel, categoryPositiveChromaModel))))
             {
                 conn->rollbackTransaction();
                 delete categoryPositiveTimbreModel;

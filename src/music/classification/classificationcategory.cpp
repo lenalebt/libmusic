@@ -47,6 +47,10 @@ namespace music
         delete model;
         model = NULL;
         
+        std::cerr << tmpModel1->toJSONString() << std::endl;
+        std::cerr << tmpModel2->toJSONString() << std::endl;
+        std::cerr << tmpModel3->toJSONString() << std::endl;
+        
         if (callback)
             callback->progress(0.95, "choose best model");
         
@@ -127,5 +131,27 @@ namespace music
             delete negativeTimbreModel;
         if (negativeChromaModel)
             delete negativeChromaModel;
+    }
+    
+    Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> ClassificationCategory::createVectorForFeatures(databaseentities::RecordingFeatures* features, GaussianMixtureModel<kiss_fft_scalar>* categoryTimbreModel, GaussianMixtureModel<kiss_fft_scalar>* categoryChromaModel)
+    {
+        Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> vec(4);
+        
+        GaussianMixtureModel<kiss_fft_scalar>* timbreModel = GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(features->getTimbreModel());
+        GaussianMixtureModel<kiss_fft_scalar>* chromaModel = GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(features->getChromaModel());
+        
+        if (categoryTimbreModel)
+            vec[0] = timbreModel->compareTo(*categoryTimbreModel);
+        else
+            vec[0] = 0.0;
+        
+        if (categoryChromaModel)
+            vec[1] = chromaModel->compareTo(*categoryChromaModel);
+        else
+            vec[1] = 0.0;
+        vec[2] = features->getDynamicRange();
+        vec[3] = features->getLength();
+        
+        return vec;
     }
 }
