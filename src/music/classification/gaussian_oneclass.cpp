@@ -7,6 +7,11 @@ namespace music
     {
         
     }
+    GaussianOneClassClassifier::GaussianOneClassClassifier(const GaussianOneClassClassifier& other) :
+        classModel(other.classModel->clone())
+    {
+        
+    }
     bool GaussianOneClassClassifier::learnModel(const std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> >& trainingData, ProgressCallbackCaller* callback)
     {
         assert(trainingData.size() > 0);

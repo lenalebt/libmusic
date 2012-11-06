@@ -14,6 +14,7 @@ namespace music
         
     public:
         GaussianOneClassClassifier();
+        GaussianOneClassClassifier(const GaussianOneClassClassifier& other);
         bool learnModel(const std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> >& trainingData, ProgressCallbackCaller* callback = NULL);
         double classifyVector(const Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1>& vector);
         
