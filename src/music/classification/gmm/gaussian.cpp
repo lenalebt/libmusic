@@ -42,11 +42,11 @@ namespace music
         Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> tmp = vector1 - vector2;
         if (pseudoInverse)
         {
-            return sqrt(tmp.transpose() * (*pseudoInverse) * tmp);
+            return std::sqrt(tmp.transpose() * (*pseudoInverse) * tmp);
         }
         else
         {
-            return sqrt(tmp.transpose() * llt.solve(tmp));
+            return std::sqrt(tmp.transpose() * llt.solve(tmp));
         }
     }
     
@@ -242,8 +242,8 @@ namespace music
         preFactor = weight * 1.0/(pow(2*M_PI, diagCov.size()/2.0) * determinant);
         assert(preFactor != 0.0);
         
-        if (preFactor != preFactor) //not invertible
-        {
+        if (determinant < std::numeric_limits<ScalarType>::epsilon()*std::numeric_limits<ScalarType>::epsilon()) //not invertible
+        {   //calculate moore-penrose pseudoinverse if covariance matrix is not invertible
             Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> eigenvalues = diagCov;
             Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> invEigenvalues(eigenvalues.size());
             
@@ -318,8 +318,9 @@ namespace music
         assert(determinant != 0.0);
         preFactor = weight * 1.0/(pow(2*M_PI, fullCov.rows()/2.0) * sqrt(determinant));
         
-        if (preFactor != preFactor)
-        {
+        if (determinant < 1e-50)
+        {   //calculate moore-penrose pseudoinverse if covariance matrix is not invertible
+            DEBUG_OUT("calculate pseudoinverse", 10);
             Eigen::RealSchur<Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> > rSchur(fullCov);
             Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> eigenvalues = rSchur.matrixT().diagonal();
             Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> invEigenvalues(eigenvalues.size());
@@ -340,6 +341,7 @@ namespace music
                 delete pseudoInverse;
             pseudoInverse = new Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>(
                 rSchur.matrixU() * invEigenvalues.asDiagonal() * rSchur.matrixU());
+            DEBUG_VAR_OUT(*pseudoInverse, 0);
         }
         else
         {
