@@ -265,7 +265,7 @@ namespace tests
         
         
         
-        for (typename std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> >::iterator it = data.begin(); it != data.end(); it++)
+        for (std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> >::iterator it = data.begin(); it != data.end(); it++)
         {
             DEBUG_VAR_OUT((*it).transpose(), 0);
         }

@@ -136,15 +136,15 @@ namespace music
                     //this is equivalent to a singular value decomposition since covariance
                     //matricies are positive semi-definite and thus is suited to calculate both
                     //moore-penrose pseudo-inverse and pseudo-determinant
-                    Eigen::RealSchur<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, Eigen::Dynamic> > rSchur(fullCovs[g]);
-                    Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> eigenvalues = rSchur.matrixT().diagonal();
-                    Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> invEigenvalues(eigenvalues.size());
+                    Eigen::RealSchur<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> > rSchur(fullCovs[g].template cast<double>());
+                    Eigen::Matrix<double, Eigen::Dynamic, 1> eigenvalues = rSchur.matrixT().diagonal();
+                    Eigen::Matrix<double, Eigen::Dynamic, 1> invEigenvalues(eigenvalues.size());
                     
                     double logPseudoDet = 0.0;
                     int rank = 0;
                     for (int i=0; i<eigenvalues.size(); i++)
                     {
-                        if (eigenvalues[i] > 200.0*eigenvalues.size() * std::numeric_limits<kiss_fft_scalar>::epsilon())   //sum only nonzero eigenvalues. zero are values smaller than 200.0*dimension*machineepsilon
+                        if (eigenvalues[i] > eigenvalues.size() * std::numeric_limits<kiss_fft_scalar>::epsilon())   //sum only nonzero eigenvalues. zero are values smaller than dimension*machineepsilon
                         {
                             logPseudoDet += log(eigenvalues[i]);
                             rank++;
@@ -159,7 +159,8 @@ namespace music
                     factor = -0.5*log(2.0*M_PI)*rank -0.5*logPseudoDet;
                     
                     Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, Eigen::Dynamic> pseudoInverse =
-                        rSchur.matrixU() * invEigenvalues.asDiagonal() * rSchur.matrixU();
+                        (rSchur.matrixU() * invEigenvalues.asDiagonal() * rSchur.matrixU().transpose()).template cast<kiss_fft_scalar>()
+                        ;
                     
                     //for every data point do...
                     for (unsigned int i=0; i < dataSize; i++)
