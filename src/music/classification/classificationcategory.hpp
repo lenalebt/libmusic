@@ -123,6 +123,7 @@ namespace music
         
         
         double classifyRecording(const databaseentities::Recording& recording);
+        
         bool calculateClassificatorModel(const std::vector<databaseentities::Recording*>& posExamples, const std::vector<databaseentities::Recording*>& negExamples, unsigned int categoryTimbreModelSize=50, unsigned int categoryTimbrePerSongSampleCount=10000, unsigned int categoryChromaModelSize=8, unsigned int categoryChromaPerSongSampleCount=10000, ProgressCallbackCaller* callback = NULL);
         
         

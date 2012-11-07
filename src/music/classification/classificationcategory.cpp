@@ -285,17 +285,22 @@ namespace music
             negativeExampleVectors.push_back(vec);
         }
         
+        //build models for classifiers
         if (positiveExampleVectors.size() > 0)
         {
             emptyPosClassifierModel = false;
             posClassifier->learnModel(positiveExampleVectors);
         }
+        else
+            emptyPosClassifierModel = true;
         
         if (negativeExampleVectors.size() > 0)
         {
             emptyNegClassifierModel = false;
             negClassifier->learnModel(negativeExampleVectors);
         }
+        else
+            emptyNegClassifierModel = true;
         
         if (callback)
             callback->progress(1.0, "finished");
