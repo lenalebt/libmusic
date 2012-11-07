@@ -18,6 +18,8 @@ namespace music
         bool learnModel(const std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> >& trainingData, ProgressCallbackCaller* callback = NULL);
         double classifyVector(const Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1>& vector);
         
+        std::string toJSONString()                            {return classModel->toJSONString();}
+        
         Gaussian<kiss_fft_scalar>* getClassModel()            {return classModel;}
         void setClassModel(Gaussian<kiss_fft_scalar>* model)  {classModel = model->clone();}
     };

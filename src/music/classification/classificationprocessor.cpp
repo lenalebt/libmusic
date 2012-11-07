@@ -49,7 +49,64 @@ namespace music
         ClassificationCategory cat;
         cat.calculateClassificatorModel(positiveExamples, negativeExamples, categoryTimbreModelSize, categoryTimbrePerSongSampleCount, categoryChromaModelSize, categoryChromaPerSongSampleCount);
         
+        //TODO: save models to database
+        if (cat.getPositiveTimbreModel() != NULL)
+            category.getCategoryDescription()->setPositiveTimbreModel(cat.getPositiveTimbreModel()->toJSONString());
+        else
+            category.getCategoryDescription()->setPositiveTimbreModel("");
         
+        if (cat.getPositiveChromaModel() != NULL)
+            category.getCategoryDescription()->setPositiveChromaModel(cat.getPositiveChromaModel()->toJSONString());
+        else
+            category.getCategoryDescription()->setPositiveChromaModel("");
+        
+        if (cat.getNegativeTimbreModel() != NULL)
+            category.getCategoryDescription()->setNegativeTimbreModel(cat.getNegativeTimbreModel()->toJSONString());
+        else
+            category.getCategoryDescription()->setNegativeTimbreModel("");
+        
+        if (cat.getNegativeChromaModel() != NULL)
+            category.getCategoryDescription()->setNegativeChromaModel(cat.getNegativeChromaModel()->toJSONString());
+        else
+            category.getCategoryDescription()->setNegativeChromaModel("");
+        
+        
+        if (cat.getPositiveClassifierModel() != NULL)
+            category.getCategoryDescription()->setPositiveClassifierDescription(cat.getPositiveClassifierModel()->toJSONString());
+        else
+            category.getCategoryDescription()->setPositiveClassifierDescription("");
+        
+        if (cat.getNegativeClassifierModel() != NULL)
+            category.getCategoryDescription()->setNegativeClassifierDescription(cat.getNegativeClassifierModel()->toJSONString());
+        else
+            category.getCategoryDescription()->setNegativeClassifierDescription("");
+        
+        
+        //recalculate scores if told to do so
+        if (recalculateCategoryMembershipScores_)
+        {
+            if (callback)
+                callback->progress(0.5, "recalculate membership scores");
+            //TODO: ID des callbacks stimmt evtl so nicht. neu anpassen, dafür funktionen von progresscallbackcaller ändern?
+            if (!recalculateCategoryMembershipScores(category, callback))
+            {
+                conn->rollbackTransaction();
+                return false;
+            }
+        }
+        
+        //done. now tidy up.
+        //delete recordings from memory
+        for (std::vector<databaseentities::Recording*>::iterator it = positiveExamples.begin(); it != positiveExamples.end(); ++it)
+        {
+            delete *it;
+        }
+        positiveExamples.clear();
+        for (std::vector<databaseentities::Recording*>::iterator it = negativeExamples.begin(); it != negativeExamples.end(); ++it)
+        {
+            delete *it;
+        }
+        negativeExamples.clear();
         //TODO: TO HERE: USE CLASSIFICATIONCATEGORY
         
         #if 0
@@ -286,6 +343,7 @@ namespace music
         return true;
     }
     
+    /** @todo Umbauen auf neues Verfahren mit ClassificationCategory*/
     bool ClassificationProcessor::recalculateCategoryMembershipScores(const databaseentities::Category& category, ProgressCallbackCaller* callback)
     {
         ClassificationCategory cat;
@@ -330,7 +388,7 @@ namespace music
         
         {
             Gaussian<kiss_fft_scalar>* model = Gaussian<kiss_fft_scalar>::loadFromJSONString(
-              category.getCategoryDescription()->getClassifierDescription()
+              category.getCategoryDescription()->getPositiveClassifierDescription()
             );
             positiveClassifier.setClassModel(model);
             delete model;
@@ -427,6 +485,8 @@ namespace music
     {
         return false;
     }
+    
+    /** @todo Umbauen auf neues Verfahren mit ClassificationCategory! */
     bool ClassificationProcessor::addRecording(const databaseentities::Recording& recording)
     {
         ClassificationCategory cat;
@@ -471,7 +531,7 @@ namespace music
             
             {
                 Gaussian<kiss_fft_scalar>* model = Gaussian<kiss_fft_scalar>::loadFromJSONString(
-                  category.getCategoryDescription()->getClassifierDescription()
+                  category.getCategoryDescription()->getPositiveClassifierDescription()
                 );
                 positiveClassifier.setClassModel(model);
                 delete model;
