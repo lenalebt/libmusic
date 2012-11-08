@@ -81,6 +81,7 @@ namespace music
         else
             category.getCategoryDescription()->setNegativeClassifierDescription("");
         
+        conn->updateCategory(category);
         
         //recalculate scores if told to do so
         if (recalculateCategoryMembershipScores_)

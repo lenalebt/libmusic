@@ -279,7 +279,7 @@ namespace music
             delete model;
             model = NULL;
         }
-        model = new GaussianMixtureModelFullCov<kiss_fft_scalar>();
+        model = new GaussianMixtureModelDiagCov<kiss_fft_scalar>();
         
         if (callback)
             callback->progress(0.0, "initialized");
