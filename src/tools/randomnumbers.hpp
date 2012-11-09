@@ -27,7 +27,7 @@ namespace music
          * @brief Draw a random number from the distribution.
          * @return the random number.
          */
-        virtual T rand()=0;
+        virtual T rand() const=0;
     };
     
     /**
@@ -64,7 +64,7 @@ namespace music
          */
         UniformRNG(T a, T b) :
             a(a), b(b)      {diff = b-a;}
-        T rand()
+        T rand() const
         {
             return a + (diff)*(double(std::rand()) / RAND_MAX);
         }
@@ -84,6 +84,8 @@ namespace music
     /**
      * @brief A random number generator which produces normally distributed numbers.
      * 
+     * @attention This class is not thread-safe. If you want to use it from multiple threads, you need to
+     *      create one object per thread.
      * @ingroup tools
      * @tparam T The type of numbers that will be drawn.
      * 
@@ -94,7 +96,7 @@ namespace music
     class NormalRNG : public StandardRNG<T>
     {
     private:
-        double storedval;
+        mutable double storedval;
     protected:
         UniformRNG<T>* rng;
         T mean;
@@ -134,7 +136,7 @@ namespace music
         NormalRNG() :
             storedval(0.0), rng(new UniformRNG<T>(-1, 1)), mean(0.0), variance(1.0) {}
         ~NormalRNG()    {delete rng;}
-        T rand()
+        T rand() const
         {
             //Box-Muller transform, as presented in "Numerical Recipes, Third edition", p.365...
             T v1, v2, rsq, fac;

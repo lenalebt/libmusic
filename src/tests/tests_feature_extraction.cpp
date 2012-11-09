@@ -731,7 +731,7 @@ namespace tests
         files << "./testdata/instrument/multiplenotes/instrument-viola_vibrato.mp3";
         files << "./testdata/instrument/multiplenotes/instrument-viola_warm_section.mp3";
         files << "./testdata/instrument/multiplenotes/instrument-violin_warm_section.mp3";*/
-        
+        /*
         DEBUG_OUT("adding files in \"./testdata/instrument/singlenotes/\" to the file list...", 10);
         DIR* dir = NULL;        //POSIX standard calls
         struct dirent *ent;
@@ -771,6 +771,25 @@ namespace tests
         files << "./testdata/dead_rocks.mp3";
         files << "./testdata/tenpenny_joke.mp3";
         files << "./testdata/test.mp3";
+        */
+        
+        files << "./testdata/instrument/singlenotes/brass-trumpet3-d.mp3";
+        files << "./testdata/instrument/singlenotes/strings-violin-c.mp3";
+        files << "./testdata/instrument/singlenotes/strings-violin-d.mp3";
+        files << "./testdata/instrument/singlenotes/strings-violin-e.mp3";
+        files << "./testdata/instrument/singlenotes/strings-violin-f.mp3";
+        files << "./testdata/instrument/singlenotes/strings-violin-g.mp3";
+        files << "./testdata/instrument/singlenotes/strings-violin-a.mp3";
+        files << "./testdata/instrument/singlenotes/strings-violin-b.mp3";
+        files << "./testdata/instrument/singlenotes/strings-violin-c_.mp3";
+        files << "./testdata/instrument/singlenotes/strings-viola-d.mp3";
+        files << "./testdata/instrument/singlenotes/wood-flute-d.mp3";
+        files << "./testdata/instrument/singlenotes/wood-flute_vibrato-d.mp3";
+        files << "./testdata/instrument/singlenotes/brass-trombone-d.mp3";
+        files << "./testdata/instrument/singlenotes/synth-fatbass-d.mp3";
+        files << "./testdata/instrument/singlenotes/brass-trumpet1-d.mp3";
+        files << "./testdata/instrument/singlenotes/brass-trumpet2-d.mp3";
+        files << "./testdata/instrument/singlenotes/synth-sine-d.mp3";
         
         musicaccess::SoundFile file;
         musicaccess::Resampler22kHzMono resampler;
@@ -779,6 +798,8 @@ namespace tests
         
         mkdir("./cqfcc", 0777);
         
+        music::GaussianMixtureModelDiagCov<kiss_fft_scalar> violingmm;
+        bool first=true;
         while (!files.empty())
         {
             std::string filename = files.front();
@@ -819,7 +840,7 @@ namespace tests
             }
             */
             
-            music::TimbreEstimator t(transformResult);
+            music::TimbreEstimator t(transformResult, 12);
             double time;
             std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > data;
             //for (double time=0.0; time<transformResult->getOriginalDuration(); time += 0.125/8)
@@ -845,13 +866,31 @@ namespace tests
             }
             
             music::GaussianMixtureModelDiagCov<kiss_fft_scalar> gmm;
-            gmm.trainGMM(data, 3);
+            gmm.trainGMM(data, 5);
             std::vector<music::Gaussian<kiss_fft_scalar>*> gaussians = gmm.getGaussians();
             DEBUG_OUT("gaussians of gmm algorithm:", 10);
             for(std::vector<music::Gaussian<kiss_fft_scalar>*>::const_iterator it = gaussians.begin(); it != gaussians.end(); it++)
             {
                 DEBUG_VAR_OUT((**it).getMean(), 0);
                 DEBUG_VAR_OUT((**it).getCovarianceMatrix(), 0);
+                std::cerr << (**it).getWeight() << ":\t " << (**it).getMean().transpose() << std::endl;
+            }
+            
+            if (!first)
+            {
+                /*
+                DEBUG_VAR_OUT(gmm.compareTo(gmm), 0);
+                DEBUG_VAR_OUT(violingmm.compareTo(violingmm), 0);
+                DEBUG_VAR_OUT(gmm.compareTo(violingmm), 0);
+                DEBUG_VAR_OUT(violingmm.compareTo(gmm), 0);
+                */
+                std::cerr << filename << std::endl;
+                std::cerr << 0.5 * (gmm.compareTo(violingmm) + violingmm.compareTo(gmm)) << std::endl;
+            }
+            else
+            {
+                violingmm = gmm;
+                first=false;
             }
             
             delete buffer;

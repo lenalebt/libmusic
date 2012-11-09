@@ -84,6 +84,7 @@ SET(
     src/tools/tuple.cpp
     src/tools/randomnumbers.cpp
     src/tools/matrixhelper.cpp
+    src/tools/filesystem.cpp
     src/tools/jsoncpp/jsoncpp.cpp
     
     #uihelper
@@ -132,6 +133,7 @@ SET(
     src/tools/tuple.hpp
     src/tools/randomnumbers.hpp
     src/tools/matrixhelper.hpp
+    src/tools/filesystem.hpp
     src/tools/jsoncpp/json/json.h
     src/tools/jsoncpp/json/json-forwards.h
     
@@ -160,6 +162,7 @@ SET(
     src/tests/tests_feature_extraction.cpp
     src/tests/tests_classifier.cpp
     src/tests/tests_database.cpp
+    src/tests/tests_performance.cpp
     src/tests/testframework.cpp
     src/tests/main.cpp
     )
@@ -171,6 +174,7 @@ SET(
     src/tests/tests_feature_extraction.hpp
     src/tests/tests_classifier.hpp
     src/tests/tests_database.hpp
+    src/tests/tests_performance.hpp
     src/tests/testframework.hpp
     src/tests/main.hpp
     )    
@@ -256,13 +260,14 @@ ADD_TEST(perbinstatistics          "musictests" "perbinstatistics")
 ADD_TEST(pertimeslicestatistics    "musictests" "pertimeslicestatistics")
 ADD_TEST(fisherlda                 "musictests" "fisherlda")
 ADD_TEST(gmm                       "musictests" "gmm")
+ADD_TEST(gmm                       "musictests" "gaussian")
 ADD_TEST(kmeans                    "musictests" "kmeans")
 ADD_TEST(rng                       "musictests" "rng")
 ADD_TEST(preprocessfiles           "musictests" "preprocessfiles" "./testdata/")
 
 SET_TESTS_PROPERTIES(dct                     PROPERTIES DEPENDS fft)
 SET_TESTS_PROPERTIES(kmeans                  PROPERTIES DEPENDS rng)
-SET_TESTS_PROPERTIES(gmm                     PROPERTIES DEPENDS kmeans)
+SET_TESTS_PROPERTIES(gmm                     PROPERTIES DEPENDS "gaussian;kmeans")
 SET_TESTS_PROPERTIES(estimatebpm             PROPERTIES DEPENDS constantq)
 SET_TESTS_PROPERTIES(estimatechords          PROPERTIES DEPENDS constantq)
 SET_TESTS_PROPERTIES(estimatetimbre          PROPERTIES DEPENDS "constantq;gmm")

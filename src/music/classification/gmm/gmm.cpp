@@ -16,7 +16,7 @@ namespace music
         
     }
     template <typename ScalarType>
-    Gaussian<ScalarType>::Gaussian(ScalarType weight, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& mean) :
+    Gaussian<ScalarType>::Gaussian(double weight, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& mean) :
         weight(weight), mean(mean), preFactor(), rng(new NormalRNG<ScalarType>())
     {
         
@@ -29,33 +29,29 @@ namespace music
     }
     
     template <typename ScalarType>
-    ScalarType GaussianDiagCov<ScalarType>::calculateValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector)
+    double GaussianDiagCov<ScalarType>::calculateValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector)
     {
         assert(dataVector.size() == mean.size());
         Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> dist = dataVector - mean;
-        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> dist2 = dist;
-        ldlt.solve(dist2);
-        return preFactor * std::exp(-0.5 * (dist.transpose() * dist2)(0));
+        //Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> dist2 = dist;
+        return preFactor * std::exp(-0.5 * (dist.transpose() * ldlt.solve(dist))(0));
     }
     template <typename ScalarType>
-    ScalarType GaussianDiagCov<ScalarType>::calculateValueWithoutWeights(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector)
+    double GaussianDiagCov<ScalarType>::calculateValueWithoutWeights(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector)
     {
         assert(dataVector.size() == mean.size());
         Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> dist = dataVector - mean;
-        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> dist2 = dist;
-        ldlt.solve(dist2);
-        return preFactorWithoutWeights * std::exp(-0.5 * (dist.transpose() * dist2)(0));
+        //Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> dist2 = dist;
+        return preFactorWithoutWeights * std::exp(-0.5 * (dist.transpose() * ldlt.solve(dist))(0));
     }
     template <typename ScalarType>
-    ScalarType GaussianDiagCov<ScalarType>::calculateNoMeanValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector)
+    double GaussianDiagCov<ScalarType>::calculateNoMeanValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector)
     {
         assert(dataVector.size() == mean.size());
-        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> vec2 = dataVector;
-        ldlt.solve(vec2);
-        return preFactor * std::exp(-0.5 * (dataVector.transpose() * vec2)(0));
+        return preFactor * std::exp(-0.5 * (dataVector.transpose() * ldlt.solve(dataVector))(0));
     }
     template <typename ScalarType>
-    Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> GaussianDiagCov<ScalarType>::rand()
+    Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> GaussianDiagCov<ScalarType>::rand() const
     {
         assert(mean.size() > 0);
         Eigen::LLT<Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> > llt(diagCov.asDiagonal());
@@ -67,8 +63,8 @@ namespace music
     template <typename ScalarType>
     void GaussianDiagCov<ScalarType>::calculatePrefactor()
     {
-        preFactor = weight * 1.0/(pow(2*M_PI, diagCov.size()/2.0) * sqrt(diagCov.prod()));
-        preFactorWithoutWeights = 1.0/(pow(2*M_PI, diagCov.size()/2.0) * sqrt(diagCov.prod()));
+        preFactor = weight * 1.0/(pow(2*M_PI, diagCov.size()/2.0) * diagCov.cwiseSqrt().prod());
+        preFactorWithoutWeights = 1.0/(pow(2*M_PI, diagCov.size()/2.0) * diagCov.cwiseSqrt().prod());
     }
     template <typename ScalarType>
     void GaussianDiagCov<ScalarType>::setCovarianceMatrix(const Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>& fullCov)
@@ -86,7 +82,7 @@ namespace music
         calculatePrefactor();
     }
     template <typename ScalarType>
-    GaussianDiagCov<ScalarType>::GaussianDiagCov(ScalarType weight, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& mean) :
+    GaussianDiagCov<ScalarType>::GaussianDiagCov(double weight, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& mean) :
         Gaussian<ScalarType>(weight, mean), diagCov(mean.size())
     {
         calculatePrefactor();
@@ -114,33 +110,27 @@ namespace music
         calculatePrefactor();
     }
     template <typename ScalarType>
-    ScalarType GaussianFullCov<ScalarType>::calculateValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector)
+    double GaussianFullCov<ScalarType>::calculateValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector)
     {
         assert(dataVector.size() == mean.size());
         Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> dist = dataVector - mean;
-        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> dist2 = dist;
-        ldlt.solve(dist2);
-        return preFactor * std::exp(-0.5 * (dist.transpose() * dist2)(0));
+        return preFactor * std::exp(-0.5 * (dist.transpose() * ldlt.solve(dist))(0));
     }
     template <typename ScalarType>
-    ScalarType GaussianFullCov<ScalarType>::calculateValueWithoutWeights(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector)
+    double GaussianFullCov<ScalarType>::calculateValueWithoutWeights(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector)
     {
         assert(dataVector.size() == mean.size());
         Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> dist = dataVector - mean;
-        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> dist2 = dist;
-        ldlt.solve(dist2);
-        return preFactorWithoutWeights * std::exp(-0.5 * (dist.transpose() * dist2)(0));
+        return preFactorWithoutWeights * std::exp(-0.5 * (dist.transpose() * ldlt.solve(dist))(0));
     }
     template <typename ScalarType>
-    ScalarType GaussianFullCov<ScalarType>::calculateNoMeanValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector)
+    double GaussianFullCov<ScalarType>::calculateNoMeanValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector)
     {
         assert(dataVector.size() == mean.size());
-        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> vec2 = dataVector;
-        ldlt.solve(vec2);
-        return preFactor * std::exp(-0.5 * (dataVector.transpose() * vec2)(0));
+        return preFactor * std::exp(-0.5 * (dataVector.transpose() * ldlt.solve(dataVector))(0));
     }
     template <typename ScalarType>
-    Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> GaussianFullCov<ScalarType>::rand()
+    Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> GaussianFullCov<ScalarType>::rand() const
     {
         assert(mean.size() > 0);
         Eigen::LLT<Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> > llt(fullCov);
@@ -156,7 +146,7 @@ namespace music
         calculatePrefactor();
     }
     template <typename ScalarType>
-    GaussianFullCov<ScalarType>::GaussianFullCov(ScalarType weight, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& mean) :
+    GaussianFullCov<ScalarType>::GaussianFullCov(double weight, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& mean) :
         Gaussian<ScalarType>(weight, mean), fullCov(mean.size(), mean.size())
     {
         calculatePrefactor();
@@ -176,7 +166,7 @@ namespace music
     void GaussianMixtureModel<ScalarType>::trainGMM(const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, int gaussianCount)
     {
         //TODO: precompute good starting vectors.
-        gaussians = this->emAlg(std::vector<Gaussian<ScalarType>*>(), data, gaussianCount);
+        gaussians = this->emAlg(std::vector<Gaussian<ScalarType>*>(), data, gaussianCount, 10);
         //TODO: check result for being a local minimum
     }
     
@@ -597,8 +587,59 @@ namespace music
     ScalarType GaussianMixtureModel<ScalarType>::compareTo(const GaussianMixtureModel<ScalarType>& other)
     {
         //draw some samples from the one model and take a look at the pdf values of the other.
-        ScalarType value = 0.0;
-        const int numValues = 5000;
+        double value = 0.0;
+        double value2=0.0;
+        const int numValues = 500;
+        
+        UniformRNG<float> rng(0,1);
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> tmp;
+        double tmpVal, tmp2Val;
+        
+        for (int i=0; i<numValues; i++)
+        {
+            
+            /*
+            //L2-Distance of functions
+            if (rng.rand() < 0.5)
+            {
+                tmp = this->rand();
+                tmpVal = this->calculateValue(tmp);
+            }
+            else
+            {
+                tmp = other.rand();
+                tmpVal = other.calculateValue(tmp);
+            }
+            value += fabs(this->calculateValue(tmp) - other.calculateValue(tmp)) / tmpVal;
+            */
+            
+            //Kullback-Leibler-Divergence
+            tmp = this->rand();
+            tmpVal = this->calculateValue(tmp);
+            //DEBUG_VAR_OUT(tmpVal, 0);
+            double logTmpVal = log(tmpVal);
+            //do not allow +-inf values...
+            if (logTmpVal < -100)
+                logTmpVal = -100;
+            double logOtherVal = log(other.calculateValue(tmp));
+            if (logOtherVal < -100)
+                logOtherVal = -100;
+            //DEBUG_VAR_OUT(logTmpVal, 0);
+            //DEBUG_VAR_OUT(logOtherVal, 0);
+            //DEBUG_VAR_OUT(logTmpVal - logOtherVal, 0);
+            value += tmpVal * (logTmpVal - logOtherVal);
+            value2 += 1 * (logTmpVal - logOtherVal);
+            //std::cerr << "tmp: " << tmpVal << std::endl;
+            //std::cerr << "otp: " << other.calculateValue(tmp) << std::endl;
+            //std::cerr << "dif: " << logTmpVal - logOtherVal << std::endl;
+            //std::cerr << "t  : " << tmpVal * (logTmpVal - logOtherVal) << std::endl;;
+            
+            //DEBUG_VAR_OUT(value, 0);
+            assert(value == value);
+        }
+        //std::cerr << value2/numValues << std::endl;
+        return value2/numValues;
+        
         //get the mean of the pdf values. large values should mean "pdfs are similar",
         //and small values indicate that they are not equal.
         for (int i=0; i<numValues; i++)
@@ -608,8 +649,10 @@ namespace music
     }
     
     template <typename ScalarType>
-    Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> GaussianMixtureModel<ScalarType>::rand()
+    Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> GaussianMixtureModel<ScalarType>::rand() const
     {
+        assert(gaussians.size() > 0);
+        
         ScalarType sumOfWeights=0.0;
         ScalarType randomNumber = uniRNG.rand();
         for (unsigned int i=0; i<gaussians.size(); i++)
@@ -873,8 +916,10 @@ namespace music
         return newgmm;
     }
     
-    template class GaussianFullCov<kiss_fft_scalar>;
-    template class GaussianDiagCov<kiss_fft_scalar>;
+    template class GaussianFullCov<double>;
+    template class GaussianDiagCov<double>;
+    template class GaussianFullCov<float>;
+    template class GaussianDiagCov<float>;
     template class GaussianMixtureModel<kiss_fft_scalar>;
     template class GaussianMixtureModelFullCov<kiss_fft_scalar>;
     template class GaussianMixtureModelDiagCov<kiss_fft_scalar>;
