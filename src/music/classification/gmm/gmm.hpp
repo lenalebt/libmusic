@@ -231,7 +231,7 @@ namespace music
     private:
         
     protected:
-        std::vector<Gaussian<ScalarType>*> gaussians;
+        std::vector<GaussianType*> gaussians;
         UniformRNG<ScalarType> uniRNG;
         ScalarType normalizationFactor;
         
@@ -252,7 +252,7 @@ namespace music
          * 
          * @return A list of the gaussian distributions that build the model.
          */
-        std::vector<Gaussian<ScalarType>* > emAlg(const std::vector<Gaussian<ScalarType>*>& init, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, int gaussianCount = 10, unsigned int maxIterations=50);
+        std::vector<GaussianType* > emAlg(const std::vector<GaussianType*>& init, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, int gaussianCount = 10, unsigned int maxIterations=50);
     public:
         /**
          * @brief Creates a new empty Gaussian Mixture Model.
@@ -286,7 +286,7 @@ namespace music
          * @brief Returns the list of gaussian distributions of this model.
          * @return A list of gaussian distributions.
          */
-        std::vector<Gaussian<ScalarType>*> getGaussians() const {return gaussians;}
+        std::vector<GaussianType*> getGaussians() const {return gaussians;}
         
         /**
          * @brief Draw a random vector from the probability density that is

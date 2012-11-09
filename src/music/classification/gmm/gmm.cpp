@@ -139,15 +139,15 @@ namespace music
     void GaussianMixtureModel<ScalarType, GaussianType>::trainGMM(const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, int gaussianCount)
     {
         //TODO: precompute good starting vectors.
-        gaussians = this->emAlg(std::vector<Gaussian<ScalarType>*>(), data, gaussianCount);
+        gaussians = this->emAlg(std::vector<GaussianType*>(), data, gaussianCount);
     }
     
     template <typename ScalarType, typename GaussianType>
-    std::vector<Gaussian<ScalarType>*> GaussianMixtureModel<ScalarType, GaussianType>::emAlg(const std::vector<Gaussian<ScalarType>*>& init, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, int gaussianCount, unsigned int maxIterations)
+    std::vector<GaussianType*> GaussianMixtureModel<ScalarType, GaussianType>::emAlg(const std::vector<GaussianType*>& init, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, int gaussianCount, unsigned int maxIterations)
     {
         //if init is empty, choose some data points as initialization.
         //k-means or something else should be done by somebody else beforehand.
-        std::vector<Gaussian<ScalarType>*> gaussians;
+        std::vector<GaussianType*> gaussians;
         unsigned int dimension = data[0].size();
         unsigned int dataSize = data.size();
         if (init.empty())
@@ -157,7 +157,7 @@ namespace music
             for (int i=0; i<gaussianCount; i++)
             {
                 DEBUG_OUT("adding gaussian distribution " << i << "...", 25);
-                Gaussian<ScalarType>* gaussian = new GaussianFullCov<ScalarType>(dimension);
+                GaussianType* gaussian = new GaussianType(dimension);
                 
                 gaussian->setMean(data[std::rand() % dataSize]);
                 gaussian->setCovarianceMatrix(Eigen::MatrixXd::Identity(dimension, dimension));
@@ -271,7 +271,7 @@ namespace music
             normalizationFactor += gaussians[g]->calculateValue(gaussians[g]->getMean());
         }
         normalizationFactor /= gaussianCount;
-        uniRNG = UniformRNG<double>(0.0, sumOfWeights);
+        uniRNG = UniformRNG<ScalarType>(0.0, sumOfWeights);
         return gaussians;
     }
     
@@ -279,7 +279,7 @@ namespace music
     ScalarType GaussianMixtureModel<ScalarType, GaussianType>::calculateValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& pos) const
     {
         ScalarType retVal=0.0;
-        for (typename std::vector<Gaussian<ScalarType>*>::const_iterator it = gaussians.begin(); it != gaussians.end(); it++)
+        for (typename std::vector<GaussianType*>::const_iterator it = gaussians.begin(); it != gaussians.end(); it++)
         {
             retVal += (**it).calculateValue(pos);
         }
@@ -390,17 +390,18 @@ namespace music
         for (unsigned int g=0; g<jsonValue.size(); g++)
         {
             //first init variables and read dimensionality
-            Gaussian<ScalarType>* gauss=NULL;
+            GaussianType* gauss=NULL;
             int dimension=jsonValue[g]["mean"].size();
             bool varianceIsFull;
+            //TODO: Does not work with templates this way!!! Need workaround!!!
             if (jsonValue[g]["mean"].size() == jsonValue[g]["covariance"].size())
             {
-                gauss = new GaussianDiagCov<ScalarType>(dimension);
+                gauss = new GaussianType(dimension);    //TODO: Wrong! Was: GaussianDiagCov.
                 varianceIsFull = false;
             }
             else
             {
-                gauss = new GaussianFullCov<ScalarType>(dimension);
+                gauss = new GaussianType(dimension);    //TODO: Wrong! Was: GaussianFullCov.
                 varianceIsFull = true;
             }
             
