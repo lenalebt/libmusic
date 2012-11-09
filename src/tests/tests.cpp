@@ -610,8 +610,15 @@ namespace tests
         music::PerBinStatistics perBinStatistics(transformResult);
         DEBUG_OUT("calculate mean, min and max vectors...", 11);
         perBinStatistics.calculateMeanMinMax();
+        
+        CHECK(perBinStatistics.getMeanVector() != NULL);
+        CHECK(perBinStatistics.getMinVector() != NULL);
+        CHECK(perBinStatistics.getMaxVector() != NULL);
+        
         DEBUG_OUT("calculate variance vectors...", 11);
         perBinStatistics.calculateVariance();
+        
+        CHECK(perBinStatistics.getVarianceVector() != NULL);
         
         DEBUG_OUT("mean vector:" << std::endl << *perBinStatistics.getMeanVector() << std::endl, 15)
         CHECK_EQ(perBinStatistics.getMeanVector()->size(), 108);
@@ -679,8 +686,16 @@ namespace tests
         
         DEBUG_OUT("calculate mean, min, max and sum vectors...", 11);
         perTimeSliceStatistics.calculateMeanMinMaxSum(true);
+        
+        CHECK(perTimeSliceStatistics.getMeanVector() != NULL);
+        CHECK(perTimeSliceStatistics.getMinVector() != NULL);
+        CHECK(perTimeSliceStatistics.getMaxVector() != NULL);
+        CHECK(perTimeSliceStatistics.getSumVector() != NULL);
+        
         DEBUG_OUT("calculate variance vectors...", 11);
         perTimeSliceStatistics.calculateVariance();
+        
+        CHECK(perTimeSliceStatistics.getVarianceVector() != NULL);
         
         //DEBUG_OUT("mean vector:" << std::endl << *perTimeSliceStatistics.getMeanVector() << std::endl, 15)
         CHECK_EQ(perTimeSliceStatistics.getMeanVector()->size(), elementCount);
@@ -697,11 +712,11 @@ namespace tests
         //DEBUG_OUT("sum vector:" << std::endl << *perTimeSliceStatistics.getSumVector() << std::endl, 15)
         CHECK_EQ(perTimeSliceStatistics.getSumVector()->size(), elementCount);
         
-        CHECK_EQ((*perTimeSliceStatistics.getMeanVector())(107), 0.00939059);
-        CHECK_EQ((*perTimeSliceStatistics.getMaxVector())(107), 0.497691);
-        CHECK_EQ((*perTimeSliceStatistics.getMinVector())(107), 0);
-        CHECK_EQ((*perTimeSliceStatistics.getVarianceVector())(107), 0.000500919549636);
-        CHECK_EQ((*perTimeSliceStatistics.getSumVector())(107), 0.000500919549636);
+        CHECK_EQ((*perTimeSliceStatistics.getMeanVector())(500), 0.043865344641846);
+        CHECK_EQ((*perTimeSliceStatistics.getMaxVector())(500), 0.372837632894516);
+        CHECK_EQ((*perTimeSliceStatistics.getMinVector())(500), 0.000052119550674);
+        CHECK_EQ((*perTimeSliceStatistics.getVarianceVector())(500), 0.006538470780168);
+        CHECK_EQ((*perTimeSliceStatistics.getSumVector())(500), 4.737457221319346);
         
         return EXIT_SUCCESS;
     }

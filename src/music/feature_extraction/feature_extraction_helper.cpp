@@ -3,6 +3,8 @@
 #include <assert.h>
 #include <limits>
 
+#include "debug.hpp"
+
 namespace music
 {
     PerBinStatistics::PerBinStatistics(ConstantQTransformResult* transformResult) :
@@ -175,7 +177,7 @@ namespace music
             (*maxVector)(i) = max;
         }
         
-        if (calculateSum && (sumVector != NULL))
+        if (calculateSum && (sumVector == NULL))
         {
             sumVector = new Eigen::VectorXd(elementCount);
             *sumVector = *meanVector;
