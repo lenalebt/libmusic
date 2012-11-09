@@ -10,8 +10,6 @@ SET (music_VERSION_MINOR 04)
 #tell the compiler to include the version number as preprocessor directive
 ADD_DEFINITIONS(-DVERSION=${music_VERSION_MAJOR}.${music_VERSION_MINOR})
 
-#this was mainly done to understand cmake
-MESSAGE ( "Choose build type by typing \"cmake -DCMAKE_BUILD_TYPE=Debug\" or \"cmake -DCMAKE_BUILD_TYPE=Release\" or \"cmake -DCMAKE_BUILD_TYPE=Profiling\" or \"cmake -DCMAKE_BUILD_TYPE=Valgrind\".")
 IF (CMAKE_BUILD_TYPE STREQUAL Debug)
     MESSAGE("CMAKE_BUILD_TYPE set to Debug.")
 ELSEIF (CMAKE_BUILD_TYPE STREQUAL Release)
@@ -30,10 +28,20 @@ ELSEIF (CMAKE_BUILD_TYPE STREQUAL Valgrind)
 #    SET(CMAKE_EXE_LINKER_FLAGS_PROFILING "-pg")
     #for assert.h
     ADD_DEFINITIONS(-DNDEBUG)
+ELSE()
+    MESSAGE ( "Choose build type by typing \"cmake -DCMAKE_BUILD_TYPE=Debug\" or \"cmake -DCMAKE_BUILD_TYPE=Release\" or \"cmake -DCMAKE_BUILD_TYPE=Profiling\" or \"cmake -DCMAKE_BUILD_TYPE=Valgrind\".")
 ENDIF ()
 
 IF (DEBUG_LEVEL)
     ADD_DEFINITIONS(-DDEBUG_LEVEL=${DEBUG_LEVEL})
+    MESSAGE( "DEBUG_LEVEL set to " ${DEBUG_LEVEL})
+ELSE(DEBUG_LEVEL)
+    IF (CMAKE_BUILD_TYPE STREQUAL Debug)
+        ADD_DEFINITIONS(-DDEBUG_LEVEL=200)
+        MESSAGE( "DEBUG_LEVEL set to 200.")
+    ELSE()
+        MESSAGE( "DEBUG_LEVEL cleared.")
+    ENDIF()
 ENDIF()
 
 #here, you would set some compiler specific things

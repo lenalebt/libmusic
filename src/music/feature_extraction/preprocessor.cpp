@@ -68,13 +68,6 @@ namespace music
                 return false;
             }
             
-            /*
-            if (file.getSampleRate() != 44100)
-            {
-                ERROR_OUT("cannot handle files with a sample rate different from 44100Hz at the moment.", 10);
-                return false;
-            }
-            */
             if (file.getSampleCount() < file.getSampleRate() * 10)
             {
                 DEBUG_OUT("skipping file with less than 10 seconds of audio...", 10);
@@ -125,8 +118,6 @@ namespace music
             music::DynamicRangeCalculator<kiss_fft_scalar> dynamicRangeCalculator(&perTimeSliceStatistics);
             dynamicRangeCalculator.calculateDynamicRange();
             features->setDynamicRange(dynamicRangeCalculator.getLoudnessRMS());
-            //TODO: RMS Variance should also be important!
-            
             
             if (callback != NULL)
                 callback->progress(7.0/stepCount, "calculating bpm...");
@@ -141,29 +132,28 @@ namespace music
                 return false;
             }
             features->setTempo(bpmEst.getBPMMean());
-            //other tempo features should also be important!
+            //TODO: other tempo features should also be important!
             
             if (callback != NULL)
                 callback->progress(10.0/stepCount, "calculating timbre model...");
             
+            //extract timbre
             music::TimbreModel timbreModel(transformResult);
-            //build model from 30 gaussians, 10ms slices, 20-dimensional vectors
             timbreModel.calculateModel(timbreModelSize, timbreTimeSliceSize, timbreDimension);
             features->setTimbreModel(timbreModel.getModel()->toJSONString());
             
             if (callback != NULL)
                 callback->progress(16.0/stepCount, "calculating chroma model...");
             
-            //TODO: calculate features.
+            //extract chroma
             music::ChromaModel chromaModel(transformResult);
-            //build model from 30 gaussians, 10ms slices, 20-dimensional vectors
             chromaModel.calculateModel(chromaModelSize, chromaTimeSliceSize, chromaMakeTransposeInvariant);
             features->setChromaModel(chromaModel.getModel()->toJSONString());
             
             if (callback != NULL)
                 callback->progress(22.0/stepCount, "saving recording to db...");
             
-            //this adds the recording, as well as its features.
+            //this adds the recording, as well as its features, to the database.
             success = conn->addRecording(*recording);
             if (!success)
             {
@@ -176,7 +166,6 @@ namespace music
             
             recordingID = recording->getID();
             
-            //TODO: Do feature extraction on the file, save data to database.
             if (callback != NULL)
                 callback->progress(1.0, "finished.");
             

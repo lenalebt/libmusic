@@ -114,7 +114,6 @@ namespace music
         return true;
     }
     
-    /** @todo Umbauen auf neues Verfahren mit ClassificationCategory*/
     bool ClassificationProcessor::recalculateCategoryMembershipScores(const databaseentities::Category& category, ProgressCallbackCaller* callback)
     {
         ClassificationCategory cat;
@@ -207,12 +206,6 @@ namespace music
         return true;
     }
     
-    bool ClassificationProcessor::recalculateCategoryMembershipScore(const databaseentities::Category& category, const databaseentities::Recording& recording)
-    {
-        return false;
-    }
-    
-    /** @todo Umbauen auf neues Verfahren mit ClassificationCategory! */
     bool ClassificationProcessor::addRecording(const databaseentities::Recording& recording)
     {
         ClassificationCategory cat;
@@ -245,9 +238,5 @@ namespace music
         conn->endTransaction();
         
         return true;
-    }
-    bool ClassificationProcessor::setRecordingCategoryExampleScore(const databaseentities::Recording& recording, const databaseentities::Category& category, double score, bool recalculateCategory_)
-    {
-        return false;
     }
 }
