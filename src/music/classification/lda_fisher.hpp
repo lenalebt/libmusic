@@ -15,6 +15,9 @@ namespace music
     public:
         bool learnModel(const std::vector<std::pair<Eigen::VectorXd, double> >& trainingData, ProgressCallbackCaller* callback = NULL);
         double classifyVector(const Eigen::VectorXd& vector);
+        
+        const Eigen::VectorXd& getClass1Mean() {return mean1;}
+        const Eigen::VectorXd& getClass2Mean() {return mean2;}
     };
 }
 
