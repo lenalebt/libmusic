@@ -191,37 +191,35 @@ namespace music
         Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> chordModeLikelihood(3*binsPerOctave);
         //major
         for (int j=0; j<binsPerOctave; j++)
-        {   //lift tonika and dominant. they need to be there, so they are more important.
-            chordModeLikelihood[j] = overallChordLikelihood[ j ]               * 3.0    //tonika
+        {   //lift tonic and dominant. they need to be there, so they are more important.
+            chordModeLikelihood[j] = overallChordLikelihood[ j ]               * 3.0    //tonic
                               + overallChordLikelihood[(j + 5)%binsPerOctave]
                               + overallChordLikelihood[(j + 7)%binsPerOctave]  * 1.5    //dominant
-                              + overallChordLikelihood[(j +15)%binsPerOctave]
-                              + overallChordLikelihood[(j +17)%binsPerOctave]
-                              + overallChordLikelihood[(j +22)%binsPerOctave]
+                              + overallChordLikelihood[(j +14)%binsPerOctave]
+                              + overallChordLikelihood[(j +16)%binsPerOctave]
+                              + overallChordLikelihood[(j +21)%binsPerOctave]
                               ;
         }
-        //minor
+        //minor (natural)
         for (int j=binsPerOctave; j<2*binsPerOctave; j++)
         {   //lift tonika and dominant. they need to be there, so they are more important.
-            chordModeLikelihood[j] = overallChordLikelihood[ j ]               * 3.0    //tonika
-                              + overallChordLikelihood[(j + 5)%binsPerOctave]
-                              //+ overallChordLikelihood[(j + 7)%binsPerOctave]           //minor dominant
-                              + overallChordLikelihood[(j +15)%binsPerOctave]
-                              + overallChordLikelihood[(j +19)%binsPerOctave]  * 1.5    //major dominant
-                              + overallChordLikelihood[(j +20)%binsPerOctave]
-                              + overallChordLikelihood[(j +22)%binsPerOctave]
+            chordModeLikelihood[j] = overallChordLikelihood[ j + 12 ]         * 3.0    //tonic
+                              + overallChordLikelihood[(j + 3)%binsPerOctave]
+                              + overallChordLikelihood[(j + 8)%binsPerOctave]
+                              + overallChordLikelihood[(j +10)%binsPerOctave]
+                              + overallChordLikelihood[(j +17)%binsPerOctave]
+                              + overallChordLikelihood[(j +19)%binsPerOctave] * 1.5     //dominant (minor)
                               ;
         }
-        //minor
+        //minor (harmonic)
         for (int j=2*binsPerOctave; j<3*binsPerOctave; j++)
         {   //lift tonika and dominant. they need to be there, so they are more important.
-            chordModeLikelihood[j] = overallChordLikelihood[ j-12 ]               * 3.0    //tonika
-                              + overallChordLikelihood[(j-12 + 5)%binsPerOctave]
-                              + overallChordLikelihood[(j-12 + 7)%binsPerOctave]  * 1.5    //minor dominant
-                              + overallChordLikelihood[(j-12 +15)%binsPerOctave]
-                              //+ overallChordLikelihood[(j-12 +19)%binsPerOctave]           //major dominant
-                              + overallChordLikelihood[(j-12 +20)%binsPerOctave]
-                              + overallChordLikelihood[(j-12 +22)%binsPerOctave]
+            chordModeLikelihood[j] = overallChordLikelihood[ j-12 + 12 ]               * 3.0    //tonic
+                              + overallChordLikelihood[(j-12 + 3)%binsPerOctave]
+                              + overallChordLikelihood[(j-12 + 8)%binsPerOctave]
+                              + overallChordLikelihood[(j-12 +10)%binsPerOctave]
+                              + overallChordLikelihood[(j-12 +17)%binsPerOctave]
+                              + overallChordLikelihood[(j-12 +7)%binsPerOctave] * 1.5     //dominant (major)
                               ;
         }
         //DEBUG_VAR_OUT(chordModeLikelihood, 0);
