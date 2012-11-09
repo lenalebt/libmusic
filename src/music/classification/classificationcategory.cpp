@@ -48,7 +48,7 @@ namespace music
     
     bool ClassificationCategory::calculateChromaModel(std::vector<GaussianMixtureModel<kiss_fft_scalar>*> components, unsigned int gaussianCount, unsigned int samplesPerGMM, ProgressCallbackCaller* callback)
     {
-        return calculateModel(chromaModel, components, gaussianCount, samplesPerGMM, callback, 0.1, 0.001);
+        return calculateModel(chromaModel, components, gaussianCount, samplesPerGMM, callback, , 1e-8, 1e-10);
     }
 
     ClassificationCategory::ClassificationCategory() :
