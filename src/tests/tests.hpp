@@ -13,6 +13,7 @@ namespace tests
     int testEstimateBPM();
     int testEstimateChords();
     int testEstimateTimbre();
+    int testCalculateDynamicRange();
     int testPerBinStatistics();
     int testPerTimeSliceStatistics();
 }

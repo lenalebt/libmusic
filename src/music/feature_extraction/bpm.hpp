@@ -5,6 +5,10 @@
 
 namespace music
 {
+    /**
+     * @todo Doku schreiben
+     * @todo Implementierung überdenken/überarbeiten
+     */
     class BPMEstimator
     {
     private:

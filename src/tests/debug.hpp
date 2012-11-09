@@ -15,8 +15,8 @@
 #define QUOTEME(x) QUOTEME_(x)
 
 #if defined __FILE__ && defined __LINE__
-    #define LINESTR(a,b)           colors::ConsoleColors::yellow() + tests::basename(std::string(QUOTEME(__FILE__))) + colors::ConsoleColors::defaultText() + ":" + colors::ConsoleColors::cyan() + QUOTEME(__LINE__) + colors::ConsoleColors::defaultText() + ": "+ QUOTEME(a) + " == " + QUOTEME(b) + "?"
-    #define LINESTR_OP(a,op,b)     colors::ConsoleColors::yellow() + tests::basename(std::string(QUOTEME(__FILE__))) + colors::ConsoleColors::defaultText() + ":" + colors::ConsoleColors::cyan() + QUOTEME(__LINE__) + colors::ConsoleColors::defaultText() + ": "+ QUOTEME(a) + " " + QUOTEME(op) + " " + QUOTEME(b) + "?"
+    #define LINESTR(a,b)           colors::ConsoleColors::yellow() + tests::basename(std::string(QUOTEME(__FILE__))) + colors::ConsoleColors::defaultText() + ":" + colors::ConsoleColors::cyan() + QUOTEME(__LINE__) + colors::ConsoleColors::defaultText() + ": " + colors::ConsoleColors::bold() + QUOTEME(a) + " == " + QUOTEME(b) + "?" + colors::ConsoleColors::defaultText()
+    #define LINESTR_OP(a,op,b)     colors::ConsoleColors::yellow() + tests::basename(std::string(QUOTEME(__FILE__))) + colors::ConsoleColors::defaultText() + ":" + colors::ConsoleColors::cyan() + QUOTEME(__LINE__) + colors::ConsoleColors::defaultText() + ": "+ colors::ConsoleColors::bold() + QUOTEME(a) + " " + QUOTEME(op) + " " + QUOTEME(b) + "?" + colors::ConsoleColors::defaultText()
 #else
     #define LINESTR(a,b)           std::string(QUOTEME(a)) + " == " + QUOTEME(b) + "?"
     #define LINESTR_OP(a,op,b)     std::string(QUOTEME(a)) + " " + QUOTEME(op) + " " + QUOTEME(b) + "?"

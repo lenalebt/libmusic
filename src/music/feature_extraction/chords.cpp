@@ -308,7 +308,7 @@ namespace music
     std::ostream& operator<<(std::ostream& os, const ChordHypothesis& chordHypothesis)
     {
         os << "chord: ";
-        for (int i=chordHypothesis.hypothesis.size()-1; i>=chordHypothesis.hypothesis.size()-4; i--)
+        for (unsigned int i=chordHypothesis.hypothesis.size()-1; i>=chordHypothesis.hypothesis.size()-4; i--)
         {
             os << colors::ConsoleColors::green();
             if (chordHypothesis.hypothesis[i].second/(chordHypothesis.hypothesis.size()/2) == 0)

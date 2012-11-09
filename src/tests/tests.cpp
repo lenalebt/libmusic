@@ -10,6 +10,7 @@
 #include "constantq.hpp"
 #include "fft.hpp"
 #include "feature_extraction_helper.hpp"
+#include "dynamic_range.hpp"
 
 #include "bpm.hpp"
 #include "chords.hpp"
@@ -580,6 +581,9 @@ namespace tests
         return EXIT_FAILURE;
     }
     
+    /**
+     * @todo Test ist unvollständig (evtl)
+     */
     int testPerBinStatistics()
     {
         DEBUG_OUT("testing statistics per bin (max, min, mean, variance).", 10);
@@ -654,6 +658,9 @@ namespace tests
         return EXIT_SUCCESS;
     }
     
+    /**
+     * @todo Test ist unvollständig (evtl)
+     */
     int testPerTimeSliceStatistics()
     {
         DEBUG_OUT("testing statistics per time slice (max, min, mean, variance, sum).", 10);
@@ -735,6 +742,9 @@ namespace tests
         return EXIT_SUCCESS;
     }
     
+    /**
+     * @todo Test ist unvollständig: Erweitern um gemischte Instrumente, und mehr Instrumente
+     */
     int testEstimateChords()
     {
         DEBUG_OUT("chord estimation", 10);
@@ -878,6 +888,9 @@ namespace tests
         return EXIT_SUCCESS;
     }
     
+    /**
+     * @todo Test ist unvollständig
+     */
     int testEstimateTimbre()
     {
         DEBUG_OUT("testing timbre features.", 10);
@@ -930,6 +943,66 @@ namespace tests
             DEBUG_OUT(ConsoleColors::yellow() << "chord at time " << time << ":" << std::endl << ConsoleColors::defaultText() << *chord, 10);
             chordstr << *chord << ConsoleColors::defaultText() << std::endl << std::flush;
         }
+        
+        return EXIT_SUCCESS;
+    }
+    
+    /**
+     * @todo Test ist unvollständig
+     */
+    int testCalculateDynamicRange()
+    {
+        DEBUG_OUT("testing dynamic range features.", 10);
+        
+        music::ConstantQTransform* cqt = NULL;
+        musicaccess::IIRFilter* lowpassFilter = NULL;
+        
+        lowpassFilter = musicaccess::IIRFilter::createLowpassFilter(0.25);
+        CHECK_OP(lowpassFilter, !=, NULL);
+        
+        double q=2.0;
+        int bins=12;
+        
+        DEBUG_OUT("creating constant q transform kernel...", 15);
+        cqt = music::ConstantQTransform::createTransform(lowpassFilter, bins, 25, 11025, 22050, q, 0.0, 0.0005, 0.25);
+        
+        musicaccess::SoundFile file;
+        CHECK(!file.isFileOpen());
+        //CHECK(file.open("./testdata/test.mp3", true));
+        CHECK(file.open("./sonne.mp3", true));
+        //CHECK(file.open("/mnt/vm-host/database-jens/classical/MP3/01_Sonata_No.10_in_G_major_Hob.XVI8-I._Allegro.mp3", true));
+        CHECK(file.isFileOpen());
+        
+        float* buffer = NULL;
+        buffer = new float[file.getSampleCount()];
+        CHECK(buffer != NULL);
+        
+        int sampleCount = file.readSamples(buffer, file.getSampleCount());
+        //estimated size might not be accurate!
+        CHECK_OP(sampleCount, >=, 0.9*file.getSampleCount());
+        CHECK_OP(sampleCount, <=, 1.1*file.getSampleCount());
+        
+        musicaccess::Resampler22kHzMono resampler;
+        //int sampleCount = file.getSampleCount();
+        DEBUG_OUT("resampling input file...", 15);
+        resampler.resample(file.getSampleRate(), &buffer, sampleCount, file.getChannelCount());
+        
+        CHECK_OP(sampleCount, <, file.getSampleCount());
+        
+        DEBUG_OUT("applying constant q transform...", 15);
+        music::ConstantQTransformResult* transformResult = cqt->apply(buffer, sampleCount);
+        CHECK(transformResult != NULL);
+        
+        music::PerTimeSliceStatistics perTimeSliceStatistics(transformResult, 0.005);
+        music::DynamicRangeCalculator dynamicRangeCalculator(&perTimeSliceStatistics);
+        
+        DEBUG_OUT("calculating dynamic range...", 10)
+        dynamicRangeCalculator.calculateDynamicRange();
+        
+        DEBUG_OUT("Mean:        " << dynamicRangeCalculator.getLoudnessMean(), 15)
+        DEBUG_OUT("RMS:         " << dynamicRangeCalculator.getLoudnessRMS(), 15)
+        DEBUG_OUT("Variance:    " << dynamicRangeCalculator.getLoudnessVariance(), 15)
+        DEBUG_OUT("RMSVariance: " << dynamicRangeCalculator.getLoudnessRMSVariance(), 15)
         
         return EXIT_SUCCESS;
     }
