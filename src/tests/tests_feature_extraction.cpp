@@ -334,6 +334,79 @@ namespace tests
      */
     int testEstimateChords()
     {
+        #if 1
+        DEBUG_OUT("chord estimation", 10);
+        
+        music::ConstantQTransform* cqt = NULL;
+        musicaccess::IIRFilter* lowpassFilter = NULL;
+        
+        lowpassFilter = musicaccess::IIRFilter::createLowpassFilter(0.25);
+        CHECK_OP(lowpassFilter, !=, NULL);
+        
+        double q=2.0;
+        int bins=12;
+        
+        DEBUG_OUT("creating constant q transform kernel...", 15);
+        cqt = music::ConstantQTransform::createTransform(lowpassFilter, bins, 25, 11025, 22050, q, 0.0, 0.0005, 0.25);
+        
+        std::queue<std::string> files;
+        
+        files <<  "./goodbye.mp3";
+        files <<  "./testdata/mixture-all.mp3";
+        files <<  "./testdata/mixture-bass_and_rhgit.mp3";
+        
+        while (!files.empty())
+        {
+            std::string filename = files.front();
+            DEBUG_OUT("using file \"" << filename << "\"", 10);
+            files.pop();
+            
+            musicaccess::SoundFile file;
+            CHECK(!file.isFileOpen());
+            CHECK(file.open(filename, true));
+            CHECK(file.isFileOpen());
+            
+            float* buffer = NULL;
+            buffer = new float[file.getSampleCount()];
+            CHECK(buffer != NULL);
+            
+            int sampleCount = file.readSamples(buffer, file.getSampleCount());
+            //estimated size might not be accurate!
+            CHECK_OP(sampleCount, >=, 0.9*file.getSampleCount());
+            CHECK_OP(sampleCount, <=, 1.1*file.getSampleCount());
+            
+            musicaccess::Resampler22kHzMono resampler;
+            //int sampleCount = file.getSampleCount();
+            DEBUG_OUT("resampling input file...", 15);
+            resampler.resample(file.getSampleRate(), &buffer, sampleCount, file.getChannelCount());
+            
+            CHECK_OP(sampleCount, <, file.getSampleCount());
+            
+            DEBUG_OUT("applying constant q transform...", 15);
+            music::ConstantQTransformResult* transformResult = cqt->apply(buffer, sampleCount);
+            CHECK(transformResult != NULL);
+            
+            //std::ofstream chordstr("chords.dat");
+            
+            music::ChordEstimator chordEstimator(transformResult, 0.05);
+            /*for (double time=0.0; time<transformResult->getOriginalDuration(); time += 0.5)
+            {*/
+                //music::ChordHypothesis* chordHypothesis = chordEstimator.estimateChord(1.0, 1.5);
+                
+                //CHECK_EQ(chord, chordHypothesis->getMaxHypothesisAsString());
+                std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > chords;
+                chordEstimator.estimateChords(chords);
+                
+                //DEBUG_OUT(ConsoleColors::yellow() << "chord at time " << 1.0 << ":" << std::endl << ConsoleColors::defaultText() << *chord, 10);
+                //chordstr << *chord << ConsoleColors::defaultText() << std::endl << std::flush;
+            //}
+        }
+        
+        
+        //****************************************************************************************************************
+        #else
+        //****************************************************************************************************************
+        
         DEBUG_OUT("chord estimation", 10);
         
         music::ConstantQTransform* cqt = NULL;
@@ -351,78 +424,78 @@ namespace tests
         std::queue<std::string> files;
         std::queue<std::string> chords;
         
-        files <<  "./testdata/chord-major-c-guitar.mp3";
+        files <<  "./testdata/chords/chord-major-c-guitar.mp3";
         chords << "C";
-        files <<  "./testdata/chord-major-c-keyboard.mp3";
+        files <<  "./testdata/chords/chord-major-c-keyboard.mp3";
         chords << "C";
-        files <<  "./testdata/chord-major-c#-keyboard.mp3";
+        files <<  "./testdata/chords/chord-major-c#-keyboard.mp3";
         chords << "C#";
-        files <<  "./testdata/chord-major-d-guitar.mp3";
+        files <<  "./testdata/chords/chord-major-d-guitar.mp3";
         chords << "D";
-        files <<  "./testdata/chord-major-d-keyboard.mp3";
+        files <<  "./testdata/chords/chord-major-d-keyboard.mp3";
         chords << "D";
-        files <<  "./testdata/chord-major-d#-keyboard.mp3";
+        files <<  "./testdata/chords/chord-major-d#-keyboard.mp3";
         chords << "D#";
-        files <<  "./testdata/chord-major-e-guitar.mp3";
+        files <<  "./testdata/chords/chord-major-e-guitar.mp3";
         chords << "E";
-        files <<  "./testdata/chord-major-e-keyboard.mp3";
+        files <<  "./testdata/chords/chord-major-e-keyboard.mp3";
         chords << "E";
-        files <<  "./testdata/chord-major-f-guitar.mp3";
+        files <<  "./testdata/chords/chord-major-f-guitar.mp3";
         chords << "F";
-        files <<  "./testdata/chord-major-f-keyboard.mp3";
+        files <<  "./testdata/chords/chord-major-f-keyboard.mp3";
         chords << "F";
-        files <<  "./testdata/chord-major-f#-keyboard.mp3";
+        files <<  "./testdata/chords/chord-major-f#-keyboard.mp3";
         chords << "F#";
-        files <<  "./testdata/chord-major-g-guitar.mp3";
+        files <<  "./testdata/chords/chord-major-g-guitar.mp3";
         chords << "G";
-        files <<  "./testdata/chord-major-g-keyboard.mp3";
+        files <<  "./testdata/chords/chord-major-g-keyboard.mp3";
         chords << "G";
-        files <<  "./testdata/chord-major-g#-keyboard.mp3";
+        files <<  "./testdata/chords/chord-major-g#-keyboard.mp3";
         chords << "G#";
-        files <<  "./testdata/chord-major-a-guitar.mp3";
+        files <<  "./testdata/chords/chord-major-a-guitar.mp3";
         chords << "A";
-        files <<  "./testdata/chord-major-a-keyboard.mp3";
+        files <<  "./testdata/chords/chord-major-a-keyboard.mp3";
         chords << "A";
-        files <<  "./testdata/chord-major-a#-keyboard.mp3";
+        files <<  "./testdata/chords/chord-major-a#-keyboard.mp3";
         chords << "A#";
-        files <<  "./testdata/chord-major-b-keyboard.mp3";
+        files <<  "./testdata/chords/chord-major-b-keyboard.mp3";
         chords << "B";
         
-        files <<  "./testdata/chord-minor-c-guitar.mp3";
+        files <<  "./testdata/chords/chord-minor-c-guitar.mp3";
         chords << "c";
-        files <<  "./testdata/chord-minor-c-keyboard.mp3";
+        files <<  "./testdata/chords/chord-minor-c-keyboard.mp3";
         chords << "c";
-        files <<  "./testdata/chord-minor-c#-keyboard.mp3";
+        files <<  "./testdata/chords/chord-minor-c#-keyboard.mp3";
         chords << "c#";
-        files <<  "./testdata/chord-minor-d-guitar.mp3";
+        files <<  "./testdata/chords/chord-minor-d-guitar.mp3";
         chords << "d";
-        files <<  "./testdata/chord-minor-d-keyboard.mp3";
+        files <<  "./testdata/chords/chord-minor-d-keyboard.mp3";
         chords << "d";
-        files <<  "./testdata/chord-minor-d#-keyboard.mp3";
+        files <<  "./testdata/chords/chord-minor-d#-keyboard.mp3";
         chords << "d#";
-        files <<  "./testdata/chord-minor-e-guitar.mp3";
+        files <<  "./testdata/chords/chord-minor-e-guitar.mp3";
         chords << "e";
-        files <<  "./testdata/chord-minor-e-keyboard.mp3";
+        files <<  "./testdata/chords/chord-minor-e-keyboard.mp3";
         chords << "e";
-        files <<  "./testdata/chord-minor-f-guitar.mp3";
+        files <<  "./testdata/chords/chord-minor-f-guitar.mp3";
         chords << "f";
-        files <<  "./testdata/chord-minor-f-keyboard.mp3";
+        files <<  "./testdata/chords/chord-minor-f-keyboard.mp3";
         chords << "f";
-        files <<  "./testdata/chord-minor-f#-keyboard.mp3";
+        files <<  "./testdata/chords/chord-minor-f#-keyboard.mp3";
         chords << "f#";
-        files <<  "./testdata/chord-minor-g-guitar.mp3";
+        files <<  "./testdata/chords/chord-minor-g-guitar.mp3";
         chords << "g";
-        files <<  "./testdata/chord-minor-g#-keyboard.mp3";
+        files <<  "./testdata/chords/chord-minor-g#-keyboard.mp3";
         chords << "g#";
-        files <<  "./testdata/chord-minor-a-guitar.mp3";
+        files <<  "./testdata/chords/chord-minor-a-guitar.mp3";
         chords << "a";
-        files <<  "./testdata/chord-minor-a-keyboard.mp3";
+        files <<  "./testdata/chords/chord-minor-a-keyboard.mp3";
         chords << "a";
-        files <<  "./testdata/chord-minor-a#-keyboard.mp3";
+        files <<  "./testdata/chords/chord-minor-a#-keyboard.mp3";
         chords << "a#";
-        files <<  "./testdata/chord-minor-b-guitar.mp3";
+        files <<  "./testdata/chords/chord-minor-b-guitar.mp3";
         chords << "b";
-        files <<  "./testdata/chord-minor-b-keyboard.mp3";
+        files <<  "./testdata/chords/chord-minor-b-keyboard.mp3";
         chords << "b";
         
         while (!files.empty())
@@ -540,6 +613,7 @@ namespace tests
                 CHECK_EQ(it->second, chordHypothesis->getMaxHypothesisAsString());
             }
         }
+        #endif
         
         return EXIT_SUCCESS;
     }

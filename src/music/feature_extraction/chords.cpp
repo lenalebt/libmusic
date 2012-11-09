@@ -8,6 +8,7 @@
 #include <iomanip>
 
 #include "console_colors.hpp"
+#include "debug.hpp"
 
 namespace music
 {
@@ -16,7 +17,6 @@ namespace music
         normalizedChroma(binsPerOctave),
         chromaMean(0.0),
         chromaVariance(0.0)
-        
     {
         
     }
@@ -59,6 +59,115 @@ namespace music
     {
         
     }
+    
+    void ChordEstimator::applyNonlinearFunction(Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1>& vector)
+    {
+        //vector = vector.array().pow(0.8);    //1.0236795
+        //vector = vector.array().pow(1.0);    //1.0253195
+        //vector = vector.array().pow(1.1);    //1.0256689
+        vector = vector.array().pow(1.2);    //1.0257333
+        //vector = vector.array().pow(1.3);    //1.0255818
+        //vector = vector.array().pow(1.5);    //1.0247591
+        //vector = vector.array().pow(2.0);    //1.0211522
+        //vector = vector.array().pow(2.5);    //1.0171494
+        //vector = vector.array().pow(3.0);    //works a bit better, but not good
+    }
+    
+    bool ChordEstimator::estimateChords(std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > chords, double timeSliceLength, double timeResolution)
+    {
+        assert(timeResolution > 0.0);
+        
+        int binsPerOctave = transformResult->getBinsPerOctave();
+        int octaveCount = transformResult->getOctaveCount();
+        
+        //init chroma to all zeroes.
+        Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> chroma(binsPerOctave);
+        Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> actChroma(binsPerOctave);
+        Eigen::Matrix<double, Eigen::Dynamic, 1> overallChroma(binsPerOctave);
+        Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> actChordLikelihood(2*binsPerOctave);
+        Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> overallChordLikelihood(2*binsPerOctave);
+        Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> actCQTmean(binsPerOctave * octaveCount);
+        chroma.setZero();
+        overallChroma.setZero();
+        
+        std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > chromaVector;
+        std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > chordLikelihoodVector;
+        
+        int maxElement = transformResult->getOriginalDuration() / timeSliceLength;
+        double time;
+        for (int i = 1; i < maxElement; i++)
+        {
+            time = i * timeSliceLength;
+            
+            //calculate unsmoothed chroma of active time slice
+            for (int bin=0; bin < binsPerOctave; bin++)
+            {
+                double binSum = 0.0;
+                for (int octave=0; octave<octaveCount; octave++)
+                {
+                    actCQTmean[octave * binsPerOctave + bin] = std::abs(transformResult->getNoteValueNoInterpolation(i*timeResolution, octave, bin));
+                }
+            }
+            
+            //apply a nonlinear function.
+            //this step tries to cancel out overtones (hoping they are not
+            //as loud as the loudest parts of the signal) and find the
+            //relevant parts for chord estimation.
+            double maxValue = actCQTmean.maxCoeff();
+            actCQTmean /= maxValue;
+            applyNonlinearFunction(actCQTmean);
+            actCQTmean *= maxValue;
+            
+            
+            //calculate new chroma values
+            chroma *= 1.0-1.0/(0.5/timeResolution);     //exponential smoothing of the chroma vector
+            //DEBUG_VAR_OUT(chroma.transpose(), 0);
+            for (int bin=0; bin < binsPerOctave; bin++)
+            {
+                double binSum = 0.0;
+                for (int octave=0; octave<octaveCount; octave++)
+                {
+                    binSum += actCQTmean[octave * binsPerOctave + bin];
+                }
+                chroma[bin] += binSum/(0.5/timeResolution);     //exponential smoothing, see above
+            }
+            chromaVector.push_back(chroma);
+            
+            //DEBUG_VAR_OUT(chroma.transpose(), 0);
+            
+            overallChroma += chroma.cast<double>();
+            
+            /*
+            //calculate the "likelihood" for chords. used to find out the mode of the recording
+            for (int j=0; j<binsPerOctave; j++)
+            {
+                actChordLikelihood[j]               = (chroma[j] + chroma[(j+4)%binsPerOctave] + chroma[(j+7)%binsPerOctave])/3.0;
+                actChordLikelihood[j+binsPerOctave] = (chroma[j] + chroma[(j+3)%binsPerOctave] + chroma[(j+7)%binsPerOctave])/3.0;
+            }
+            chordLikelihoodVector.push_back(actChordLikelihood);
+            overallChordLikelihood += actChordLikelihood;
+            * */
+        }
+        overallChroma /= maxElement;
+        
+        //okay, now calculate the mode of the song.
+        Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> modeLikelihood(binsPerOctave);
+        for (int j=0; j<binsPerOctave; j++)
+        {
+            modeLikelihood[j] = overallChroma[ j ]
+                              + overallChroma[(j + 2)%binsPerOctave]
+                              + overallChroma[(j + 4)%binsPerOctave]
+                              + overallChroma[(j + 5)%binsPerOctave]
+                              + overallChroma[(j + 7)%binsPerOctave]
+                              + overallChroma[(j + 9)%binsPerOctave]
+                              + overallChroma[(j +11)%binsPerOctave]
+                              ;
+        }
+        
+        std::cerr << modeLikelihood << std::endl;
+        return true;
+    }
+    
     /**
      * @todo the algorithm behind estimateChord3 is more reliable,
      *      but slower on chord changes. use it nevertheless?
