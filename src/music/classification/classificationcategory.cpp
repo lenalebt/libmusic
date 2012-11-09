@@ -52,7 +52,8 @@ namespace music
     }
 
     ClassificationCategory::ClassificationCategory() :
-        timbreModel(NULL)
+        timbreModel(NULL),
+        chromaModel(NULL)
     {
         
     }
@@ -60,5 +61,7 @@ namespace music
     {
         if (timbreModel)
             delete timbreModel;
+        if (chromaModel)
+            delete chromaModel;
     }
 }
