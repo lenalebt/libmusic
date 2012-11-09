@@ -17,6 +17,7 @@
 #include "chords.hpp"
 #include "timbre.hpp"
 #include "gmm.hpp"
+#include "kmeans.hpp"
 
 #include <list>
 #include <limits>
@@ -557,50 +558,53 @@ namespace tests
         cqt = music::ConstantQTransform::createTransform(lowpassFilter, bins, 25, 11025, 22050, q, 0.0, 0.0005, 0.25);
         
         std::queue<std::string> files;
+        
         files << "./testdata/chord-major-a-guitar.mp3";
-        files << "./testdata/chord-major-a-keyboard.mp3";
-        files << "./testdata/chord-major-a#-keyboard.mp3";
-        files << "./testdata/chord-major-b-keyboard.mp3";
         files << "./testdata/chord-major-c7-guitar.mp3";
         files << "./testdata/chord-major-c-guitar.mp3";
-        files << "./testdata/chord-major-c-keyboard.mp3";
-        files << "./testdata/chord-major-c#-keyboard.mp3";
         files << "./testdata/chord-major-d4-guitar.mp3";
         files << "./testdata/chord-major-d7-guitar.mp3";
         files << "./testdata/chord-major-d9-guitar.mp3";
         files << "./testdata/chord-major-d-guitar.mp3";
-        files << "./testdata/chord-major-d-keyboard.mp3";
-        files << "./testdata/chord-major-d#-keyboard.mp3";
         files << "./testdata/chord-major-dmaj7-guitar.mp3";
         files << "./testdata/chord-major-e-guitar.mp3";
-        files << "./testdata/chord-major-e-keyboard.mp3";
         files << "./testdata/chord-major-f-guitar.mp3";
-        files << "./testdata/chord-major-f-keyboard.mp3";
-        files << "./testdata/chord-major-f#-keyboard.mp3";
         files << "./testdata/chord-major-g7-guitar.mp3";
         files << "./testdata/chord-major-g-guitar.mp3";
-        files << "./testdata/chord-major-g-keyboard.mp3";
-        files << "./testdata/chord-major-g#-keyboard.mp3";
         files << "./testdata/chord-minor-a7-guitar.mp3";
         files << "./testdata/chord-minor-a-guitar.mp3";
+        files << "./testdata/chord-minor-b-guitar.mp3";
+        files << "./testdata/chord-minor-c-guitar.mp3";
+        files << "./testdata/chord-minor-d-guitar.mp3";
+        files << "./testdata/chord-minor-e-guitar.mp3";
+        files << "./testdata/chord-minor-f-guitar.mp3";
+        files << "./testdata/chord-minor-g-guitar.mp3";
+        
+        files << "./testdata/chord-major-a-keyboard.mp3";
+        files << "./testdata/chord-major-a#-keyboard.mp3";
+        files << "./testdata/chord-major-b-keyboard.mp3";
+        files << "./testdata/chord-major-c-keyboard.mp3";
+        files << "./testdata/chord-major-c#-keyboard.mp3";
+        files << "./testdata/chord-major-d-keyboard.mp3";
+        files << "./testdata/chord-major-d#-keyboard.mp3";
+        files << "./testdata/chord-major-e-keyboard.mp3";
+        files << "./testdata/chord-major-f-keyboard.mp3";
+        files << "./testdata/chord-major-f#-keyboard.mp3";
+        files << "./testdata/chord-major-g-keyboard.mp3";
+        files << "./testdata/chord-major-g#-keyboard.mp3";
         files << "./testdata/chord-minor-a-keyboard.mp3";
         files << "./testdata/chord-minor-a#-keyboard.mp3";
-        files << "./testdata/chord-minor-b-guitar.mp3";
         files << "./testdata/chord-minor-b-keyboard.mp3";
-        files << "./testdata/chord-minor-c-guitar.mp3";
         files << "./testdata/chord-minor-c-keyboard.mp3";
         files << "./testdata/chord-minor-c#-keyboard.mp3";
-        files << "./testdata/chord-minor-d-guitar.mp3";
         files << "./testdata/chord-minor-d-keyboard.mp3";
         files << "./testdata/chord-minor-d#-keyboard.mp3";
-        files << "./testdata/chord-minor-e-guitar.mp3";
         files << "./testdata/chord-minor-e-keyboard.mp3";
-        files << "./testdata/chord-minor-f-guitar.mp3";
         files << "./testdata/chord-minor-f-keyboard.mp3";
         files << "./testdata/chord-minor-f#-keyboard.mp3";
-        files << "./testdata/chord-minor-g-guitar.mp3";
         files << "./testdata/chord-minor-g-keyboard.mp3";
         files << "./testdata/chord-minor-g#-keyboard.mp3";
+        
         files << "./testdata/dead_rocks.mp3";
         files << "./testdata/instrument-alto_sax.mp3";
         files << "./testdata/instrument-b4blues.mp3";
@@ -683,16 +687,30 @@ namespace tests
             {
                 time = (1.0/32.0) * i;
                 //DEBUG_VAR_OUT(time, 0);
-                data.push_back(t.estimateTimbre(time, time + 0.02));
+                Eigen::VectorXd tmp = t.estimateTimbre(time, time + 0.02);
+                if (tmp.norm() > 0.1)
+                    data.push_back(tmp.normalized());
+                //data.push_back(tmp);
             }
             DEBUG_VAR_OUT(data.size(), 0);
             
-            DEBUG_OUT("Writing CQFCCs to a file...", 10);
-            std::ofstream outstr((std::string("cqfcc_") + basename(filename, true) + ".dat").c_str());
+            std::string outdatfile = std::string("cqfcc_") + basename(filename, true) + ".dat";
+            DEBUG_OUT("Writing CQFCCs to file\"" << outdatfile << "\"...", 10);
+            std::ofstream outstr(outdatfile.c_str());
             //std::ofstream outstr("cqfcc-oboe_vibrato.dat");
             for (unsigned int i=0; i<data.size(); i++)
             {
                 outstr << data[i].transpose() << std::endl;
+            }
+            
+            music::GaussianMixtureModelDiagCov<double> gmm;
+            gmm.trainGMM(data, 3);
+            std::vector<music::Gaussian<double>*> gaussians = gmm.getGaussians();
+            DEBUG_OUT("gaussians of gmm algorithm:", 10);
+            for(std::vector<music::Gaussian<double>*>::const_iterator it = gaussians.begin(); it != gaussians.end(); it++)
+            {
+                DEBUG_VAR_OUT((**it).getMean(), 0);
+                DEBUG_VAR_OUT((**it).getCovarianceMatrix(), 0);
             }
             
             delete buffer;

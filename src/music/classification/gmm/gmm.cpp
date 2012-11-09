@@ -250,7 +250,7 @@ namespace music
             weights = prob;
             DEBUG_OUT("check for convergence... weights: " << weights << ", relative change of weights:" << (oldWeights - weights).norm() / oldWeights.norm(), 50);
             
-            if ((oldWeights - weights).norm() / oldWeights.norm() < 10e-3)
+            if ((oldWeights - weights).norm() / oldWeights.norm() < 10e-6)
                 converged = true;
         }
         if (converged)
@@ -383,7 +383,7 @@ namespace music
             weights = prob;
             DEBUG_OUT("check for convergence... weights: " << weights << ", relative change of weights:" << (oldWeights - weights).norm() / oldWeights.norm(), 50);
             
-            if ((oldWeights - weights).norm() / oldWeights.norm() < 10e-3)
+            if ((oldWeights - weights).norm() / oldWeights.norm() < 10e-6)
                 converged = true;
         }
         if (converged)
