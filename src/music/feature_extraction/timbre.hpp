@@ -2,31 +2,28 @@
 #define TIMBRE_HPP
 
 #include "constantq.hpp"
-#include "dct.hpp"
 #include "gmm.hpp"
 #include "progress_callback.hpp"
 
 namespace music
 {
     /**
-     * @todo Doku schreiben
-     * @todo Implementierung überdenken
+     * @brief This class extracts the timbre feature vectors from a ConstantQTransformresult.
+     * 
+     * The constant Q transform result will be used to calculate a Constant Q Cepstrum,
+     * in analogy to the Mel Frequency Cepstrum.
+     * 
+     * This class uses a discrete cosine transform for decorellation. It does
+     * not use a fancy speedup technique, it just precalculates the cosine values
+     * since they are very few and the same for every application of the DCT.
+     * Since only the first few values of the DCT are needed, it should not be
+     * too slow even without speedup techniques which normally are fast if
+     * you calculate and need all values at once.
+     * 
      * @ingroup feature_extraction
-     */
-    class TimbreEstimation
-    {
-    private:
-        
-    protected:
-        
-    public:
-        
-    };
-
-    /**
-     * @todo Doku schreiben
-     * @todo Implementierung überdenken
-     * @ingroup feature_extraction
+     * 
+     * @author Lena Brueder
+     * @date 2012-10-18
      */
     class TimbreEstimator
     {
@@ -34,14 +31,49 @@ namespace music
         
     protected:
         ConstantQTransformResult* transformResult;
-        DCT dct;
         unsigned int timbreVectorSize;
         Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> cosValues;
         float minEnergy;
         
     public:
+        /**
+         * @brief Constructs a new TimbreEstimator object which can be
+         *      used to estimate the timbre of a song represented through
+         *      its Constant Q transform result.
+         * 
+         * 
+         * 
+         * @param transformResult A pointer to a ConstantQTransformResult,
+         *      which needs to be calculated first. May not be NULL.
+         * @param timbreVectorSize The dimension of the timbre vectors produced.
+         *      This value affects the quality of the results of the timbre
+         *      similarity estimation. Typical values are in the range of 4-40
+         *      with a maximum of the number of constant Q bins in the given
+         *      <code>transformResult</code>.
+         * @param minEnergy The minimal value of the sum of the constant Q transform
+         *      result bins in a given time slice that would lead to a valid
+         *      timbre vector. This is used because the cepstrum of low-energy signals tends
+         *      to be more noisy than the rest of the cepstrum. You can cancel out these
+         *      noisy and therefore useless timbre vectors by setting this value
+         *      to anything higher than <code>0.0</code>. The higher the value, the
+         *      more timbre vectors are canceled out.
+         */
         TimbreEstimator(ConstantQTransformResult* transformResult, unsigned int timbreVectorSize=12, float minEnergy=2.0);
-        TimbreEstimator(unsigned int timbreVectorSize=12, float minEnergy=2.0);
+        /**
+         * @brief Estimates the timbre of the recording in the given time slice.
+         * 
+         * The algorithm takes the mean of the Constant Q values in the given interval
+         * and then calculates a Constant Q Cepstrum, similar to the
+         * Mel Frequency Cepstrum.
+         * 
+         * @param fromTime the beginning of the time slice
+         * @param toTime   the end of the time slice
+         * 
+         * @return A timbre vector of dimension <code>timbreVectorSize</code> if the
+         *      sum of the constant Q values in the time slice is higher than
+         *      <code>minEnergy</code>, otherwise a vector of dimension 1 with the value
+         *      <code>0</code>.
+         */
         Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> estimateTimbre(double fromTime, double toTime);
     };
     
