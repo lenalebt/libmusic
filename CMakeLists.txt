@@ -83,6 +83,7 @@ SET(
     src/tools/stringhelper.cpp
     src/tools/tuple.cpp
     src/tools/randomnumbers.cpp
+    src/tools/matrixhelper.cpp
     src/tools/jsoncpp/jsoncpp.cpp
     
     #uihelper
@@ -130,6 +131,7 @@ SET(
     src/tools/stringhelper.hpp
     src/tools/tuple.hpp
     src/tools/randomnumbers.hpp
+    src/tools/matrixhelper.hpp
     src/tools/jsoncpp/json/json.h
     src/tools/jsoncpp/json/json-forwards.h
     
