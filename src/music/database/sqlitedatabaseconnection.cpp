@@ -8,47 +8,49 @@
 namespace music
 {
     SQLiteDatabaseConnection::SQLiteDatabaseConnection() :
-        _dbOpen(false),
-        _db(NULL),
+        _dbOpen                                         (false),
+        _db                                             (NULL),
         
-        _getLastInsertRowIDStatement            (NULL),
+        _getLastInsertRowIDStatement                    (NULL),
         
-        _saveRecordingStatement                 (NULL),
-        _updateRecordingByIDStatement           (NULL),
-        _getRecordingByIDStatement              (NULL),
-        _getRecordingIDByFilenameStatement      (NULL),
-        _getRecordingIDByArtistTitleAlbumStatement(NULL),
+        _saveRecordingStatement                         (NULL),
+        _updateRecordingByIDStatement                   (NULL),
+        _getRecordingByIDStatement                      (NULL),
+        _getRecordingIDByFilenameStatement              (NULL),
+        _getRecordingIDsByArtistTitleAlbumStatement     (NULL),
+        _getRecordingIDsByCategoryMembershipScoresStatement(NULL),
         
-        _saveRecordingFeaturesStatement         (NULL),
-        _updateRecordingFeaturesStatement       (NULL),
-        _getRecordingFeaturesByIDStatement      (NULL),
+        _saveRecordingFeaturesStatement                 (NULL),
+        _updateRecordingFeaturesStatement               (NULL),
+        _getRecordingFeaturesByIDStatement              (NULL),
         
-        _saveArtistStatement                    (NULL),
-        _getArtistByIDStatement                 (NULL),
-        _getArtistByNameStatement               (NULL),
+        _saveArtistStatement                            (NULL),
+        _getArtistByIDStatement                         (NULL),
+        _getArtistByNameStatement                       (NULL),
         
-        _saveAlbumStatement                     (NULL),
-        _getAlbumByIDStatement                  (NULL),
-        _getAlbumByNameStatement                (NULL),
+        _saveAlbumStatement                             (NULL),
+        _getAlbumByIDStatement                          (NULL),
+        _getAlbumByNameStatement                        (NULL),
         
-        _saveGenreStatement                     (NULL),
-        _getGenreByIDStatement                  (NULL),
-        _getGenreByNameStatement                (NULL),
+        _saveGenreStatement                             (NULL),
+        _getGenreByIDStatement                          (NULL),
+        _getGenreByNameStatement                        (NULL),
         
-        _saveCategoryStatement                  (NULL),
-        _getCategoryByIDStatement               (NULL),
-        _getCategoryByNameStatement             (NULL),
+        _saveCategoryStatement                          (NULL),
+        _getCategoryByIDStatement                       (NULL),
+        _getCategoryByNameStatement                     (NULL),
+        _getCategoryIDsByNameStatement                  (NULL),
         
-        _saveCategoryDescriptionStatement       (NULL),
-        _getCategoryDescriptionByIDStatement    (NULL),
+        _saveCategoryDescriptionStatement               (NULL),
+        _getCategoryDescriptionByIDStatement            (NULL),
         
-        _getRecordingToCategoryScoreByIDsStatement    (NULL),  
-        _deleteRecordingToCategoryScoreByIDsStatement (NULL),  
-        _saveRecordingToCategoryScoreStatement        (NULL),  
+        _getRecordingToCategoryScoreByIDsStatement      (NULL),  
+        _deleteRecordingToCategoryScoreByIDsStatement   (NULL),  
+        _saveRecordingToCategoryScoreStatement          (NULL),  
         
-        _getCategoryExampleScoreByIDsStatement        (NULL),  
-        _deleteCategoryExampleScoreByIDsStatement     (NULL),  
-        _saveCategoryExampleScoreStatement            (NULL)  
+        _getCategoryExampleScoreByIDsStatement          (NULL),  
+        _deleteCategoryExampleScoreByIDsStatement       (NULL),  
+        _saveCategoryExampleScoreStatement              (NULL)  
     {
         
     }
@@ -69,8 +71,10 @@ namespace music
             sqlite3_finalize(_getRecordingByIDStatement);
         if (_getRecordingIDByFilenameStatement != NULL)
             sqlite3_finalize(_getRecordingIDByFilenameStatement);
-        if (_getRecordingIDByArtistTitleAlbumStatement != NULL)
-            sqlite3_finalize(_getRecordingIDByArtistTitleAlbumStatement);
+        if (_getRecordingIDsByArtistTitleAlbumStatement != NULL)
+            sqlite3_finalize(_getRecordingIDsByArtistTitleAlbumStatement);
+        if (_getRecordingIDsByCategoryMembershipScoresStatement != NULL)
+            sqlite3_finalize(_getRecordingIDsByCategoryMembershipScoresStatement);
             
         if (_saveRecordingFeaturesStatement != NULL)
             sqlite3_finalize(_saveRecordingFeaturesStatement);
@@ -106,6 +110,8 @@ namespace music
             sqlite3_finalize(_getCategoryByIDStatement);
         if (_getCategoryByNameStatement != NULL)
             sqlite3_finalize(_getCategoryByNameStatement);
+        if (_getCategoryIDsByNameStatement != NULL)
+            sqlite3_finalize(_getCategoryIDsByNameStatement);
         
         if (_saveCategoryDescriptionStatement != NULL)
             sqlite3_finalize(_saveCategoryDescriptionStatement);
@@ -1010,16 +1016,16 @@ namespace music
         return true;
     }
     
-    bool SQLiteDatabaseConnection::getRecordingIDByProperties(std::vector<databaseentities::id_datatype>& recordingIDs, const std::string& artist, const std::string& title, const std::string& album)
+    bool SQLiteDatabaseConnection::getRecordingIDsByProperties(std::vector<databaseentities::id_datatype>& recordingIDs, const std::string& artist, const std::string& title, const std::string& album)
     {
-        DEBUG_OUT("will read recordingID by artist, title and album now...", 35);
+        DEBUG_OUT("will read recordingIDs by artist, title and album now...", 35);
         
         int rc;
         recordingIDs.clear();
         
-        if (_getRecordingIDByArtistTitleAlbumStatement == NULL)
+        if (_getRecordingIDsByArtistTitleAlbumStatement == NULL)
         {
-            rc = sqlite3_prepare_v2(_db, "SELECT recordingID FROM recording NATURAL JOIN artist NATURAL JOIN album WHERE (artistName LIKE @artistName) AND (title LIKE @title) AND (albumName LIKE @albumName);", -1, &_getRecordingIDByArtistTitleAlbumStatement, NULL);
+            rc = sqlite3_prepare_v2(_db, "SELECT recordingID FROM recording NATURAL JOIN artist NATURAL JOIN album WHERE (artistName LIKE @artistName) AND (title LIKE @title) AND (albumName LIKE @albumName);", -1, &_getRecordingIDsByArtistTitleAlbumStatement, NULL);
             if (rc != SQLITE_OK)
             {
                 ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
@@ -1028,15 +1034,15 @@ namespace music
         }
         
         //bind parameters
-        sqlite3_bind_text(_getRecordingIDByArtistTitleAlbumStatement, 1, artist.c_str(), -1, SQLITE_TRANSIENT);
-        sqlite3_bind_text(_getRecordingIDByArtistTitleAlbumStatement, 2, title.c_str(), -1, SQLITE_TRANSIENT);
-        sqlite3_bind_text(_getRecordingIDByArtistTitleAlbumStatement, 3, album.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(_getRecordingIDsByArtistTitleAlbumStatement, 1, artist.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(_getRecordingIDsByArtistTitleAlbumStatement, 2, title.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_text(_getRecordingIDsByArtistTitleAlbumStatement, 3, album.c_str(), -1, SQLITE_TRANSIENT);
         
-        while ((rc = sqlite3_step(_getRecordingIDByArtistTitleAlbumStatement)) != SQLITE_DONE)
+        while ((rc = sqlite3_step(_getRecordingIDsByArtistTitleAlbumStatement)) != SQLITE_DONE)
         {
             if (rc == SQLITE_ROW)
             {
-                recordingIDs.push_back(sqlite3_column_int64(_getRecordingIDByArtistTitleAlbumStatement, 0));
+                recordingIDs.push_back(sqlite3_column_int64(_getRecordingIDsByArtistTitleAlbumStatement, 0));
             }
             else
             {
@@ -1051,7 +1057,64 @@ namespace music
             return false;
         }
         
-        rc = sqlite3_reset(_getRecordingIDByArtistTitleAlbumStatement);
+        rc = sqlite3_reset(_getRecordingIDsByArtistTitleAlbumStatement);
+        if (rc != SQLITE_OK)
+        {
+            ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        return true;
+    }
+    
+    bool SQLiteDatabaseConnection::getRecordingIDsInCategory(std::vector<std::pair<databaseentities::id_datatype, double> >& recordingIDsAndScores, databaseentities::id_datatype categoryID, double minScore, double maxScore, int limit)
+    {
+        DEBUG_OUT("will read recordingIDs and their scores by category ID and score now...", 35);
+        
+        int rc;
+        recordingIDsAndScores.clear();
+        
+        if (_getRecordingIDsByCategoryMembershipScoresStatement == NULL)
+        {
+            rc = sqlite3_prepare_v2(_db, "SELECT recordingID, score FROM categoryMembership WHERE categoryID=@categoryID AND score>=@minScore AND score<=@maxScore ORDER BY score DESC LIMIT @limit;", -1, &_getRecordingIDsByCategoryMembershipScoresStatement, NULL);
+            if (rc != SQLITE_OK)
+            {
+                ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        //bind parameters
+        sqlite3_bind_int64(_getRecordingIDsByCategoryMembershipScoresStatement, 1, categoryID);
+        sqlite3_bind_double(_getRecordingIDsByCategoryMembershipScoresStatement, 2, minScore);
+        sqlite3_bind_double(_getRecordingIDsByCategoryMembershipScoresStatement, 3, maxScore);
+        sqlite3_bind_int(_getRecordingIDsByCategoryMembershipScoresStatement, 4, limit);
+        
+        while ((rc = sqlite3_step(_getRecordingIDsByCategoryMembershipScoresStatement)) != SQLITE_DONE)
+        {
+            if (rc == SQLITE_ROW)
+            {
+                recordingIDsAndScores.push_back(
+                    std::pair<databaseentities::id_datatype, double>(
+                        sqlite3_column_int64(_getRecordingIDsByCategoryMembershipScoresStatement, 0),
+                        sqlite3_column_double(_getRecordingIDsByCategoryMembershipScoresStatement, 1)
+                        )
+                    );
+            }
+            else
+            {
+                ERROR_OUT("Failed to read data from database. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        if (rc != SQLITE_DONE)
+        {
+            ERROR_OUT("Failed to execute statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        rc = sqlite3_reset(_getRecordingIDsByCategoryMembershipScoresStatement);
         if (rc != SQLITE_OK)
         {
             ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
@@ -1183,6 +1246,56 @@ namespace music
         
         return true;
     }
+    
+    bool SQLiteDatabaseConnection::getCategoryIDsByName(std::vector<databaseentities::id_datatype>& categoryIDs, const std::string& categoryName)
+    {
+        DEBUG_OUT("will read categoryIDs by artist, title and album now...", 35);
+        
+        int rc;
+        categoryIDs.clear();
+        
+        if (_getCategoryIDsByNameStatement == NULL)
+        {
+            rc = sqlite3_prepare_v2(_db, "SELECT categoryID FROM category WHERE categoryName LIKE @categoryName;", -1, &_getCategoryIDsByNameStatement, NULL);
+            if (rc != SQLITE_OK)
+            {
+                ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        //bind parameters
+        sqlite3_bind_text(_getCategoryIDsByNameStatement, 1, categoryName.c_str(), -1, SQLITE_TRANSIENT);
+        
+        while ((rc = sqlite3_step(_getCategoryIDsByNameStatement)) != SQLITE_DONE)
+        {
+            if (rc == SQLITE_ROW)
+            {
+                categoryIDs.push_back(sqlite3_column_int64(_getCategoryIDsByNameStatement, 0));
+            }
+            else
+            {
+                ERROR_OUT("Failed to read data from database. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        if (rc != SQLITE_DONE)
+        {
+            ERROR_OUT("Failed to execute statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        rc = sqlite3_reset(_getCategoryIDsByNameStatement);
+        if (rc != SQLITE_OK)
+        {
+            ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        return true;
+    }
+    
     bool SQLiteDatabaseConnection::addCategoryDescription(databaseentities::CategoryDescription& categoryDescription)
     {
         int rc;
