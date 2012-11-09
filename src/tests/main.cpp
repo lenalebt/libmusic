@@ -49,6 +49,21 @@ int main(int argc, char *argv[])
         return tests::testPerBinStatistics();
     else if (testname == "pertimeslicestatistics")
         return tests::testPerTimeSliceStatistics();
+    else if (testname == "preprocessfiles")
+    {
+        std::string path;
+        if (argc < 3)
+        {
+            std::cout << "this test has an extra parameter for the folder containing the files:" << std::endl
+                << "call \"" << argv[0] << " folder\" to set the folder. if none is specified, the default folder (\"./testdata/\") will be used." << std::endl;
+            path = "./testdata/";
+        }
+        else
+        {
+            path = std::string(argv[2]);
+        }
+        return tests::testPreprocessFiles(path);
+    }
     else if (testname == "applyconstantq")
     {
         if (argc < 5)

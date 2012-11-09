@@ -159,6 +159,7 @@ INCLUDE_DIRECTORIES(
     src/music
     src/music/feature_extraction
     src/music/database
+    src/music/uihelper
     src/tests
     src/kissfft
     src/kissfft/tools
