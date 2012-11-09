@@ -157,7 +157,7 @@ namespace music
         
         overallChroma /= numValues;
         
-        
+        /*
         //okay, now calculate the mode of the song.
         Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> modeLikelihood(binsPerOctave);
         for (int j=0; j<binsPerOctave; j++)
@@ -185,7 +185,7 @@ namespace music
             }
         }
         DEBUG_OUT("maxlikelihood temporary mode from overallChroma: " << getNoteName(maxLikelihoodMode)
-            << "/" << getNoteName(maxLikelihoodMode+9) << "m.", 20);
+            << "/" << getNoteName(maxLikelihoodMode+9) << "m.", 20);*/
         
         
         Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> chordModeLikelihood(3*binsPerOctave);

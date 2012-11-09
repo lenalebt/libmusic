@@ -542,47 +542,6 @@ namespace music
         
         return mean;
     }
-    std::complex<kiss_fft_scalar> ConstantQTransformResult::getNoteValueLinearInterpolation(float time, int octave, int bin) const
-    {
-        /*if (time <= 0.0f)
-            return std::complex<kiss_fft_scalar>(0.0f, 0.0f);
-        
-        if (octave >= octaveCount)
-        {
-            DEBUG_OUT("tried to acces octave " << octave << ", we only have " << octaveCount << " octaves!", 10);
-        }
-        
-        //time *= timeFactor;
-        time += timeBefore;
-        
-        int pos = octaveMatrix[octaveCount-1]->cols();
-        pos >>= octaveCount - octave - 1;
-        double dblPos = pos;
-        pos *= (time/duration);
-        dblPos *= (time/duration);
-        //pos *= (time/originalDuration);
-        pos += drop[octave] + 1;
-        dblPos += drop[octave] + 1;
-        
-        double percent = dblPos - pos;
-        
-        if (pos + 1 >= octaveMatrix[octave]->cols())
-        {
-            return (*octaveMatrix[octave])(bin, pos);
-        }
-        else if (pos >= octaveMatrix[octave]->cols())
-        {
-            DEBUG_OUT("too large pos: " << pos, 25);
-            return std::complex<kiss_fft_scalar>(0.0f, 0.0f);
-        } else if (pos < 0)
-        {
-            DEBUG_OUT("too small pos: " << pos, 25);
-            return std::complex<kiss_fft_scalar>(0.0f, 0.0f);
-        }
-        
-        
-        return (1.0-percent)*(*octaveMatrix[octave])(bin, pos) + percent*(*octaveMatrix[octave])(bin, pos+1);*/
-    }
     
     ConstantQTransformResult::~ConstantQTransformResult()
     {
