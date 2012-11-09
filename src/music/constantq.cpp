@@ -200,23 +200,49 @@ namespace music
         
         FFT fft;
         //temporary fft data
-        std::complex<float>* fftData = new std::complex<float>[fftLen];
+        std::complex<float>* fftData = NULL;
+        fftData = new std::complex<float>[fftLen];
+        assert(fftData != NULL);
+        
         float* data = buffer;
-        float* fftSourceData;
+        float* fftSourceData=NULL;
         bool deleteFFTSourceData = false;
+        
+        ConstantQTransformResult* transformResult = NULL;
+        transformResult = new ConstantQTransformResult();
+        assert(transformResult != NULL);
+        Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >* octaveResult;
+        
+        Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic> resultMatrix;
+        
+        transformResult->octaveMatrix = new Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >*[octaveCount];
         
         //apply cqt once per octave
         for (int octave=octaveCount; octave > 0; octave--)
         {
             int overlap = fftLen - fftHop;
             int fftlength=0;
+            
+            std::cerr << "octave:" << octave << std::endl;
+            
+            //TODO: need to set the sizes of the matrix correctly
+            octaveResult = NULL;
+            octaveResult = new Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >(binsPerOctave, (sampleCount/overlap + 1) * atomNr);
+            assert(octaveResult != NULL);
+            
+            std::cerr << "binsPerOctave=" << binsPerOctave << ", otherSize=" << (sampleCount/overlap + 1) * atomNr << std::endl;
+            
             //shift our window a bit. window has overlap.
             for (int position=-zeroPadding; position < sampleCount + zeroPadding ;position+=overlap)
             {
+                std::cerr << "position:" << position << std::endl;
+                
                 if (position<0)
-                {
+                {   //zero-padding necessary, front
                     deleteFFTSourceData = true;
+                    fftSourceData = NULL;
                     fftSourceData = new float[fftLen];
+                    assert(fftSourceData != NULL);
                     //Fill array, zero-pad it as necessary (->beginning).
                     for (int i=position; i<position+zeroPadding; i++)
                     {
@@ -227,9 +253,11 @@ namespace music
                     }
                 }
                 else if (position > sampleCount - zeroPadding)
-                {
+                {   //zero-padding necessary, back
                     deleteFFTSourceData = true;
+                    fftSourceData = NULL;
                     fftSourceData = new float[fftLen];
+                    assert(fftSourceData != NULL);
                     //Fill array, zero-pad it as necessary (->end).
                     for (int i=position; i<position+zeroPadding; i++)
                     {
@@ -243,14 +271,17 @@ namespace music
                 {   //no zero padding needed: use old buffer array
                     deleteFFTSourceData = false;
                     fftSourceData = data + position;
+                    assert(fftSourceData != NULL);
                 }
                 
                 //apply FFT to input data.
                 fft.doFFT((kiss_fft_scalar*)(fftSourceData), fftLen, (kiss_fft_cpx*)(fftData), fftlength);
                 assert(fftlength == fftLen/2+1);
                 
+                //TODO: delete[] fails. why? we need to delete some memory, otherwise -> memory leak
+                /*std::cerr << fftSourceData << std::endl;
                 if (deleteFFTSourceData)
-                    delete[] fftSourceData;
+                    delete[] fftSourceData;*/
                 
                 //adjust fftData, as it only holds half of the data. the rest has to be computed.
                 //complex conjugate, etc...
@@ -265,18 +296,34 @@ namespace music
                 Eigen::Map<Eigen::Matrix<std::complex<float>, Eigen::Dynamic, 1> > fftDataMap(fftData, fftLen);
                 
                 //Calculate the transform: apply fKernel to fftData.
-                Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic> resultMatrix;
                 resultMatrix = fftDataMap * *fKernel;
                 
+                //std::cerr << resultMatrix.rows() << " " << resultMatrix.cols() << std::endl;
+                
+                //std::cerr << "reorder now..." << std::endl;
                 //TODO:reorder the result matrix, save data
+                for (int bin=0; bin<binsPerOctave; bin++)
+                {
+                    for (int i = 0; i < fftLen * atomNr; i++)
+                    {
+                        /*std::cerr << "(bin*atomNr + i%atomNr=" << bin*atomNr + i%atomNr <<
+                            ", i/atomNr=" << i/atomNr << ")" << std::endl;*/
+                        (*octaveResult)(bin, i) = resultMatrix(i/atomNr, bin*atomNr + i%atomNr);
+                    }
+                }
+                //std::cerr << "reordered." << std::endl;
             }
+            
+            transformResult->octaveMatrix[octave] = octaveResult;
             
             if (octave)
             {   //not the last octave...
                 //copy data to new array for filtering, if necessary
                 if (octave == octaveCount)
                 {
+                    data = NULL;
                     data = new float[sampleCount];
+                    assert(data != NULL);
                     memcpy(data, buffer, sampleCount * sizeof(float));
                 }
                 
@@ -287,13 +334,16 @@ namespace music
                 lowpassFilter->apply(data, sampleCount);
                 
                 //change samplerate
-                float* newData = new float[sampleCount/2];
+                float* newData = NULL;
+                newData = new float[sampleCount/2];
+                assert(newData != NULL);
                 for (int i=0; i<sampleCount/2; i++)
                 {
                     newData[i] = data[2*i];
                 }
                 delete[] data;
                 data = newData;
+                sampleCount /= 2;
             }
         }
         
@@ -305,7 +355,7 @@ namespace music
         
         //then run over samples and calculate cqt.
         
-        return NULL;
+        return transformResult;
     }
     
     std::complex<float> ConstantQTransformResult::getNoteValueNoInterpolation(uint64_t sampleNumber, int midiNoteNumber) const
