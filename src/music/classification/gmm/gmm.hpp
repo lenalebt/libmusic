@@ -60,7 +60,7 @@ namespace music
         std::vector<Gaussian*> gaussians;
         
         //give back gaussian with weight.
-        std::vector<std::pair<Gaussian*, double> > emAlg(std::vector<Gaussian*> init, std::vector<Eigen::VectorXd> data, unsigned int maxIterations=50);
+        std::vector<std::pair<Gaussian*, double> > emAlg(std::vector<Gaussian*> init, std::vector<Eigen::VectorXd> data, int gaussianCount = 10,unsigned int maxIterations=50);
     public:
         //use EM algorithm to train the model
         void trainGMM(std::vector<Eigen::VectorXd> data, int gaussianCount=10);
