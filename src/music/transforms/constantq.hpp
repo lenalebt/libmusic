@@ -2,7 +2,6 @@
 #define CONSTANT_Q_HPP
 
 #include <musicaccess/filter.hpp>
-#include "tests.hpp"
 #include "fft.hpp"
 #include <cmath>
 
@@ -10,6 +9,9 @@
 #define EIGEN_YES_I_KNOW_SPARSE_MODULE_IS_NOT_STABLE_YET
 #include <Eigen/Sparse>
 #include <Eigen/Dense>
+
+//need this forward declaration to make it a firend of ConstantQTransform.
+namespace tests{int testConstantQ();}
 
 /**
  * @page midinote_scale Midi note scale
@@ -357,7 +359,7 @@ Spain, 2010.
          * @todo set the right return value.
          */
         ConstantQTransformResult* apply(float* buffer, int sampleCount);
-        
+
         friend int tests::testConstantQ();
         
         ~ConstantQTransform();

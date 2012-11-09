@@ -558,7 +558,7 @@ namespace tests
         
         musicaccess::SoundFile file;
         CHECK(!file.isFileOpen());
-        //CHECK(file.open("./testdata/instrument-clarinet2.mp3", true));
+        //CHECK(file.open("./testdata/instrument-oboe_vibrato.mp3", true));
         CHECK(file.open("./testdata/test.mp3", true));
         CHECK(file.isFileOpen());
         
@@ -602,11 +602,13 @@ namespace tests
         int gaussianCount = 4;
         
         DEBUG_OUT("Writing CQFCCs to a file...", 10);
-        std::ofstream outstr("cqfcc.dat");
+        std::ofstream outstr("test-cqfcc.dat");
+        //std::ofstream outstr("cqfcc-oboe_vibrato.dat");
         for (unsigned int i=0; i<data.size(); i++)
         {
             outstr << data[i].transpose() << std::endl;
         }
+        return EXIT_FAILURE;
         
         music::GaussianMixtureModelFullCov<double> gmm1;
         gmm1.trainGMM(data, gaussianCount);
