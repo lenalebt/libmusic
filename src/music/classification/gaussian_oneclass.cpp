@@ -28,6 +28,10 @@ namespace music
         }
         covariance /= trainingData.size();
         
+        //TODO: If covariance matrix is singular (for whatever reason,
+        //most probably not enough training samples), do something about
+        //it.
+        
         if (classModel != NULL)
             delete classModel;
         classModel = new GaussianFullCov<kiss_fft_scalar>(mean.size());

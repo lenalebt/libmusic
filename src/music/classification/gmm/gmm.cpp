@@ -1198,7 +1198,8 @@ namespace music
     
     
     
-    
+    template class Gaussian<float>;
+    template class Gaussian<double>;
     template class GaussianFullCov<double>;
     template class GaussianDiagCov<double>;
     template class GaussianFullCov<float>;

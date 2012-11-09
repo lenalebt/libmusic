@@ -145,7 +145,7 @@ namespace music
          *      even if the matrix is not represented as such internally.
          * @return The covariance matrix of this gaussian distribution.
          */
-        virtual Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> getCovarianceMatrix()=0;
+        virtual Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> getCovarianceMatrix() const=0;
         /**
          * @brief Set the covariance matrix of this gaussian.
          * @remarks This function will always take full covariance matricies,
@@ -183,9 +183,56 @@ namespace music
          * 
          * @return the Mahalanobis distance of the given vectors
          */
-        virtual double calculateDistance(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& vector1, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& vector2);
-        virtual double calculateDistance(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& vector1);
+        double calculateDistance(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& vector1, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& vector2);
+        double calculateDistance(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& vector1);
         
+        /**
+         * @brief Loads a model directly from a JSON string.
+         * 
+         * The structure of the JSON string here is as follows:
+         * @code
+         * [
+         *      "weight"     : double
+         *      "mean"       : [double, double, ..._n]
+         *      "covariance" : [double, double, ..._m]
+         * ]
+         * @endcode
+         * The following equation
+         * holds:
+         * \f[
+         *     m\in\left\{ n, \frac{n^2+n}{2n^2} \right\}
+         * \f]
+         * Typically, \f$k<20\f$ and \f$n<16\f$, but these are soft boundaries.
+         * There are no hard boundaries.
+         * 
+         * If
+         * \f$m=n\f$, then the elements of the covariance array are the diagonal
+         * elements of the covariance matrix. If \f$m=\frac{n^2+n}{2n^2}\f$,
+         * then the elements are the elements of the lower triangular of
+         * the covariance matrix. The other elements can be generated through
+         * mirroring the lower triangular on the diagonal. The order of the
+         * elements is as follows:
+         * \f[
+         *      \left(
+         *      \begin{array}{ccccc}
+         *          a_0 & a_1 & a_3 & a_6 & \cdots\\
+         *          a_1 & a_2 & a_4 & a_7 & \cdots\\
+         *          a_3 & a_4 & a_5 & a_8 & \cdots\\
+         *          a_6 & a_7 & a_8 & a_9 & \cdots\\
+         *          \vdots & \vdots & \vdots & \vdots & \ddots\\
+         *      \end{array}
+         *      \right)
+         * \f]
+         * 
+         * Typically, the JSON is condensed to save memory and speed the process up a bit.
+         * 
+         * @param jsonString A JSON string describing a gaussian.
+         * @bug If m!=n, m=(n^2+n)/(2n^2) will be assumed. This is a security problem,
+         *      as one might feed more elements to the program. In this case,
+         *      program memory might be overwritten, or a crash occurs.
+         *      The algorithm should be changed to address
+         *      this problem.
+         */
         static Gaussian<ScalarType>* loadFromJSONString(const std::string& jsonString);
         std::string toJSONString(bool styledWriter=false) const;
         static Gaussian<ScalarType>* loadFromJsonValue(Json::Value& jsonValue);
@@ -244,7 +291,7 @@ namespace music
         double calculateValueWithoutWeights(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector);
         double calculateNoMeanValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector);
         void setCovarianceMatrix(const Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>& matrix);
-        Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> getCovarianceMatrix()   {return fullCov;}
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> getCovarianceMatrix() const   {return fullCov;}
         
         Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> rand() const;
         Gaussian<ScalarType>* clone();
@@ -302,7 +349,7 @@ namespace music
         double calculateValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector);
         double calculateValueWithoutWeights(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector);
         double calculateNoMeanValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector);
-        Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> getCovarianceMatrix()   {return diagCov.asDiagonal();}
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> getCovarianceMatrix() const  {return diagCov.asDiagonal();}
         void setCovarianceMatrix(const Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>& matrix);
         
         Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> rand() const;

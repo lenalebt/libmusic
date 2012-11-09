@@ -117,6 +117,17 @@ namespace music
             
         };
         
+        /**
+         * @brief Objects of this class are value objects for the
+         *      properties of a category.
+         * 
+         * 
+         * 
+         * @ingroup database
+         * 
+         * @author Lena Brueder
+         * @date 2012-10-31
+         */
         class CategoryDescription
         {
         private:
@@ -150,6 +161,17 @@ namespace music
             std::string getClassifierDescription() const            {return classifierDescription;}
         };
         
+        /**
+         * @brief Objects of this class are value objects for
+         *      a category.
+         * 
+         * 
+         * 
+         * @ingroup database
+         * 
+         * @author Lena Brueder
+         * @date 2012-10-31
+         */
         class Category
         {
         private:
