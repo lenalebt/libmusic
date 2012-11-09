@@ -1,6 +1,9 @@
 #ifndef TIMBRE_HPP
 #define TIMBRE_HPP
 
+#include "constantq.hpp"
+#include "dct.hpp"
+
 namespace music
 {
     /**
@@ -28,9 +31,11 @@ namespace music
     private:
         
     protected:
-        
+        ConstantQTransformResult* transformResult;
+        DCT dct;
     public:
-        TimbreEstimation* estimateTimbre(double fromTime, double toTime);
+        TimbreEstimator(ConstantQTransformResult* transformResult);
+        Eigen::VectorXd estimateTimbre(double fromTime, double toTime);
     };
 }
 #endif  //TIMBRE_HPP

@@ -15,6 +15,8 @@
 
 #include "bpm.hpp"
 #include "chords.hpp"
+#include "timbre.hpp"
+#include "gmm.hpp"
 
 #include <list>
 #include <limits>
@@ -556,7 +558,8 @@ namespace tests
         
         musicaccess::SoundFile file;
         CHECK(!file.isFileOpen());
-        CHECK(file.open("./testdata/instrument-clarinet2.mp3", true));
+        //CHECK(file.open("./testdata/instrument-clarinet2.mp3", true));
+        CHECK(file.open("./testdata/test.mp3", true));
         CHECK(file.isFileOpen());
         
         float* buffer = NULL;
@@ -579,6 +582,30 @@ namespace tests
         music::ConstantQTransformResult* transformResult = cqt->apply(buffer, sampleCount);
         CHECK(transformResult != NULL);
         
+        music::TimbreEstimator t(transformResult);
+        double time;
+        std::vector<Eigen::VectorXd> data;
+        //for (double time=0.0; time<transformResult->getOriginalDuration(); time += 0.125/8)
+        for (int i=0; i<transformResult->getOriginalDuration() * 32; i++)
+        {
+            time = (1.0/32.0) * i;
+            DEBUG_VAR_OUT(time, 0);
+            data.push_back(t.estimateTimbre(time, time + 0.02));
+        }
+        DEBUG_VAR_OUT(data.size(), 0);
+        DEBUG_VAR_OUT(data[0], 0);
+        DEBUG_VAR_OUT(data[1], 0);
+        DEBUG_VAR_OUT(data[2], 0);
+        DEBUG_VAR_OUT(data[3], 0);
+        
+        music::GaussianMixtureModel gmm;
+        gmm.trainGMM(data, 2);
+        
+        DEBUG_VAR_OUT(gmm, 0);
+        
+        
+        //the part below is timbre estimation via the overtone ratio, which did not work that good.
+        #if 0
         Eigen::VectorXd timbreChroma(15);
         //overtones is a vector filled with info about how to add overtones
         //first element is the lower index of the two bins containing the overtone
@@ -675,6 +702,7 @@ namespace tests
             }
         }
         timbredata << std::endl;
+        #endif
         
         return EXIT_SUCCESS;
     }

@@ -228,16 +228,22 @@ namespace tests
         }
         
         music::GaussianMixtureModel gmm3;
-        gmm3.loadFromJSONString(gmmJSON);
+        gmm3.trainGMM(data, 5);
+        music::GaussianMixtureModel gmm4;
+        gmm4.trainGMM(data, 10);
         
+        /*
         gaussians = gmm3.getGaussians();
         gaussians[0]->setMean(mu1 * 1.1);
         gaussians[1]->setMean(mu2 * 1.1);
+        */
         
         DEBUG_VAR_OUT(gmm.compareTo(gmm2), 0);
         DEBUG_VAR_OUT(gmm2.compareTo(gmm), 0);
         DEBUG_VAR_OUT(gmm.compareTo(gmm3), 0);
         DEBUG_VAR_OUT(gmm3.compareTo(gmm), 0);
+        DEBUG_VAR_OUT(gmm.compareTo(gmm4), 0);
+        DEBUG_VAR_OUT(gmm4.compareTo(gmm), 0);
         
         return EXIT_SUCCESS;
     }

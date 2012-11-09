@@ -175,11 +175,18 @@ namespace music
                     p(i,g) = gaussians[g]->calculateValueWithoutWeights(data[i]);
                 }
             }
+            
+            double sum;
             for (unsigned int i=0; i<dataSize; i++)
             {
                 //normalize p.
+                //sometimes the sum gets 0, and then dividing by it would be wrong.
+                sum = p.row(i).sum();
+                if (sum == 0.0)
+                    sum = 1.0;
+                
                 //resolve aliasing issues here with calling eval()
-                p.row(i) = (p.row(i) / p.row(i).sum()).eval();
+                p.row(i) = (p.row(i) / sum).eval();
             }
             DEBUG_OUT("E-step END", 30);
             //E-step END
@@ -203,6 +210,7 @@ namespace music
                 mu = mu / (dataSize * prob(g));
                 
                 //calculate sigma
+                //TODO: this step needs to be done by the gaussian, in order to reduce calculation costs.
                 Eigen::MatrixXd sigma(dimension, dimension);
                 sigma.setZero();
                 for (unsigned int i=0; i< dataSize; i++)
@@ -247,7 +255,7 @@ namespace music
     {
         //draw some samples from the one model and take a look at the pdf values of the other.
         double value = 0.0;
-        const int numValues = 10000;
+        const int numValues = 5000;
         //get the mean of the pdf values. large values should mean "pdfs are similar",
         //and small values indicate that they are not equal.
         for (int i=0; i<numValues; i++)
