@@ -178,11 +178,25 @@ namespace tests
         musicaccess::IIRFilter* lowpassFilter = NULL;
         
         lowpassFilter = musicaccess::IIRFilter::createLowpassFilter(0.5);
-        CHECK(lowpassFilter != NULL);
+        CHECK_OP(lowpassFilter, !=, NULL);
         
-        cqt = music::ConstantQTransform::createTransform(12, 40, 11025, 22050, 1.0, 0.5, lowpassFilter);
-        CHECK(cqt != NULL);
+        cqt = music::ConstantQTransform::createTransform(lowpassFilter, 12, 40, 11025, 22050, 1.0, 0.0005);
+        CHECK_OP(cqt, !=, NULL);
+        //CHECK_OP(cqt->window(20, 10), !=, 0.0);
+        CHECK_EQ(cqt->log2(2), 1);
+        CHECK_EQ(cqt->log2(16), 4);
+        CHECK_EQ(cqt->log2(32), 5);
+        CHECK_EQ(cqt->log2(256), 8);
         
-        return EXIT_FAILURE;
+        CHECK_EQ(cqt->getBinsPerOctave(), 12);
+        CHECK_EQ(cqt->getFMax(), 11025);
+        CHECK_EQ(cqt->getFMin(), 40);
+        CHECK_EQ(cqt->getFs(), 22050);
+        CHECK_OP(cqt->getLowpassFilter(), !=, NULL);
+        CHECK_EQ(cqt->getOctaveCount(), 9);
+        CHECK_EQ(cqt->getQ(), 1.0);
+        CHECK_EQ(cqt->getThreshold(), 0.0005);
+        
+        return EXIT_SUCCESS;
     }
 }
