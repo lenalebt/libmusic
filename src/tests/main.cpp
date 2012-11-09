@@ -114,6 +114,25 @@ int main(int argc, char *argv[])
             return performance_tests::testInstrumentSimilarity(argv[2]);
         }
     }
+    else if (testname == "timbreparameters")
+    {
+        if (argc < 3)
+        {
+            std::cout << "this test can be called with extra parameters:" << std::endl;
+            std::cout << "call \"" << argv[0] << " timbreparameters timeslicelength folder\"" << std::endl;
+            return performance_tests::testTimbreParameters();
+        }
+        else if (argc < 4)
+        {
+            std::cout << "this test can be called with extra parameters:" << std::endl;
+            std::cout << "call \"" << argv[0] << " timbreparameters timeslicelength folder\"" << std::endl;
+            return performance_tests::testTimbreParameters(argv[2]);
+        }
+        else
+        {
+            return performance_tests::testTimbreParameters(argv[2], argv[3]);
+        }
+    }
     else
     {
         std::cout << "test \"" << testname << "\" is unknown." << std::endl;

@@ -86,6 +86,16 @@ namespace performance_tests
             assert(buffer != NULL);
             int sampleCount = file.readSamples(buffer, file.getSampleCount());
             
+            CHECK_OP(sampleCount, <=, file.getSampleCount());
+            
+            if (sampleCount==0)
+            {
+                ERROR_OUT("some error happened while decoding audio stream, skipping this file...", 0);
+                files.erase(files.begin() + i);
+                i--;
+                continue;
+            }
+            
             musicaccess::Resampler22kHzMono resampler;
             //int sampleCount = file.getSampleCount();
             DEBUG_OUT("resampling input file...", 10);
@@ -97,7 +107,13 @@ namespace performance_tests
             
             //calculate model
             assert(data.empty());
-            tModel.calculateModel(data, 20, 0.01, 16, &osc);
+            if (!tModel.calculateModel(data, 20, 0.01, 16, &osc))
+            {
+                ERROR_OUT("some error happened while building the model, skipping this file...", 0);
+                files.erase(files.begin() + i);
+                i--;
+                continue;
+            }
             
             if (basefiles.size() > 1)
             {
@@ -169,7 +185,7 @@ namespace performance_tests
             DEBUG_OUT(i+1 << ": " << basefiles[i], 10);
         }
         
-        unsigned int knearest=3;
+        unsigned int knearest=4;
         DEBUG_OUT("printing " << knearest << " nearest neighbours now for every file:", 0);
         
         for (int i=0; i<similarity.rows(); i++)
@@ -182,14 +198,34 @@ namespace performance_tests
             }
             std::sort(list.begin(), list.end());
             
-            for (unsigned int j=0; j<std::min<unsigned int>(knearest, list.size()); j++)
-                DEBUG_OUT(j+1 << ":\t\t " << "score: " << list[j].first << ":\t" << files[list[j].second], 0);
+            for (unsigned int j=1; j<std::min<unsigned int>(knearest+1, list.size()); j++)
+                DEBUG_OUT(j << ":\t\t " << "score: " << list[j].first << ":\t" << files[list[j].second], 0);
         }
         
+        unsigned int bestpairs=30;
+        DEBUG_OUT("printing " << bestpairs << " best (non-equal) pairs:", 0);
+        
+        std::vector<std::pair<double, std::pair<int, int> > > pairlist;
+        for (int i=0; i<similarity.rows(); i++)
+        {
+            for (int j=i+1; j<similarity.cols(); j++)
+            {
+                pairlist.push_back(std::pair<double, std::pair<int, int> >(similarity(i, j) + similarity(j, i), std::pair<int, int>(i,j)));
+            }
+        }
+        std::sort(pairlist.begin(), pairlist.end());
+        for (unsigned int j=0; j<std::min<unsigned int>(bestpairs, pairlist.size()); j++)
+            DEBUG_OUT(j << ":\t " << "score: " << pairlist[j].first << ":\t" << files[pairlist[j].second.first] << " and " << files[pairlist[j].second.second], 0);
         
         delete cqt;
         delete lowpassFilter;
         //TODO: delete GMMs
+        
+        return EXIT_SUCCESS;
+    }
+    
+    int testTimbreParameters(const std::string& timbreVectorTimeLength, const std::string& folder)
+    {
         
         return EXIT_SUCCESS;
     }

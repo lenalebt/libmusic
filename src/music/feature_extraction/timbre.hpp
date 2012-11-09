@@ -40,8 +40,8 @@ namespace music
         float minEnergy;
         
     public:
-        TimbreEstimator(ConstantQTransformResult* transformResult, unsigned int timbreVectorSize=12, float minEnergy=5.0);
-        TimbreEstimator(unsigned int timbreVectorSize=12, float minEnergy=5.0);
+        TimbreEstimator(ConstantQTransformResult* transformResult, unsigned int timbreVectorSize=12, float minEnergy=2.0);
+        TimbreEstimator(unsigned int timbreVectorSize=12, float minEnergy=2.0);
         Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> estimateTimbre(double fromTime, double toTime);
     };
     
@@ -83,8 +83,10 @@ namespace music
          * @param timeSliceSize The time slice size in seconds that will be used to
          *      create the timbre vectors.
          * @param timbreVectorSize The dimensionality of the timbre vectors (and the resulting model).
+         * 
+         * @return if calculating the model was successful, or not.
          */
-        void calculateModel(int modelSize=10, double timeSliceSize=0.02, unsigned int timbreVectorSize=12, ProgressCallbackCaller* callback = NULL);
+        bool calculateModel(int modelSize=10, double timeSliceSize=0.02, unsigned int timbreVectorSize=12, ProgressCallbackCaller* callback = NULL);
         /**
          * @brief Calculates the model and preserves the calculated timbre vectors.
          * 
@@ -100,8 +102,10 @@ namespace music
          * @param timeSliceSize The time slice size in seconds that will be used to
          *      create the timbre vectors.
          * @param timbreVectorSize The dimensionality of the timbre vectors (and the resulting model).
+         * 
+         * @return if calculating the model was successful, or not.
          */
-        void calculateModel(std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> >& timbreVectors, int modelSize=10, double timeSliceSize=0.02, unsigned int timbreVectorSize=12, ProgressCallbackCaller* callback = NULL);
+        bool calculateModel(std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> >& timbreVectors, int modelSize=10, double timeSliceSize=0.02, unsigned int timbreVectorSize=12, ProgressCallbackCaller* callback = NULL);
         /**
          * @brief Return the model that was calculated beforehand.
          * 

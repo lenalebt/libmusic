@@ -74,13 +74,13 @@ namespace music
         if (model)
             delete model;
     }
-    void TimbreModel::calculateModel(int modelSize, double timeSliceSize, unsigned int timbreVectorSize, ProgressCallbackCaller* callback)
+    bool TimbreModel::calculateModel(int modelSize, double timeSliceSize, unsigned int timbreVectorSize, ProgressCallbackCaller* callback)
     {
         //use overload to hide the possibility of getting the data vectors.
         std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > data;
         calculateModel(data, modelSize, timeSliceSize, timbreVectorSize, callback);
     }
-    void TimbreModel::calculateModel(std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> >& timbreVectors, int modelSize, double timeSliceSize, unsigned int timbreVectorSize, ProgressCallbackCaller* callback)
+    bool TimbreModel::calculateModel(std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> >& timbreVectors, int modelSize, double timeSliceSize, unsigned int timbreVectorSize, ProgressCallbackCaller* callback)
     {
         assert(modelSize > 0);
         assert(timeSliceSize > 0.0);
@@ -118,11 +118,16 @@ namespace music
                 callback->progress(0.5, "used old timbre vectors, training model now");
         }
         
+        if (timbreVectors.size() < timbreVectorSize)
+            return false;
+        
         //then train the model
         model->trainGMM(timbreVectors, modelSize);
         
         if (callback)
             callback->progress(1.0, "finished");
+        
+        return true;
     }
     GaussianMixtureModel<kiss_fft_scalar>* TimbreModel::getModel()
     {
