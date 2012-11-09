@@ -162,20 +162,23 @@ namespace music
         ctstatements.push_back("CREATE TABLE IF NOT EXISTS chords(chordsID INTEGER NOT NULL, starttime REAL, endtime REAL, timbreVector TEXT);");
         ctstatements.push_back("CREATE TABLE IF NOT EXISTS timbre(timbreID INTEGER NOT NULL, starttime REAL, endtime REAL, chordVector TEXT);");
         
-        ctstatements.push_back("CREATE TABLE IF NOT EXISTS category(categoryID INTEGER PRIMARY KEY, categoryName TEXT, categoryDescriptionID INTEGER NOT NULL,"
-        "FOREIGN KEY(categoryDescriptionID) REFERENCES categoryDescription(categoryDescriptionID)"
-        ");");
+        ctstatements.push_back("CREATE TABLE IF NOT EXISTS category(categoryID INTEGER PRIMARY KEY, categoryName TEXT, "
+            "categoryDescriptionID INTEGER NOT NULL,"
+            "FOREIGN KEY(categoryDescriptionID) REFERENCES categoryDescription(categoryDescriptionID)"
+            ");");
         ctstatements.push_back("CREATE TABLE IF NOT EXISTS categoryDescription(categoryDescriptionID INTEGER PRIMARY KEY, dummy TEXT"
-        ");");
+            ");");
         
-        ctstatements.push_back("CREATE TABLE IF NOT EXISTS categoryExample(categoryID INTEGER NOT NULL, recordingID INTEGER NOT NULL, PRIMARY KEY(categoryID, recordingID),"
-        "FOREIGN KEY(recordingID)     REFERENCES recording(recordingID),"
-        "FOREIGN KEY(categoryID) REFERENCES category(categoryID)"
-        ");");
-        ctstatements.push_back("CREATE TABLE IF NOT EXISTS categoryMembership(categoryID INTEGER NOT NULL, recordingID INTEGER NOT NULL, score REAL, PRIMARY KEY(categoryID, recordingID),"
-        "FOREIGN KEY(categoryID) REFERENCES category(categoryID),"
-        "FOREIGN KEY(recordingID)     REFERENCES recording(recordingID)"
-        ");");
+        ctstatements.push_back("CREATE TABLE IF NOT EXISTS categoryExample(categoryID INTEGER NOT NULL, "
+            "recordingID INTEGER NOT NULL, exampleType INTEGER, PRIMARY KEY(categoryID, recordingID),"
+            "FOREIGN KEY(recordingID)     REFERENCES recording(recordingID),"
+            "FOREIGN KEY(categoryID) REFERENCES category(categoryID)"
+            ");");
+        ctstatements.push_back("CREATE TABLE IF NOT EXISTS categoryMembership(categoryID INTEGER NOT NULL, recordingID INTEGER NOT NULL, "
+            "score REAL, PRIMARY KEY(categoryID, recordingID),"
+            "FOREIGN KEY(categoryID) REFERENCES category(categoryID),"
+            "FOREIGN KEY(recordingID)     REFERENCES recording(recordingID)"
+            ");");
         
         //TODO: create indexes
         
@@ -765,5 +768,10 @@ namespace music
         }
         
         return true;
+    }
+    
+    bool SQLiteDatabaseConnection::addCategory(databaseentities::Category& category)
+    {
+        return false;
     }
 }

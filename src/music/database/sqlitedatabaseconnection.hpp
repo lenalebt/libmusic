@@ -37,6 +37,8 @@ namespace music
         bool addRecordingFeatures(databaseentities::RecordingFeatures& features);
         
         bool getRecordingByID(databaseentities::Recording& recording, bool readFeatures=false);
+        
+        bool addCategory(databaseentities::Category& category);
     private:
         
     protected:

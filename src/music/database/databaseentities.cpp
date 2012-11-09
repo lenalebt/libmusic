@@ -34,5 +34,12 @@ namespace music
         {
             
         }
+        
+        Category::Category() :
+            id(-1),
+            categoryName("")
+        {
+            
+        }
     }
 }
