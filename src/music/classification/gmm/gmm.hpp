@@ -255,8 +255,9 @@ namespace music
          * @brief Starts the expectation-maximization algorithm (EM algorithm) for
          *      gaussian mixture models (GMM) on the data.
          * 
-         * @param init The initial guesses for the centers of gravity of the normal
-         *      distributions
+         * @param init The initial guesses for the centers of gravity and covariance matricies
+         *      of the normal distributions. Setting the diagonal elements of the
+         *      covariance matrix to approximately 10000 is a good initial guess.
          * @param data The data that should be analyzed
          * @param gaussianCount The count of gaussian distributions that will be used to model the data
          * @param maxIterations The maximum number of iterations of the algorithm. Usually, it converges much faster.
@@ -266,7 +267,7 @@ namespace music
          * 
          * @return A list of the gaussian distributions that build the model.
          */
-        virtual std::vector<Gaussian<ScalarType>* > emAlg(const std::vector<Gaussian<ScalarType>*>& init, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, int gaussianCount = 10, unsigned int maxIterations=50)=0;
+        virtual std::vector<Gaussian<ScalarType>* > emAlg(const std::vector<Gaussian<ScalarType>*>& init, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, unsigned int gaussianCount = 10, unsigned int maxIterations=50)=0;
     public:
         /**
          * @brief Creates a new empty Gaussian Mixture Model.
@@ -420,7 +421,7 @@ namespace music
             using GaussianMixtureModel<ScalarType>::uniRNG;
             using GaussianMixtureModel<ScalarType>::normalizationFactor;
             
-            std::vector<Gaussian<ScalarType>* > emAlg(const std::vector<Gaussian<ScalarType>*>& init, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, int gaussianCount = 10, unsigned int maxIterations=50);
+            std::vector<Gaussian<ScalarType>* > emAlg(const std::vector<Gaussian<ScalarType>*>& init, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, unsigned int gaussianCount = 10, unsigned int maxIterations=50);
             
     };
     
@@ -446,7 +447,7 @@ namespace music
             using GaussianMixtureModel<ScalarType>::uniRNG;
             using GaussianMixtureModel<ScalarType>::normalizationFactor;
             
-            std::vector<Gaussian<ScalarType>* > emAlg(const std::vector<Gaussian<ScalarType>*>& init, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, int gaussianCount = 10, unsigned int maxIterations=50);
+            std::vector<Gaussian<ScalarType>* > emAlg(const std::vector<Gaussian<ScalarType>*>& init, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, unsigned int gaussianCount = 10, unsigned int maxIterations=50);
     };
     
     template <typename ScalarType> std::ostream& operator<<(std::ostream& os, const GaussianMixtureModel<ScalarType>& model);
