@@ -450,6 +450,17 @@ namespace music
     
     template <typename ScalarType> std::ostream& operator<<(std::ostream& os, const GaussianMixtureModel<ScalarType>& model);
     template <typename ScalarType> std::istream& operator>>(std::istream& is, GaussianMixtureModel<ScalarType>& model);
+    
+    //NEW IMPLEMENTATION
+    template <typename ScalarType>
+    class GMM2
+    {
+    private:
+        
+    public:
+        template <int GaussianType>
+        void trainGMM(const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, int gaussianount = 10, unsigned int maxIterations=50);
+    };
 }
 
 #endif //GMM_HPP
