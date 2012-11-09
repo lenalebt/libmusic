@@ -64,4 +64,11 @@ namespace music
         DEBUG_VAR_OUT(classModel->calculateDistance(vector), 0);
         return classModel->calculateDistance(vector);
     }
+    
+    void GaussianOneClassClassifier::loadFromJSONString(const std::string& jsonString)
+    {
+        if (classModel)
+            delete classModel;
+        classModel = Gaussian<kiss_fft_scalar>::loadFromJSONString(jsonString);
+    }
 }

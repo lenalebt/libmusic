@@ -43,6 +43,7 @@ namespace music
         bool calculateModel(GaussianMixtureModel<kiss_fft_scalar>*& model, std::vector<GaussianMixtureModel<kiss_fft_scalar>*> components, unsigned int gaussianCount, unsigned int samplesPerGMM, ProgressCallbackCaller* callback = NULL, double initVariance = 100.0, double minVariance = 0.1);
     public:
         Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> createVectorForFeatures(databaseentities::RecordingFeatures* features, GaussianMixtureModel<kiss_fft_scalar>* categoryTimbreModel, GaussianMixtureModel<kiss_fft_scalar>* categoryChromaModel);
+        Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> createVectorForFeatures(GaussianMixtureModel<kiss_fft_scalar>* timbreModel, GaussianMixtureModel<kiss_fft_scalar>* chromaModel, double dynamicRange, double length, GaussianMixtureModel<kiss_fft_scalar>* categoryTimbreModel, GaussianMixtureModel<kiss_fft_scalar>* categoryChromaModel);
         
         ClassificationCategory();
         ~ClassificationCategory();
@@ -127,7 +128,7 @@ namespace music
         bool calculateClassificatorModel(const std::vector<databaseentities::Recording*>& posExamples, const std::vector<databaseentities::Recording*>& negExamples, unsigned int categoryTimbreModelSize=50, unsigned int categoryTimbrePerSongSampleCount=10000, unsigned int categoryChromaModelSize=8, unsigned int categoryChromaPerSongSampleCount=10000, ProgressCallbackCaller* callback = NULL);
         
         
-        
+        void loadFromJSON(const std::string& positiveTimbreModelString, const std::string& positiveChromaModelString, const std::string& negativeTimbreModelString, const std::string& negativeChromaModelString, const std::string& positiveClassifierDescription, const std::string& negativeClassifierDescription);
     };
 }
 

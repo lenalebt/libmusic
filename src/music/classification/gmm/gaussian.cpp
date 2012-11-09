@@ -39,6 +39,8 @@ namespace music
     template <typename ScalarType>
     double Gaussian<ScalarType>::calculateDistance(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& vector1, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& vector2)
     {
+        DEBUG_VAR_OUT(vector1, 0);
+        DEBUG_VAR_OUT(vector2, 0);
         Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> tmp = vector1 - vector2;
         if (pseudoInverse)
         {
@@ -328,7 +330,6 @@ namespace music
     void GaussianFullCov<ScalarType>::calculatePrefactor()
     {
         double determinant = fullCov.determinant();
-        assert(determinant != 0.0);
         preFactor = weight * 1.0/(pow(2*M_PI, fullCov.rows()/2.0) * sqrt(determinant));
         
         if (determinant < std::numeric_limits<ScalarType>::epsilon())

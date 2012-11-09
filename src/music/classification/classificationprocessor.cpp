@@ -47,7 +47,7 @@ namespace music
         
         //TODO: HERE: USE CLASSIFCATIONCATEGORY
         ClassificationCategory cat;
-        cat.calculateClassificatorModel(positiveExamples, negativeExamples, categoryTimbreModelSize, categoryTimbrePerSongSampleCount, categoryChromaModelSize, categoryChromaPerSongSampleCount);
+        cat.calculateClassificatorModel(positiveExamples, negativeExamples, categoryTimbreModelSize, categoryTimbrePerSongSampleCount, categoryChromaModelSize, categoryChromaPerSongSampleCount, callback);
         
         //TODO: save models to database
         if (cat.getPositiveTimbreModel() != NULL)
@@ -109,237 +109,7 @@ namespace music
         negativeExamples.clear();
         //TODO: TO HERE: USE CLASSIFICATIONCATEGORY
         
-        #if 0
-        if (callback)
-            callback->progress(0.05, "loading timbre and chroma models...");
-        
-        
-        GaussianMixtureModel<kiss_fft_scalar>* categoryPositiveTimbreModel = NULL;
-        GaussianMixtureModel<kiss_fft_scalar>* categoryPositiveChromaModel = NULL;
-        GaussianMixtureModel<kiss_fft_scalar>* categoryNegativeTimbreModel = NULL;
-        GaussianMixtureModel<kiss_fft_scalar>* categoryNegativeChromaModel = NULL;
-        
-        //for positives: load timbre & chroma models
-        std::vector<GaussianMixtureModel<kiss_fft_scalar>*> positiveTimbreModels;
-        std::vector<GaussianMixtureModel<kiss_fft_scalar>*> positiveChromaModels;
-        for (std::vector<databaseentities::id_datatype>::const_iterator it = positiveExamples.begin(); it != positiveExamples.end(); ++it)
-        {
-            databaseentities::Recording rec;
-            rec.setID(*it);
-            conn->getRecordingByID(rec, true);
-            
-            if (rec.getRecordingFeatures() != NULL)
-            {
-                GaussianMixtureModel<kiss_fft_scalar>* gmm = GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(rec.getRecordingFeatures()->getTimbreModel());
-                positiveTimbreModels.push_back(gmm);
-                gmm = GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(rec.getRecordingFeatures()->getChromaModel());
-                positiveChromaModels.push_back(gmm);
-            }
-        }
-        //for negatives: load timbre & chroma models
-        std::vector<GaussianMixtureModel<kiss_fft_scalar>*> negativeTimbreModels;
-        std::vector<GaussianMixtureModel<kiss_fft_scalar>*> negativeChromaModels;
-        for (std::vector<databaseentities::id_datatype>::const_iterator it = negativeExamples.begin(); it != negativeExamples.end(); ++it)
-        {
-            databaseentities::Recording rec;
-            rec.setID(*it);
-            conn->getRecordingByID(rec, true);
-            
-            if (rec.getRecordingFeatures() != NULL)
-            {
-                GaussianMixtureModel<kiss_fft_scalar>* gmm = GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(rec.getRecordingFeatures()->getTimbreModel());
-                negativeTimbreModels.push_back(gmm);
-                gmm = GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(rec.getRecordingFeatures()->getChromaModel());
-                negativeChromaModels.push_back(gmm);
-            }
-        }
-        
-        if (callback)
-            callback->progress(0.1, "processing timbre models...");
-        
-        //combine positive timbre models
-        if (positiveTimbreModels.size() != 0)
-        {
-            if (cat.calculatePositiveTimbreModel(positiveTimbreModels, categoryTimbreModelSize, categoryTimbrePerSongSampleCount))
-            {
-                category.getCategoryDescription()->setPositiveTimbreModel(cat.getPositiveTimbreModel()->toJSONString());
-                categoryPositiveTimbreModel = cat.getPositiveTimbreModel()->clone();
-            }
-            else
-            {
-                conn->rollbackTransaction();
-                return false;
-            }
-        }
-        else
-        {
-            category.getCategoryDescription()->setPositiveTimbreModel("");
-        }
-        //combine negative timbre models
-        if (negativeTimbreModels.size() != 0)
-        {
-            if (cat.calculatePositiveTimbreModel(negativeTimbreModels, categoryTimbreModelSize, categoryTimbrePerSongSampleCount))
-            {
-                category.getCategoryDescription()->setNegativeTimbreModel(cat.getPositiveTimbreModel()->toJSONString());
-                categoryNegativeTimbreModel = cat.getPositiveTimbreModel()->clone();
-            }
-            else
-            {
-                conn->rollbackTransaction();
-                return false;
-            }
-        }
-        else
-        {
-            category.getCategoryDescription()->setNegativeTimbreModel("");
-        }
-        
-        if (callback)
-            callback->progress(0.35, "processing chroma models...");
-        
-        //combine positive chroma models
-        if (positiveChromaModels.size() != 0)
-        {
-            if (cat.calculateNegativeChromaModel(positiveChromaModels, categoryChromaModelSize, categoryChromaPerSongSampleCount))
-            {
-                category.getCategoryDescription()->setPositiveChromaModel(cat.getNegativeChromaModel()->toJSONString());
-                categoryPositiveChromaModel = cat.getNegativeChromaModel()->clone();
-            }
-            else
-            {
-                conn->rollbackTransaction();
-                return false;
-            }
-        }
-        else
-        {
-            category.getCategoryDescription()->setPositiveChromaModel("");
-        }
-        
-        //combine negative chroma models
-        if (negativeChromaModels.size() != 0)
-        {
-            if (cat.calculateNegativeChromaModel(negativeChromaModels, categoryChromaModelSize, categoryChromaPerSongSampleCount))
-            {
-                category.getCategoryDescription()->setNegativeChromaModel(cat.getNegativeChromaModel()->toJSONString());
-                categoryNegativeChromaModel = cat.getNegativeChromaModel()->clone();
-            }
-            else
-            {
-                conn->rollbackTransaction();
-                return false;
-            }
-        }
-        else
-        {
-            category.getCategoryDescription()->setNegativeChromaModel("");
-        }
-        
-        //up to here: combined the timbres of category example positives to a new model for the category.
-        //now: build model of category when timbre and chroma was applied.
-        //first: create vectors
-        
-        Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> vec;   //dimension 4, but dynamic because it might grow
-        
-        //positive
-        std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > positiveExampleVectors;
-        for (std::vector<databaseentities::id_datatype>::const_iterator it = positiveExamples.begin(); it != positiveExamples.end(); ++it)
-        {
-            databaseentities::Recording rec;
-            rec.setID(*it);
-            conn->getRecordingByID(rec, true);
-            
-            
-            if (rec.getRecordingFeatures() != NULL)
-            {
-                vec = cat.createVectorForFeatures(rec.getRecordingFeatures(), categoryPositiveTimbreModel, categoryPositiveChromaModel);
-            }
-            
-            positiveExampleVectors.push_back(vec);
-        }
-        
-        
-        //negative
-        std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > negativeExampleVectors;
-        for (std::vector<databaseentities::id_datatype>::const_iterator it = negativeExamples.begin(); it != negativeExamples.end(); ++it)
-        {
-            databaseentities::Recording rec;
-            rec.setID(*it);
-            conn->getRecordingByID(rec, true);
-            
-            vec.setZero();
-            if (rec.getRecordingFeatures() != NULL)
-            {
-                vec = cat.createVectorForFeatures(rec.getRecordingFeatures(), categoryNegativeTimbreModel, categoryNegativeChromaModel);
-            }
-            
-            negativeExampleVectors.push_back(vec);
-        }
-        
-        //then: learn models
-        GaussianOneClassClassifier positiveClassifier;
-        GaussianOneClassClassifier negativeClassifier;
-        
-        positiveClassifier.learnModel(positiveExampleVectors);
-        if (negativeExampleVectors.size() > 0)
-            negativeClassifier.learnModel(negativeExampleVectors);
-        
-        //TODO: erweitern auf allgemeine classifier etc.
-        
-        category.getCategoryDescription()->setClassifierDescription(positiveClassifier.getClassModel()->toJSONString());
-        //TODO: add neg classifier to category
-        
-        if (recalculateCategoryMembershipScores_)
-        {
-            if (callback)
-                callback->progress(0.5, "recalculate membership scores");
-            //TODO: ID des callbacks stimmt evtl so nicht. neu anpassen, dafür funktionen von progresscallbackcaller ändern?
-            if (!recalculateCategoryMembershipScores(category, callback))
-            {
-                conn->rollbackTransaction();
-                return false;
-            }
-        }
-        
-        //delete timbreModels
-        for (std::vector<GaussianMixtureModel<kiss_fft_scalar>*>::iterator it = positiveTimbreModels.begin(); it != positiveTimbreModels.end(); ++it)
-        {
-            delete *it;
-        }
-        for (std::vector<GaussianMixtureModel<kiss_fft_scalar>*>::iterator it = negativeTimbreModels.begin(); it != negativeTimbreModels.end(); ++it)
-        {
-            delete *it;
-        }
-        //delete chromaModels
-        for (std::vector<GaussianMixtureModel<kiss_fft_scalar>*>::iterator it = positiveChromaModels.begin(); it != positiveChromaModels.end(); ++it)
-        {
-            delete *it;
-        }
-        for (std::vector<GaussianMixtureModel<kiss_fft_scalar>*>::iterator it = negativeChromaModels.begin(); it != negativeChromaModels.end(); ++it)
-        {
-            delete *it;
-        }
-        
-        delete categoryPositiveTimbreModel;
-        delete categoryPositiveChromaModel;
-        delete categoryNegativeTimbreModel;
-        delete categoryNegativeChromaModel;
-        
-        if (callback)
-            callback->progress(0.98, "saving results to database");
-        
-        if (!conn->updateCategory(category))
-        {
-            conn->rollbackTransaction();
-            return false;
-        }
-        
         conn->endTransaction();
-        
-        if (callback)
-            callback->progress(1.0, "finished");
-        #endif
-        
         return true;
     }
     
@@ -366,33 +136,21 @@ namespace music
             return false;
         }
         
-        GaussianMixtureModel<kiss_fft_scalar>* categoryPositiveTimbreModel = 
-            GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(
-              category.getCategoryDescription()->getPositiveTimbreModel()
-            );
-        GaussianMixtureModel<kiss_fft_scalar>* categoryNegativeTimbreModel = 
-            GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(
-              category.getCategoryDescription()->getNegativeTimbreModel()
-            );
-        GaussianMixtureModel<kiss_fft_scalar>* categoryPositiveChromaModel = 
-            GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(
-              category.getCategoryDescription()->getPositiveChromaModel()
-            );
-        GaussianMixtureModel<kiss_fft_scalar>* categoryNegativeChromaModel = 
-            GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(
-              category.getCategoryDescription()->getNegativeChromaModel()
-            );
+        DEBUG_VAR_OUT(category.getCategoryDescription()->getPositiveTimbreModel()           , 0);
+        DEBUG_VAR_OUT(category.getCategoryDescription()->getPositiveChromaModel()           , 0);
+        DEBUG_VAR_OUT(category.getCategoryDescription()->getNegativeTimbreModel()           , 0);
+        DEBUG_VAR_OUT(category.getCategoryDescription()->getNegativeChromaModel()           , 0);
+        DEBUG_VAR_OUT(category.getCategoryDescription()->getPositiveClassifierDescription() , 0);
+        DEBUG_VAR_OUT(category.getCategoryDescription()->getNegativeClassifierDescription() , 0);
         
-        GaussianOneClassClassifier positiveClassifier;
-        //TODO: GaussianOneClassClassifier negativeClassifier;
-        
-        {
-            Gaussian<kiss_fft_scalar>* model = Gaussian<kiss_fft_scalar>::loadFromJSONString(
-              category.getCategoryDescription()->getPositiveClassifierDescription()
+        cat.loadFromJSON(
+            category.getCategoryDescription()->getPositiveTimbreModel(),
+            category.getCategoryDescription()->getPositiveChromaModel(),
+            category.getCategoryDescription()->getNegativeTimbreModel(),
+            category.getCategoryDescription()->getNegativeChromaModel(),
+            category.getCategoryDescription()->getPositiveClassifierDescription(),
+            category.getCategoryDescription()->getNegativeClassifierDescription()
             );
-            positiveClassifier.setClassModel(model);
-            delete model;
-        }
         
         if (callback)
             callback->progress(0.05, "calculating new scores...");
@@ -408,10 +166,6 @@ namespace music
             if (!conn->getRecordingIDs(recordingIDs, minID, 20000))
             {
                 conn->rollbackTransaction();
-                delete categoryPositiveTimbreModel;
-                delete categoryPositiveChromaModel;
-                delete categoryNegativeTimbreModel;
-                delete categoryNegativeChromaModel;
                 return false;
             }
             
@@ -432,46 +186,17 @@ namespace music
                     continue;
                 }
                 
-                Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> recordingPositiveVector;
-                recordingPositiveVector = cat.createVectorForFeatures(recording.getRecordingFeatures(), categoryPositiveTimbreModel, categoryPositiveChromaModel);
-                
-                Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> recordingNegativeVector;
-                recordingNegativeVector = cat.createVectorForFeatures(recording.getRecordingFeatures(), categoryNegativeTimbreModel, categoryNegativeChromaModel);
-                
-                
-                
-                GaussianMixtureModel<kiss_fft_scalar>* recordingTimbreModel = 
-                    GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(
-                      recording.getRecordingFeatures()->getTimbreModel()
-                    );
-                GaussianMixtureModel<kiss_fft_scalar>* recordingChromaModel = 
-                    GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(
-                      recording.getRecordingFeatures()->getChromaModel()
-                    );
-                
-                if (!conn->updateRecordingToCategoryScore(recording.getID(), category.getID(), positiveClassifier.classifyVector(recordingPositiveVector)))
+                if (!conn->updateRecordingToCategoryScore(recording.getID(), category.getID(), cat.classifyRecording(recording)))
                 {
                     conn->rollbackTransaction();
-                    delete categoryPositiveTimbreModel;
-                    delete categoryPositiveChromaModel;
-                    delete categoryNegativeTimbreModel;
-                    delete categoryNegativeChromaModel;
-                    delete recordingTimbreModel;
-                    delete recordingChromaModel;
                     return false;
                 }
                 
-                delete recordingTimbreModel;
                 i++;
                 minID = *it;
             }
             minID++;
         } while (!recordingIDs.empty());
-        
-        delete categoryPositiveTimbreModel;
-        delete categoryPositiveChromaModel;
-        delete categoryNegativeTimbreModel;
-        delete categoryNegativeChromaModel;
         
         conn->endTransaction();
         
@@ -494,70 +219,30 @@ namespace music
         std::vector<databaseentities::id_datatype> categoryIDs;
         conn->getCategoryIDsByName(categoryIDs, "%");   //read all category IDs
         
-        GaussianMixtureModel<kiss_fft_scalar>* recordingTimbreModel =
-            GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(
-                recording.getRecordingFeatures()->getTimbreModel()
-            );
-        GaussianMixtureModel<kiss_fft_scalar>* recordingChromaModel =
-            GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(
-                recording.getRecordingFeatures()->getChromaModel()
-            );
-        
         conn->beginTransaction();
         for (std::vector<databaseentities::id_datatype>::const_iterator it = categoryIDs.begin(); it != categoryIDs.end(); ++it)
         {
             databaseentities::Category category;
             category.setID(*it);
             conn->getCategoryByID(category, true);
-            GaussianMixtureModel<kiss_fft_scalar>* categoryPositiveTimbreModel = 
-            GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(
-                  category.getCategoryDescription()->getPositiveTimbreModel()
-                );
-            GaussianMixtureModel<kiss_fft_scalar>* categoryNegativeTimbreModel = 
-                GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(
-                  category.getCategoryDescription()->getNegativeTimbreModel()
-                );
-            GaussianMixtureModel<kiss_fft_scalar>* categoryPositiveChromaModel = 
-                GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(
-                  category.getCategoryDescription()->getPositiveChromaModel()
-                );
-            GaussianMixtureModel<kiss_fft_scalar>* categoryNegativeChromaModel = 
-                GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(
-                  category.getCategoryDescription()->getNegativeChromaModel()
+            
+            cat.loadFromJSON(
+                category.getCategoryDescription()->getPositiveTimbreModel(),
+                category.getCategoryDescription()->getPositiveChromaModel(),
+                category.getCategoryDescription()->getNegativeTimbreModel(),
+                category.getCategoryDescription()->getNegativeChromaModel(),
+                category.getCategoryDescription()->getPositiveClassifierDescription(),
+                category.getCategoryDescription()->getNegativeClassifierDescription()
                 );
             
-            GaussianOneClassClassifier positiveClassifier;
-            //TODO: GaussianOneClassClassifier negativeClassifier;
-            
-            {
-                Gaussian<kiss_fft_scalar>* model = Gaussian<kiss_fft_scalar>::loadFromJSONString(
-                  category.getCategoryDescription()->getPositiveClassifierDescription()
-                );
-                positiveClassifier.setClassModel(model);
-                delete model;
-            }
-            
-            if (!conn->updateRecordingToCategoryScore(recording.getID(), category.getID(), positiveClassifier.classifyVector(cat.createVectorForFeatures(recording.getRecordingFeatures(), categoryPositiveTimbreModel, categoryPositiveChromaModel))))
+            if (!conn->updateRecordingToCategoryScore(recording.getID(), category.getID(), cat.classifyRecording(recording)))
             {
                 conn->rollbackTransaction();
-                delete categoryPositiveTimbreModel;
-                delete categoryPositiveChromaModel;
-                delete categoryNegativeTimbreModel;
-                delete categoryNegativeChromaModel;
-                delete recordingTimbreModel;
-                delete recordingChromaModel;
                 return false;
             }
-            
-            delete categoryPositiveTimbreModel;
-            delete categoryPositiveChromaModel;
-            delete categoryNegativeTimbreModel;
-            delete categoryNegativeChromaModel;
         }
         conn->endTransaction();
         
-        delete recordingTimbreModel;
-        delete recordingChromaModel;
         return true;
     }
     bool ClassificationProcessor::setRecordingCategoryExampleScore(const databaseentities::Recording& recording, const databaseentities::Category& category, double score, bool recalculateCategory_)
