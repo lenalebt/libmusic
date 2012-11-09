@@ -1,5 +1,5 @@
-#ifndef CHORDS_HPP
-#define CHORDS_HPP
+#ifndef CHROMA_HPP
+#define CHROMA_HPP
 
 #include <string>
 #include "constantq.hpp"
@@ -52,4 +52,4 @@ namespace music
         int getMode();
     };
 }
-#endif  //CHORDS_HPP
+#endif  //CHROMA_HPP

@@ -51,8 +51,8 @@ int main(int argc, char *argv[])
         return tests::testSQLiteDatabaseConnection();
     else if (testname == "estimatebpm")
         return tests::testEstimateBPM();
-    else if (testname == "estimatechords")
-        return tests::testEstimateChords();
+    else if (testname == "estimatechroma")
+        return tests::testEstimateChroma();
     else if (testname == "estimatetimbre")
         return tests::testEstimateTimbre();
     else if (testname == "calculatedynamicrange")

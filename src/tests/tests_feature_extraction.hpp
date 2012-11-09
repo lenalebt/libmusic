@@ -10,7 +10,7 @@ namespace tests
     int testEstimateBPM();
     /** @ingroup tests
      */
-    int testEstimateChords();
+    int testEstimateChroma();
     /** @ingroup tests
      */
     int applyTimbreEstimation(std::string filename);

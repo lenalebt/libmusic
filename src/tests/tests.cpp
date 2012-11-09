@@ -13,7 +13,7 @@
 #include "dynamic_range.hpp"
 
 #include "bpm.hpp"
-#include "chords.hpp"
+#include "chroma.hpp"
 #include "dct.hpp"
 #include "gmm.hpp"
 
