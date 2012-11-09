@@ -55,6 +55,8 @@ int main(int argc, char *argv[])
         return tests::testFisherLDA();
     else if (testname == "gmm")
         return tests::testGMM();
+    else if (testname == "rng")
+        return tests::testRNG();
     else if (testname == "preprocessfiles")
     {
         std::string path;

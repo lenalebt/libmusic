@@ -238,6 +238,7 @@ ADD_TEST(perbinstatistics          "musictests" "perbinstatistics")
 ADD_TEST(pertimeslicestatistics    "musictests" "pertimeslicestatistics")
 ADD_TEST(fisherlda                 "musictests" "fisherlda")
 ADD_TEST(gmm                       "musictests" "gmm")
+ADD_TEST(gmm                       "musictests" "rng")
 ADD_TEST(preprocessfiles           "musictests" "preprocessfiles" "./testdata/")
 
 ADD_EXECUTABLE(musictests

@@ -5,6 +5,7 @@ namespace tests
 {
     int testFisherLDA();
     int testGMM();
+    int testRNG();
 }
 
 #endif  //TESTS_CLASSIFIER_HPP
