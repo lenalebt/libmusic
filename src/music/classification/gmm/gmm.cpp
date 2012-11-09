@@ -10,22 +10,39 @@ namespace music
     #define SMALLEST_VARIANCE_VALUE 0.1
     
     template <typename ScalarType>
-    Gaussian<ScalarType>::Gaussian(unsigned int dimension) :
-        weight(1.0), mean(dimension), preFactor(), rng(new NormalRNG<ScalarType>())
+    Gaussian<ScalarType>::Gaussian(unsigned int dimension, NormalRNG<ScalarType>* rng) :
+        weight(1.0), mean(dimension), preFactor(), rng(rng), externalRNG(rng!=NULL)
     {
-        
+        if (!this->rng)
+            this->rng = new NormalRNG<ScalarType>();
     }
+    
     template <typename ScalarType>
-    Gaussian<ScalarType>::Gaussian(double weight, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& mean) :
-        weight(weight), mean(mean), preFactor(), rng(new NormalRNG<ScalarType>())
+    Gaussian<ScalarType>::Gaussian(double weight, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& mean, NormalRNG<ScalarType>* rng) :
+        weight(weight), mean(mean), preFactor(), rng(rng), externalRNG(rng!=NULL)
     {
+        assert(weight >= 0.0);
+        assert(weight <= 1.0);
         
+        if (!this->rng)
+            this->rng = new NormalRNG<ScalarType>();
     }
+    
     template <typename ScalarType>
     Gaussian<ScalarType>::Gaussian(const Gaussian<ScalarType>& other) :
-        weight(other.weight), mean(other.mean), preFactor(), rng(new NormalRNG<ScalarType>())
+        weight(other.weight), mean(other.mean), preFactor(), rng(NULL), externalRNG(other.externalRNG)
     {
-        
+        if (externalRNG)
+            this->rng = other.rng;
+        if (!this->rng)
+            this->rng = new NormalRNG<ScalarType>();
+    }
+    
+    template <typename ScalarType>
+    Gaussian<ScalarType>::~Gaussian()
+    {
+        if (!externalRNG)
+            delete rng;
     }
     
     template <typename ScalarType>
@@ -76,22 +93,26 @@ namespace music
         calculatePrefactor();
     }
     template <typename ScalarType>
-    GaussianDiagCov<ScalarType>::GaussianDiagCov(unsigned int dimension) :
-        Gaussian<ScalarType>(dimension)
+    GaussianDiagCov<ScalarType>::GaussianDiagCov(unsigned int dimension, NormalRNG<ScalarType>* rng) :
+        Gaussian<ScalarType>(dimension, rng)
     {
+        assert(this->rng != NULL);
         calculatePrefactor();
     }
     template <typename ScalarType>
-    GaussianDiagCov<ScalarType>::GaussianDiagCov(double weight, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& mean) :
-        Gaussian<ScalarType>(weight, mean), diagCov(mean.size())
+    GaussianDiagCov<ScalarType>::GaussianDiagCov(double weight, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& mean, NormalRNG<ScalarType>* rng) :
+        Gaussian<ScalarType>(weight, mean, rng), diagCov(mean.size())
     {
+        assert(this->rng != NULL);
         calculatePrefactor();
     }
     template <typename ScalarType>
     GaussianDiagCov<ScalarType>::GaussianDiagCov(const GaussianDiagCov<ScalarType>& other) :
         Gaussian<ScalarType>(other), diagCov(other.diagCov)
     {
+        assert(this->rng != NULL);
         calculatePrefactor();
+        ldlt.compute(diagCov.asDiagonal());
     }
     
     template <typename ScalarType>
@@ -140,22 +161,26 @@ namespace music
         return llt.matrixL() * y + mean;
     }
     template <typename ScalarType>
-    GaussianFullCov<ScalarType>::GaussianFullCov(unsigned int dimension) :
-        Gaussian<ScalarType>(dimension), fullCov(dimension, dimension), ldlt()
+    GaussianFullCov<ScalarType>::GaussianFullCov(unsigned int dimension, NormalRNG<ScalarType>* rng) :
+        Gaussian<ScalarType>(dimension, rng), fullCov(dimension, dimension), ldlt()
     {
+        assert(this->rng != NULL);
         calculatePrefactor();
     }
     template <typename ScalarType>
-    GaussianFullCov<ScalarType>::GaussianFullCov(double weight, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& mean) :
-        Gaussian<ScalarType>(weight, mean), fullCov(mean.size(), mean.size())
+    GaussianFullCov<ScalarType>::GaussianFullCov(double weight, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& mean, NormalRNG<ScalarType>* rng) :
+        Gaussian<ScalarType>(weight, mean, rng), fullCov(mean.size(), mean.size())
     {
+        assert(this->rng != NULL);
         calculatePrefactor();
     }
     template <typename ScalarType>
     GaussianFullCov<ScalarType>::GaussianFullCov(const GaussianFullCov<ScalarType>& other) :
         Gaussian<ScalarType>(other), fullCov(other.fullCov)
     {
+        assert(this->rng != NULL);
         calculatePrefactor();
+        ldlt.compute(fullCov);
     }
     
     /**
@@ -364,7 +389,7 @@ namespace music
         for (unsigned int g=0; g<gaussianCount; g++)
         {
             sumOfWeights += weights[g];
-            Gaussian<ScalarType>* gaussian = new GaussianFullCov<ScalarType>(dimension);
+            Gaussian<ScalarType>* gaussian = new GaussianFullCov<ScalarType>(dimension, &normalRNG);
             gaussian->setMean(means[g]);
             gaussian->setCovarianceMatrix(fullCovs[g]);    //TODO: Improve this interface.
             gaussian->setWeight(weights[g]);
@@ -558,7 +583,7 @@ namespace music
         for (unsigned int g=0; g<gaussianCount; g++)
         {
             sumOfWeights += weights[g];
-            Gaussian<ScalarType>* gaussian = new GaussianDiagCov<ScalarType>(dimension);
+            Gaussian<ScalarType>* gaussian = new GaussianDiagCov<ScalarType>(dimension, &normalRNG);
             gaussian->setMean(means[g]);
             gaussian->setCovarianceMatrix(diagCovs[g].asDiagonal());    //TODO: Improve this interface.
             gaussian->setWeight(weights[g]);
@@ -677,10 +702,47 @@ namespace music
     GaussianMixtureModel<ScalarType>::GaussianMixtureModel(const GaussianMixtureModel<ScalarType>& other) :
         gaussians(), uniRNG(0.0, 1.0), normalizationFactor(other.normalizationFactor)
     {
-        for (unsigned int i=0; i<gaussians.size(); i++)
+        for (unsigned int i=0; i<other.gaussians.size(); i++)
         {
             gaussians.push_back(other.gaussians[i]->clone());
         }
+        assert(gaussians.size() == other.gaussians.size());
+    }
+    
+    template <typename ScalarType>
+    GaussianMixtureModel<ScalarType>::~GaussianMixtureModel()
+    {
+        for (unsigned int i=0; i<gaussians.size(); i++)
+        {
+            delete gaussians[i];
+        }
+        gaussians.clear();
+    }
+    
+    template <typename ScalarType>
+    GaussianMixtureModelFullCov<ScalarType>::GaussianMixtureModelFullCov(const GaussianMixtureModelFullCov<ScalarType>& other) :
+        GaussianMixtureModel<ScalarType>(other)
+    {
+        assert(gaussians.size() == other.gaussians.size());
+    }
+    template <typename ScalarType>
+    GaussianMixtureModelDiagCov<ScalarType>::GaussianMixtureModelDiagCov(const GaussianMixtureModelDiagCov<ScalarType>& other) :
+        GaussianMixtureModel<ScalarType>(other)
+    {
+        assert(gaussians.size() == other.gaussians.size());
+    }
+    
+    template <typename ScalarType>
+    GaussianMixtureModelFullCov<ScalarType>::GaussianMixtureModelFullCov() :
+        GaussianMixtureModel<ScalarType>()
+    {
+        
+    }
+    template <typename ScalarType>
+    GaussianMixtureModelDiagCov<ScalarType>::GaussianMixtureModelDiagCov() :
+        GaussianMixtureModel<ScalarType>()
+    {
+        
     }
     
     template <typename ScalarType>

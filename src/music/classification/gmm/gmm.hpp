@@ -42,6 +42,8 @@ namespace music
      * its diagonal form.
      * 
      * @ingroup classification
+     * @see GaussianDiagCov
+     * @see GaussianFullCov
      * 
      * @author Lena Brueder
      * @date 2012-08-27
@@ -57,6 +59,7 @@ namespace music
         double preFactor;
         double preFactorWithoutWeights;
         NormalRNG<ScalarType>* rng;
+        bool externalRNG;
         
         /**
          * @brief Calculates the prefactor of the gaussian, which is used in
@@ -67,9 +70,29 @@ namespace music
          */
         virtual void calculatePrefactor()=0;
     public:
-        Gaussian(unsigned int dimension);
-        Gaussian(double weight, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& mean);
+        /**
+         * @brief Creates a new gaussian with dimension <code>dimension</code>.
+         * 
+         * @param dimension The dimension of the gaussian.
+         * @param rng The random number generator that will be used for random
+         *      numbers. If you give one to the constructor, you will be responsible
+         *      for deleting it. It you don't supply one, the object will create an
+         *      own one. Can be used to share one RNG per thread.
+         */
+        Gaussian(unsigned int dimension, NormalRNG<ScalarType>* rng = NULL);
+        /**
+         * @brief Creates a new gaussian with weight <code>weight</code>
+         *      and mean <code>mean</code>.
+         * 
+         * @param weight The weight of the gaussian. Should be from [0,1].
+         * @param rng The random number generator that will be used for random
+         *      numbers. If you give one to the constructor, you will be responsible
+         *      for deleting it. It you don't supply one, the object will create an
+         *      own one. Can be used to share one RNG per thread.
+         */
+        Gaussian(double weight, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& mean, NormalRNG<ScalarType>* rng = NULL);
         Gaussian(const Gaussian<ScalarType>& other);
+        virtual ~Gaussian();
         /**
          * @brief Calculate the value of the gaussian distribution at the given position.
          * @return The value of the pdf at the given position.
@@ -174,8 +197,27 @@ namespace music
         
         void calculatePrefactor();
     public:
-        GaussianFullCov(unsigned int dimension);
-        GaussianFullCov(double weight, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& mean);
+        /**
+         * @brief Creates a new gaussian with dimension <code>dimension</code>.
+         * 
+         * @param dimension The dimension of the gaussian.
+         * @param rng The random number generator that will be used for random
+         *      numbers. If you give one to the constructor, you will be responsible
+         *      for deleting it. It you don't supply one, the object will create an
+         *      own one. Can be used to share one RNG per thread.
+         */
+        GaussianFullCov(unsigned int dimension, NormalRNG<ScalarType>* rng = NULL);
+        /**
+         * @brief Creates a new gaussian with weight <code>weight</code>
+         *      and mean <code>mean</code>.
+         * 
+         * @param weight The weight of the gaussian. Should be from [0,1].
+         * @param rng The random number generator that will be used for random
+         *      numbers. If you give one to the constructor, you will be responsible
+         *      for deleting it. It you don't supply one, the object will create an
+         *      own one. Can be used to share one RNG per thread.
+         */
+        GaussianFullCov(double weight, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& mean, NormalRNG<ScalarType>* rng = NULL);
         GaussianFullCov(const GaussianFullCov<ScalarType>& other);
         double calculateValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector);
         double calculateValueWithoutWeights(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector);
@@ -213,8 +255,27 @@ namespace music
         
         void calculatePrefactor();
     public:
-        GaussianDiagCov(unsigned int dimension);
-        GaussianDiagCov(double weight, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& mean);
+        /**
+         * @brief Creates a new gaussian with dimension <code>dimension</code>.
+         * 
+         * @param dimension The dimension of the gaussian.
+         * @param rng The random number generator that will be used for random
+         *      numbers. If you give one to the constructor, you will be responsible
+         *      for deleting it. It you don't supply one, the object will create an
+         *      own one. Can be used to share one RNG per thread.
+         */
+        GaussianDiagCov(unsigned int dimension, NormalRNG<ScalarType>* rng = NULL);
+        /**
+         * @brief Creates a new gaussian with weight <code>weight</code>
+         *      and mean <code>mean</code>.
+         * 
+         * @param weight The weight of the gaussian. Should be from [0,1].
+         * @param rng The random number generator that will be used for random
+         *      numbers. If you give one to the constructor, you will be responsible
+         *      for deleting it. It you don't supply one, the object will create an
+         *      own one. Can be used to share one RNG per thread.
+         */
+        GaussianDiagCov(double weight, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& mean, NormalRNG<ScalarType>* rng = NULL);
         GaussianDiagCov(const GaussianDiagCov<ScalarType>& other);
         double calculateValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector);
         double calculateValueWithoutWeights(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector);
@@ -254,6 +315,7 @@ namespace music
     protected:
         std::vector<Gaussian<ScalarType>*> gaussians;
         UniformRNG<ScalarType> uniRNG;
+        NormalRNG<ScalarType> normalRNG;
         ScalarType normalizationFactor;
         
         /**
@@ -289,6 +351,8 @@ namespace music
          * @brief Creates a copy of the Gaussian Mixture Model.
          */
         GaussianMixtureModel(const GaussianMixtureModel<ScalarType>& other);
+        
+        virtual ~GaussianMixtureModel();
         
         /**
          * @brief Train this GMM to model the data given.
@@ -450,11 +514,14 @@ namespace music
         protected:
             using GaussianMixtureModel<ScalarType>::gaussians;
             using GaussianMixtureModel<ScalarType>::uniRNG;
+            using GaussianMixtureModel<ScalarType>::normalRNG;
             using GaussianMixtureModel<ScalarType>::normalizationFactor;
             
             std::vector<Gaussian<ScalarType>* > emAlg(const std::vector<Gaussian<ScalarType>*>& init, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, unsigned int gaussianCount = 10, unsigned int maxIterations=50);
         public:
             GaussianMixtureModel<ScalarType>* clone();
+            GaussianMixtureModelFullCov(const GaussianMixtureModelFullCov<ScalarType>& other);
+            GaussianMixtureModelFullCov();
     };
     
     /**
@@ -477,11 +544,14 @@ namespace music
         protected:
             using GaussianMixtureModel<ScalarType>::gaussians;
             using GaussianMixtureModel<ScalarType>::uniRNG;
+            using GaussianMixtureModel<ScalarType>::normalRNG;
             using GaussianMixtureModel<ScalarType>::normalizationFactor;
             
             std::vector<Gaussian<ScalarType>* > emAlg(const std::vector<Gaussian<ScalarType>*>& init, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, unsigned int gaussianCount = 10, unsigned int maxIterations=50);
         public:
             GaussianMixtureModel<ScalarType>* clone();
+            GaussianMixtureModelDiagCov(const GaussianMixtureModelDiagCov<ScalarType>& other);
+            GaussianMixtureModelDiagCov();
     };
     
     template <typename ScalarType> std::ostream& operator<<(std::ostream& os, const GaussianMixtureModel<ScalarType>& model);
