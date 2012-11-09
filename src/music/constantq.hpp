@@ -23,13 +23,45 @@ namespace music
         static inline double window(int width, int position) {return 0.0;}
         static inline double log2(double x) {return std::log(x) / std::log(2.0); /*compiler should optimize this at compile time*/}
     public:
+        /**
+         * @brief Returns the number of octaves that will be processed by this constant Q transform.
+         * @return the number of octaves
+         */
         int getOctaveCount() {return octaveCount;}
+        /**
+         * @brief Returns the frequency of the lowest tone that will be processed by this transform.
+         * @return the frequency of the lowest tone
+         */
         int getFMin() {return fMin;}
+        /**
+         * @brief Returns the frequency of the highest tone that will be processed by this transform.
+         * @return the frequency of the highest tone
+         */
         int getFMax() {return fMax;}
+        /**
+         * @brief Returns the sampling frequency that can be processed by this transform.
+         * @return the possible sampling frequency of the audio that will be processed.
+         */
         int getFs() {return fs;}
+        /**
+         * @brief Returns the count of the frequency bins that will be created by this transform.
+         * @return the count of the frequency bins per ocatve
+         */
         int getBinsPerOctave() {return binsPerOctave;}
+        /**
+         * @brief Returns the lowpass filter that is being used while transforming the input data.
+         * @return the frequency of the lowest tone
+         */
         const musicaccess::IIRFilter* getLowpassFilter() {return lowpassFilter;}
+        /**
+         * @brief Returns the Q value used in this transform.
+         * @return the Q value
+         */
         double getQ() {return q;}
+        /**
+         * @brief Returns the threshold at which values in the spectral kernel will be seen as zero in this transform.
+         * @return the threshold of values being treated as zero
+         */
         double getThreshold() {return threshold;}
         
         /**
@@ -45,8 +77,8 @@ Spain, 2010.
          * any input data, so the transform only needs to be calculated once, and can then be
          * applied many times.
          * 
-         * @param binsPerOctave the number of frequency bins per octave
-         * @param fMin the minimal frequency in Hz that is of interest
+         * @param binsPerOctave the number of frequency bins per octave. Typically, 12 will be used with western music.
+         * @param fMin the minimal frequency in Hz that is of interest. This value will internally be recalculated such that we always take a look at whole octaves.
          * @param fMax the maximal frequency in Hz that is of interest
          * @param fs the sampling frequency of the audio data that will be processed in Hz (typically 22050 Hz)
          * @param lowpassFilter a lowpassfilter that will be applied during the process. Make sure that this filter has a cutoff frequency of fs/2.

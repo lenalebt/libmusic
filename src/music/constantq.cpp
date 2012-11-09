@@ -30,7 +30,8 @@ namespace music
         
         double fRatio = fMax/fMin;
         cqt->octaveCount = std::ceil(log2(fRatio));
-        cqt->fMin = fMin;
+        //recalculate the minimum frequency from the number of octaves involved such that we always calculate full octaves
+        cqt->fMin = fMax / std::pow(2.0, cqt->octaveCount) * std::pow(2.0, 1.0/binsPerOctave);
         cqt->fMax = fMax;
         cqt->fs = fs;
         cqt->binsPerOctave = binsPerOctave;
