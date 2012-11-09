@@ -2,6 +2,17 @@
 #define MUSIC_HPP
 
 #include "music/constantq.hpp"
+#include "music/fft.hpp"
+#include "music/database/databaseconnection.hpp"
+#include "music/database/databaseentities.hpp"
+#include "music/database/sqlitedatabaseconnection.hpp"
+#include "music/uihelper/progress_callback.hpp"
+#include "music/feature_extraction/feature_extraction_helper.hpp"
+#include "music/feature_extraction/bpm.hpp"
+#include "music/feature_extraction/chords.hpp"
+#include "music/feature_extraction/dynamic_range.hpp"
+#include "music/feature_extraction/timbre.hpp"
+#include "music/feature_extraction/preprocessor.hpp"
 
 
 /**
