@@ -10,14 +10,14 @@
 
 #include "debug.hpp"
 
+#define DOUBLE_EQUALITY_BARRIER 10e-7
+#define FLOAT_EQUALITY_BARRIER  10e-5
+#define TEST_PASSED_MSG_WIDTH 100
+
 #define CHECK_EQ(a,b)           if (!check_equality(LINESTR(a,b), a, b)) return EXIT_FAILURE;
 #define CHECK_OP(a,op,b)        std::cerr << std::left << std::setw(TEST_PASSED_MSG_WIDTH) << LINESTR_OP(a,op,b) << " - " << std::flush; if (!(a op b)) {std::cerr << colors::ConsoleColors::red() << colors::ConsoleColors::bold() << "failed!" << colors::ConsoleColors::defaultText() << std::endl << "\t" << a << " " << std::string(QUOTEME(op)) << " " << b << " ?"<< std::endl; return EXIT_FAILURE;} else {std::cerr << colors::ConsoleColors::green() << "passed!" << colors::ConsoleColors::defaultText() << std::endl;}
 #define CHECK_EQ_TYPE(a,b,type) if (!check_equality<type, type >(LINESTR(a,b), a, b)) return EXIT_FAILURE;
 #define CHECK(a)                if (!check_equality(LINESTR(a,true), a, true)) return EXIT_FAILURE;
-
-#define DOUBLE_EQUALITY_BARRIER 10e-7
-#define FLOAT_EQUALITY_BARRIER  10e-5
-#define TEST_PASSED_MSG_WIDTH 80
 
 /**
  * @ingroup tests

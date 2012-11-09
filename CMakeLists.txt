@@ -144,6 +144,7 @@ INCLUDE_DIRECTORIES(
     src/tools
     src/music
     src/music/feature_extraction
+    src/music/database
     src/tests
     src/kissfft
     src/kissfft/tools
@@ -197,6 +198,7 @@ ADD_TEST(libmusicaccess            "musictests" "libmusicaccess")
 ADD_TEST(eigen                     "musictests" "eigen")
 ADD_TEST(constantq                 "musictests" "constantq")
 ADD_TEST(fft                       "musictests" "fft")
+ADD_TEST(sqlitedatabaseconnection  "musictests" "sqlitedatabaseconnection")
 ADD_TEST(estimatebpm               "musictests" "estimatebpm")
 ADD_TEST(estimatechords            "musictests" "estimatechords")
 ADD_TEST(estimatetimbre            "musictests" "estimatetimbre")

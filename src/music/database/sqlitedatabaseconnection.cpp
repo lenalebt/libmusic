@@ -26,6 +26,9 @@ namespace music
         int rc;
         bool retVal;
         
+        if (_dbOpen)
+            close();
+        
         //open database. do not create the file if it has not been created before.
         rc = sqlite3_open_v2(dbConnectionString.c_str(),
                 &_db,
@@ -34,7 +37,7 @@ namespace music
                 NULL);
         if (rc != SQLITE_OK)
         {
-            if (rc == SQLITE_ERROR)
+            if (rc == SQLITE_CANTOPEN)
             {   //most probably, the file did not exist. create it!
                 rc = sqlite3_open_v2(dbConnectionString.c_str(),
                         &_db,
@@ -42,12 +45,17 @@ namespace music
                         SQLITE_OPEN_CREATE |
                         SQLITE_OPEN_FULLMUTEX,
                         NULL);
+                
                 if (rc != SQLITE_OK)
                 {
                     //okay, fail now. creating did not help, it must have been something else.
                     DEBUG_OUT("opening database failed. connectionString: \"" << dbConnectionString << "\".", 10);
                     close();
                     return false;
+                }
+                else
+                {
+                    _dbOpen = true;
                 }
                 
                 //created file, now create tables.
@@ -65,11 +73,14 @@ namespace music
                 return false;
             }
         }
+        else
+        {
+            _dbOpen = true;
+        }
         
         //now, database file is open.
         //IF NEEDED: may add extra open statements here (PRAGMA commands)
         
-        _dbOpen = true;
         return true;
     }
     
