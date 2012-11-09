@@ -356,6 +356,13 @@ namespace tests
         CHECK(conn->getRecordingByID(rec));
         CHECK_EQ(rec.getID(), -1);
         
+        std::vector<music::databaseentities::id_datatype> recordingIDs;
+        CHECK(conn->getRecordingIDs(recordingIDs, 0, 1000));
+        CHECK_EQ(recordingIDs.size(), 1000u);
+        //get the last ID + 1
+        CHECK(conn->getRecordingIDs(recordingIDs, *(recordingIDs.end()-1)+1, 1000));
+        CHECK_EQ(recordingIDs.size(), 21u);
+        
         CHECK(conn->close());
         return EXIT_SUCCESS;
     }
