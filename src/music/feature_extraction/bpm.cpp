@@ -11,6 +11,15 @@ namespace music
     void BPMEstimator::estimateBPM(ConstantQTransformResult* transformResult)
     {
         DEBUG_OUT("estimating tempo of song...", 10);
+        double* maxVals = new double[transformResult->getBinsPerOctave() * transformResult->getOctaveCount()];
+        for (int octave=0; octave<transformResult->getOctaveCount(); octave++)
+        {
+            for (int bin=0; bin<transformResult->getBinsPerOctave(); bin++)
+            {
+                maxVals[octave*transformResult->getBinsPerOctave() + bin] = transformResult->getBinMean(octave, bin);
+            }
+        }
+        
         DEBUG_OUT("sum all bins per time slice...", 15);
         //taking 5ms slices, summing values
         double timeSliceLength = 1.0/200.0;
@@ -26,7 +35,7 @@ namespace music
                 //sum only higher octaves?
                 for (int bin=0; bin<transformResult->getBinsPerOctave(); bin++)
                 {
-                    sum += std::abs(transformResult->getNoteValueNoInterpolation(i*0.005, octave, bin));
+                    sum += std::abs(transformResult->getNoteValueNoInterpolation(i*timeSliceLength, octave, bin));// * maxVals[octave*transformResult->getBinsPerOctave() + bin];
                 }
             }
             sumVec[i] = sum;
@@ -47,7 +56,8 @@ namespace music
             for (int i=0; i<sumVec.rows(); i++)
             {
                 int shiftPos = i + shift;
-                corr += sumVec[i] * ((shiftPos < sumVec.rows()) ? sumVec[shiftPos] : 0.0);
+                //corr += sumVec[i] * ((shiftPos < sumVec.rows()) ? sumVec[shiftPos] : 0.0);
+                corr += pow(sumVec[i] - ((shiftPos < sumVec.rows()) ? sumVec[shiftPos] : 0.0), 2.0);
             }
             autoCorr[shift] = corr;
             //std::cerr << corr << std::endl; 
@@ -72,8 +82,6 @@ namespace music
             }
         }
         
-        DEBUG_OUT("size of maxCorrPos: " << maxCorrPos.size(), 25);
-        
         DEBUG_OUT("calculating beat lengths...", 15);
         std::vector<int> diffPosVector;
         {
@@ -81,6 +89,7 @@ namespace music
             for (std::vector<int>::iterator it = maxCorrPos.begin()+1; it != maxCorrPos.end(); it++)
             {
                 diffPosVector.push_back(*it - oldVal);
+                //std::cerr << 30.0/(double(*it-oldVal)*timeSliceLength) << std::endl;
                 oldVal = *it;
             }
             //sorting vector to get the median
@@ -90,7 +99,13 @@ namespace music
         this->bpmMean = 30.0/(double(maxCorrPos[maxCorrPos.size()-1])/maxCorrPos.size()*timeSliceLength);
         this->bpmMedian = 30.0/(double(diffPosVector[diffPosVector.size()/2])*timeSliceLength);
         
-        
+        this->bpmVariance = 0.0;
+        for (std::vector<int>::iterator it = diffPosVector.begin(); it != diffPosVector.end(); it++)
+        {
+            double val = 30.0/(double(*it)*timeSliceLength) - bpmMean;
+            this->bpmVariance += val*val;
+        }
+        this->bpmVariance /= diffPosVector.size();
         
         
         /*
