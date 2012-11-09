@@ -59,8 +59,11 @@ FIND_PACKAGE(SQLITE3 REQUIRED)
 #place source files here
 SET(
     music_SOURCES
-    src/music/constantq.cpp
-    src/music/fft.cpp
+    
+    #transformations
+    src/music/transformations/constantq.cpp
+    src/music/transformations/fft.cpp
+    src/music/transformations/dct.cpp
     
     #feature extraction
     src/music/feature_extraction/bpm.cpp
@@ -102,8 +105,11 @@ SET(
 SET(
     music_HEADERS
     src/music.hpp
-    src/music/constantq.hpp
-    src/music/fft.hpp
+    
+    #transformations
+    src/music/transformations/constantq.hpp
+    src/music/transformations/fft.hpp
+    src/music/transformations/dct.hpp
     
     #feature extraction
     src/music/feature_extraction/bpm.hpp
@@ -173,6 +179,7 @@ INCLUDE_DIRECTORIES(
     src/tools
     src/tools/jsoncpp
     src/music
+    src/music/transformations
     src/music/feature_extraction
     src/music/database
     src/music/uihelper

@@ -14,6 +14,7 @@
 
 #include "bpm.hpp"
 #include "chords.hpp"
+#include "dct.hpp"
 
 #include <list>
 #include <limits>
