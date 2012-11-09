@@ -6,6 +6,18 @@
 
 namespace music
 {
+    Gaussian::Gaussian() :
+        weight(1.0), mean(), preFactor()
+    {
+        
+    }
+    Gaussian::Gaussian(double weight, Eigen::VectorXd mean) :
+        weight(weight), mean(mean), preFactor()
+    {
+        
+    }
+    
+    
     double GaussianDiagCov::calculateValue(const Eigen::VectorXd& dataVector)
     {
         //TODO
@@ -20,6 +32,10 @@ namespace music
     }
     
     
+    void GaussianFullCov::calculatePrefactor()
+    {
+        preFactor = weight * 1.0/(pow(2*M_PI, fullCov.rows()/2.0) * sqrt(fullCov.determinant()));
+    }
     void GaussianFullCov::setCovarianceMatrix(const Eigen::MatrixXd& fullCov)
     {
         assert(fullCov.rows() == mean.size());
@@ -27,7 +43,7 @@ namespace music
         this->fullCov = fullCov;
         ldlt.compute(fullCov);
         
-        preFactor = 1.0/(pow(2*M_PI, fullCov.rows()/2.0) * sqrt(fullCov.determinant()));
+        calculatePrefactor();
     }
     double GaussianFullCov::calculateValue(const Eigen::VectorXd& dataVector)
     {
