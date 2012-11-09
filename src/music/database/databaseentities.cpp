@@ -14,6 +14,18 @@ namespace music
         
     }
     
+    Song::Song(std::string filename) :
+        id(-1),
+        filename(filename),
+        artist(""),
+        title(""),
+        genre(""),
+        tracknr(-1),
+        features(NULL)
+    {
+        
+    }
+    
     SongFeatures::SongFeatures() :
         id(-1)
     {

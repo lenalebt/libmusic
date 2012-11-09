@@ -62,6 +62,7 @@ namespace music
         
     public:
         Song();
+        Song(std::string filename);
         
         void setID(long id)                             {this->id = id;}
         long getID() const                              {return id;}
