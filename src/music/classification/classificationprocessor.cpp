@@ -14,6 +14,9 @@ namespace music
     {
         ClassificationCategory cat;
         
+        if (callback)
+            callback->progress(0.0, "init");
+        
         //load recordings with features (examples) from database.
         std::vector<std::pair<databaseentities::id_datatype, double> > recordingIDsAndScores;
         conn->getCategoryExampleRecordingIDs(recordingIDsAndScores, category.getID());
@@ -45,13 +48,23 @@ namespace music
             }
         }
         
+        if (callback)
+            callback->progress(0.05, "loaded timbre models, combining them...");
+        
         //combine timbre models
-        if (cat.calculateTimbreModel(timbreModels))
+        if (timbreModels.size() != 0)
         {
-            category.getCategoryDescription()->setTimbreModel(cat.getTimbreModel()->toJSONString());
+            if (cat.calculateTimbreModel(timbreModels, 60, 20000))
+            {
+                category.getCategoryDescription()->setTimbreModel(cat.getTimbreModel()->toJSONString());
+            }
+            else
+                return false;
         }
         else
-            return false;
+        {
+            category.getCategoryDescription()->setTimbreModel("");
+        }
         
         //up to here: combined the timbres of category example positives to a new model for the category.
         //negatives are not used here!
@@ -71,6 +84,11 @@ namespace music
         {
             delete *it;
         }
+        
+        if (callback)
+            callback->progress(0.98, "saving results to database");
+        
+        conn->updateCategory(category);
         
         if (callback)
             callback->progress(1.0, "finished");
