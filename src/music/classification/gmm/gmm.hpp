@@ -37,18 +37,19 @@ namespace music
     protected:
         T a;
         T b;
+        T diff;
     public:
         UniformRNG() :
-            a(0.0), b(1.0) {}
+            a(0.0), b(1.0)  {diff = b-a;}
         UniformRNG(T a, T b) :
-            a(a), b(b) {}
+            a(a), b(b)      {diff = b-a;}
         T rand()
         {
-            return a + b*(double(rand()) / RAND_MAX);
+            return a + (diff)*(double(std::rand()) / RAND_MAX);
         }
         
-        T getA()   {return a;}
-        T getB()   {return b;}
+        T getA() const   {return a;}
+        T getB() const   {return b;}
     };
     /**
      * @brief A random number generator which produces normally distributed numbers.
@@ -62,7 +63,7 @@ namespace music
     class NormalRNG : public RNG<T>
     {
     private:
-        
+        double storedval;
     protected:
         UniformRNG<T>* rng;
         T mean;
@@ -75,20 +76,42 @@ namespace music
          *      build the normal distribution. This object takes ownership of the rng!
          */
         NormalRNG(UniformRNG<T>* rng, T mean, T variance) :
-            rng(rng), mean(mean), variance(variance)
+            storedval(0.0), rng(rng), mean(mean), variance(variance)
         {
-            if (rng == NULL)
-                rng = new UniformRNG<T>();
+            if ((rng == NULL) || (rng->getA() != -1) || (rng->getB() != 1))
+                rng = new UniformRNG<T>(-1, 1);
         }
         NormalRNG(T mean, T variance) :
-            rng(new UniformRNG<T>()), mean(mean), variance(variance) {}
+            storedval(0.0), rng(new UniformRNG<T>(-1, 1)), mean(mean), variance(variance) {}
         NormalRNG() :
-            rng(new UniformRNG<T>()), mean(0.0), variance(1.0) {}
+            storedval(0.0), rng(new UniformRNG<T>(-1, 1)), mean(0.0), variance(1.0) {}
         ~NormalRNG()    {delete rng;}
-        T rand();
+        T rand()
+        {
+            //Box-Muller transform, as presented in "Numerical Recipes, Third edition", p.365...
+            T v1, v2, rsq, fac;
+            if (storedval == 0.0)
+            {
+                do
+                {
+                    v1 = rng->rand();
+                    v2 = rng->rand();
+                    rsq = v1*v1 + v2*v2;
+                } while ((rsq >= 1.0) || (rsq == 0.0));
+                fac = sqrt(-2.0*log(rsq)/rsq);
+                storedval = v1 * fac;
+                return mean + variance * v2 * fac;
+            }
+            else
+            {
+                fac = storedval;
+                storedval = 0.0;
+                return mean + variance * fac;
+            }
+        }
         
-        T getMean()        {return mean;}
-        T getVariance()    {return variance;}
+        T getMean() const       {return mean;}
+        T getVariance() const   {return variance;}
     };
     
     /**
@@ -131,6 +154,7 @@ namespace music
         double weight;
         Eigen::VectorXd mean;
         double preFactor;
+        NormalRNG<double> rng;
         
         /**
          * @brief Calculates the prefactor of the gaussian, which is used in
