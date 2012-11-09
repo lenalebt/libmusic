@@ -5,6 +5,7 @@
 #include "dynamic_range.hpp"
 #include "bpm.hpp"
 #include "chords.hpp"
+#include "timbre.hpp"
 
 #include "debug.hpp"
 
@@ -104,6 +105,10 @@ namespace music
             //other tempo features should also be important!
             
             //TODO: calculate features.
+            music::TimbreModel timbreModel(transformResult);
+            //build model from 5 gaussians, 20ms slices
+            timbreModel.calculateModel(5, 0.02);
+            features->setTimbreModel(timbreModel.getModel().toJSONString());
             
             
             //this adds the recording, as well as its features.

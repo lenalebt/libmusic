@@ -80,6 +80,7 @@ namespace music
             double length;
             double tempo;
             double dynamicRange;
+            std::string timbreModel;
         protected:
             
         public:
@@ -98,6 +99,9 @@ namespace music
             
             void setDynamicRange(double dynamicRange) {this->dynamicRange = dynamicRange;}
             double getDynamicRange() const            {return dynamicRange;}
+            
+            void setTimbreModel(const std::string& model) {this->timbreModel = model;}
+            std::string getTimbreModel() const        {return timbreModel;}
         };
         
         /**

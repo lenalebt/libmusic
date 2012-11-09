@@ -39,7 +39,8 @@ namespace music
             id(-1),
             length(0.0),
             tempo(0.0),
-            dynamicRange(0.0)
+            dynamicRange(0.0),
+            timbreModel("")
         {
             
         }
