@@ -5,6 +5,7 @@
 #include "lda_fisher.hpp"
 #include "progress_callback.hpp"
 #include "gmm.hpp"
+#include "kmeans.hpp"
 #include "randomnumbers.hpp"
 
 #include <fstream>
@@ -246,6 +247,14 @@ namespace tests
         DEBUG_VAR_OUT(gmm4.compareTo(gmm), 0);
         
         return EXIT_SUCCESS;
+    }
+    int testKMeans()
+    {
+        ERROR_OUT("Test not ready yet!", 0);
+        
+        music::KMeans kmeans;
+        
+        return EXIT_FAILURE;
     }
     int testRNG()
     {

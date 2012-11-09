@@ -121,13 +121,13 @@ namespace music
         calculatePrefactor();
     }
     
-    void GaussianMixtureModel::trainGMM(std::vector<Eigen::VectorXd> data, int gaussianCount)
+    void GaussianMixtureModel::trainGMM(const std::vector<Eigen::VectorXd>& data, int gaussianCount)
     {
         //TODO: precompute good starting vectors.
         gaussians = this->emAlg(std::vector<Gaussian*>(), data, gaussianCount);
     }
     
-    std::vector<Gaussian*> GaussianMixtureModel::emAlg(std::vector<Gaussian*> init, std::vector<Eigen::VectorXd> data, int gaussianCount, unsigned int maxIterations)
+    std::vector<Gaussian*> GaussianMixtureModel::emAlg(const std::vector<Gaussian*>& init, const std::vector<Eigen::VectorXd>& data, int gaussianCount, unsigned int maxIterations)
     {
         //if init is empty, choose some data points as initialization.
         //k-means or something else should be done by somebody else beforehand.
