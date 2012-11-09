@@ -137,6 +137,15 @@ namespace music
          * @return A random vector following this distribution.
          */
         virtual Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> rand() const=0;
+        
+        /**
+         * @brief Returns a copy of the object.
+         * 
+         * Needed to copy the object if you only have a pointer to the base class, but want a copy of the derived one.
+         * 
+         * @return A pointer to a copy of the object.
+         */
+        virtual Gaussian<ScalarType>* clone()=0;
     };
     
     /**
@@ -175,6 +184,7 @@ namespace music
         Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> getCovarianceMatrix()   {return fullCov;}
         
         Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> rand() const;
+        Gaussian<ScalarType>* clone();
     };
     
     /**
@@ -213,6 +223,7 @@ namespace music
         void setCovarianceMatrix(const Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>& matrix);
         
         Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> rand() const;
+        Gaussian<ScalarType>* clone();
     };
     
     /**
@@ -273,6 +284,12 @@ namespace music
          * @brief Creates a new empty Gaussian Mixture Model.
          */
         GaussianMixtureModel();
+        
+        /**
+         * @brief Creates a copy of the Gaussian Mixture Model.
+         */
+        GaussianMixtureModel(const GaussianMixtureModel<ScalarType>& other);
+        
         /**
          * @brief Train this GMM to model the data given.
          * 
@@ -396,6 +413,15 @@ namespace music
          */
         GaussianMixtureModel<ScalarType>* operator+(const GaussianMixtureModel<ScalarType>& other);
         
+        /**
+         * @brief Returns a copy of the object.
+         * 
+         * Needed to copy the object if you only have a pointer to the base class, but want a copy of the derived one.
+         * 
+         * @return A pointer to a copy of the object.
+         */
+        virtual GaussianMixtureModel<ScalarType>* clone()=0;
+        
         template <typename S>
         friend std::ostream& operator<<(std::ostream& os, const GaussianMixtureModel<S>& model);
         template <typename S>
@@ -427,7 +453,8 @@ namespace music
             using GaussianMixtureModel<ScalarType>::normalizationFactor;
             
             std::vector<Gaussian<ScalarType>* > emAlg(const std::vector<Gaussian<ScalarType>*>& init, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, unsigned int gaussianCount = 10, unsigned int maxIterations=50);
-            
+        public:
+            GaussianMixtureModel<ScalarType>* clone();
     };
     
     /**
@@ -453,6 +480,8 @@ namespace music
             using GaussianMixtureModel<ScalarType>::normalizationFactor;
             
             std::vector<Gaussian<ScalarType>* > emAlg(const std::vector<Gaussian<ScalarType>*>& init, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, unsigned int gaussianCount = 10, unsigned int maxIterations=50);
+        public:
+            GaussianMixtureModel<ScalarType>* clone();
     };
     
     template <typename ScalarType> std::ostream& operator<<(std::ostream& os, const GaussianMixtureModel<ScalarType>& model);

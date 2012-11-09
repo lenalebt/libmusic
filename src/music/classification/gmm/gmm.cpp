@@ -674,6 +674,37 @@ namespace music
     }
     
     template <typename ScalarType>
+    GaussianMixtureModel<ScalarType>::GaussianMixtureModel(const GaussianMixtureModel<ScalarType>& other) :
+        gaussians(), uniRNG(0.0, 1.0), normalizationFactor(other.normalizationFactor)
+    {
+        for (unsigned int i=0; i<gaussians.size(); i++)
+        {
+            gaussians.push_back(other.gaussians[i]->clone());
+        }
+    }
+    
+    template <typename ScalarType>
+    Gaussian<ScalarType>* GaussianDiagCov<ScalarType>::clone()
+    {
+        return new GaussianDiagCov<ScalarType>(*this);
+    }
+    template <typename ScalarType>
+    Gaussian<ScalarType>* GaussianFullCov<ScalarType>::clone()
+    {
+        return new GaussianFullCov<ScalarType>(*this);
+    }
+    template <typename ScalarType>
+    GaussianMixtureModel<ScalarType>* GaussianMixtureModelDiagCov<ScalarType>::clone()
+    {
+        return new GaussianMixtureModelDiagCov<ScalarType>(*this);
+    }
+    template <typename ScalarType>
+    GaussianMixtureModel<ScalarType>* GaussianMixtureModelFullCov<ScalarType>::clone()
+    {
+        return new GaussianMixtureModelFullCov<ScalarType>(*this);
+    }
+    
+    template <typename ScalarType>
     std::string GaussianMixtureModel<ScalarType>::toJSONString(bool styledWriter) const
     {
         DEBUG_OUT("saving model as JSON", 20);
@@ -915,6 +946,9 @@ namespace music
         
         return newgmm;
     }
+    
+    
+    
     
     template class GaussianFullCov<double>;
     template class GaussianDiagCov<double>;
