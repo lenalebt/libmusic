@@ -236,6 +236,8 @@ namespace music
         static Gaussian<ScalarType>* loadFromJSONString(const std::string& jsonString);
         std::string toJSONString(bool styledWriter=false) const;
         static Gaussian<ScalarType>* loadFromJsonValue(Json::Value& jsonValue);
+        
+        virtual bool isFullCov()=0;
     };
     
     /**
@@ -295,6 +297,8 @@ namespace music
         
         Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> rand() const;
         Gaussian<ScalarType>* clone();
+        
+        bool isFullCov() {return true;}
     };
     
     /**
@@ -354,6 +358,8 @@ namespace music
         
         Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> rand() const;
         Gaussian<ScalarType>* clone();
+        
+        bool isFullCov() {return false;}
     };
     
     /**

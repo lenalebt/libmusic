@@ -4,6 +4,7 @@
 #include <assert.h>
 #include "debug.hpp"
 #include <set>
+#include <limits>
 
 namespace music
 {
@@ -461,21 +462,61 @@ namespace music
                 //double factor = 1.0/(pow(2*M_PI, dimension/2.0) * sqrt(fullCovs[g].template cast<double>().determinant()));
                 double factor = -0.5*log(fullCovs[g].template cast<double>().determinant()) - (0.5*dimension) * log(2*M_PI);
                 
-                /*if (factor != factor)
+                if (factor != factor)
                 {
-                    Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> diag = fullCovs[g].diagonal();
-                    fullCovs[g].setZero();
-                    fullCovs[g].diagonal() = diag;
-                    factor = 1.0/(pow(2*M_PI, dimension/2.0) * sqrt(fullCovs[g].template cast<double>().determinant()));
-                    DEBUG_OUT("lalala, sachen ersetzt!", 10);
-                }*/
-                
-                //for every data point do...
-                for (unsigned int i=0; i < dataSize; i++)
+                    //the matrix is singular (determinant is zero, so factor is NaN)
+                    //moore-penrose pseudo-inverse and pseudo-determinant will be used
+                    //to calculate the value
+                    //this is okay (degenerate case of multivariate gaussian)
+                    
+                    //calculate schur decomposition, which is an eigenvalue decomposition
+                    //for the case of symmteric matricies.
+                    //this is equivalent to a singular value decomposition since covariance
+                    //matricies are positive semi-definite and thus is suited to calculate both
+                    //moore-penrose pseudo-inverse and pseudo-determinant
+                    Eigen::RealSchur<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > rSchur(fullCovs[g]);
+                    Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> eigenvalues = rSchur.matrixT().diagonal();
+                    Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> invEigenvalues;
+                    
+                    double logPseudoDet = 0.0;
+                    int rank = 0;
+                    for (int i=0; i<eigenvalues.size(); i++)
+                    {
+                        if (fabs(eigenvalues[i]) > 2.0*eigenvalues.size() * std::numeric_limits<kiss_fft_scalar>::epsilon())   //sum only nonzero eigenvalues. zero are values smaller than 2.0*dimension*machineepsilon
+                        {
+                            logPseudoDet += log(eigenvalues[i]);
+                            rank++;
+                            invEigenvalues[i] = 1.0/eigenvalues[i];
+                        }
+                        else
+                        {
+                            invEigenvalues[i] = 0.0;
+                        }
+                    }
+                    
+                    factor = -0.5*log(2.0*M_PI)*rank -0.5*logPseudoDet;
+                    
+                    Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, Eigen::Dynamic> pseudoInverse =
+                        rSchur.matrixU() * invEigenvalues.asDiagonal() * rSchur.matrixU();
+                    
+                    //for every data point do...
+                    for (unsigned int i=0; i < dataSize; i++)
+                    {
+                        //calculate probability (non-normalized)
+                        //p(i,g) = factor * std::exp(-0.5 * ((data[i] - means[g]).transpose() * ldlt.solve(data[i] - means[g]))(0));
+                        p(i,g) = -0.5 * ((data[i] - means[g]).transpose() * pseudoInverse * (data[i] - means[g]))(0) + factor;
+                    }
+                    
+                }
+                else
                 {
-                    //calculate probability (non-normalized)
-                    //p(i,g) = factor * std::exp(-0.5 * ((data[i] - means[g]).transpose() * ldlt.solve(data[i] - means[g]))(0));
-                    p(i,g) = -0.5 * ((data[i] - means[g]).transpose() * ldlt.solve(data[i] - means[g]))(0) + factor;
+                    //for every data point do...
+                    for (unsigned int i=0; i < dataSize; i++)
+                    {
+                        //calculate probability (non-normalized)
+                        //p(i,g) = factor * std::exp(-0.5 * ((data[i] - means[g]).transpose() * ldlt.solve(data[i] - means[g]))(0));
+                        p(i,g) = -0.5 * ((data[i] - means[g]).transpose() * ldlt.solve(data[i] - means[g]))(0) + factor;
+                    }
                 }
             }
             
@@ -1083,16 +1124,24 @@ namespace music
     {
         DEBUG_OUT("load model from JSON...", 20);
         GaussianMixtureModel<ScalarType>* gmm = NULL;
-        //first: empty list of old gaussians.
-        //for (unsigned int g=0; g<gaussians.size(); g++)
-        //    delete gaussians[g];
-        //gaussians.clear();
         
         //read gaussians from json input.
         for (unsigned int g=0; g<jsonValue.size(); g++)
         {
             //first init variables and read dimensionality
             Gaussian<ScalarType>* gauss=Gaussian<ScalarType>::loadFromJsonValue(jsonValue[g]);
+            
+            if (gmm == NULL)
+            {
+                if (gauss->isFullCov())
+                {
+                    gmm = new GaussianMixtureModelFullCov<ScalarType>();
+                }
+                else
+                {
+                    gmm = new GaussianMixtureModelDiagCov<ScalarType>();
+                }
+            }
             
             gmm->gaussians.push_back(gauss);
         }
