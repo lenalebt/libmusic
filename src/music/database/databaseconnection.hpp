@@ -30,6 +30,8 @@ namespace music
     protected:
         
     public:
+        typedef long id_datatype;
+        
         /**
          * @brief Opens the database connection.
          * 
@@ -67,20 +69,20 @@ namespace music
         /**
          * @brief Adds a song to the database.
          * 
-         * If the ID of the song was below 0, it will be set by the
+         * If the ID of the recording was below 0, it will be set by the
          * database to a value that is not used in the table. The value will be
-         * set in <code>song</code>, so you can find it afterwards there
+         * set in <code>recording</code>, so you can find it afterwards there
          * (call getID()).
          * 
          * @remarks This function may change the contents of the parameter.
-         * @param song The song that will be saved in the database. The ID
-         *      of the song may and will be altered by the database if
+         * @param recording The recording that will be saved in the database. The ID
+         *      of the recording may and will be altered by the database if
          *      it is below 0. Otherwise it will not be touched.
          * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
          */
-        virtual bool addSong(Song& song)=0;
+        virtual bool addRecording(Recording& recording)=0;
         /**
-         * @brief Adds features of a song to the database.
+         * @brief Adds features of a recording to the database.
          * 
          * If the ID of the features was below 0, it will be set by the
          * database to a value that is not used in the table. The value will be
@@ -88,12 +90,15 @@ namespace music
          * (call getID()).
          * 
          * @remarks This function may change the contents of the parameter.
-         * @param song The song that will be saved in the database. The ID
-         *      of the song may and will be altered by the database if
+         * @param features The features of a recording that will be saved
+         *      in the database. The ID
+         *      of the features may and will be altered by the database if
          *      it is below 0. Otherwise it will not be touched.
          * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
          */
-        virtual bool addSongFeatures(SongFeatures& features)=0;
+        virtual bool addRecordingFeatures(RecordingFeatures& features)=0;
+        
+        virtual bool getRecordingByID(Recording& recording, bool readFeatures=false)=0;
     };
 }
 #endif  //DATABASECONNECTION_HPP

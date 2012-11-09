@@ -56,7 +56,7 @@ namespace music
     
     /**
      * @brief Objects of this class are database value objects for the
-     *      features of a song
+     *      features of a recording
      *      that were extracted from the signal,
      *      such as tempo, length, dynamic range, ...
      * 
@@ -68,7 +68,7 @@ namespace music
      * @author Lena Brueder
      * @date 2012-07-16
      */
-    class SongFeatures
+    class RecordingFeatures
     {
     private:
         long id;
@@ -80,7 +80,7 @@ namespace music
     public:
         /** @todo constructor not ready yet
          */
-        SongFeatures();
+        RecordingFeatures();
         
         void setID(long id)             {this->id = id;}
         long getID() const              {return id;}
@@ -88,7 +88,7 @@ namespace music
     
     /**
      * @brief Objects of this class are database value objects for
-     *      a song and its properties
+     *      a recording and its properties
      *      that are no features that were extracted from the signal.
      * 
      * @remarks Use this object to store data in a database.
@@ -97,7 +97,7 @@ namespace music
      * @author Lena Brueder
      * @date 2012-07-16
      */
-    class Song
+    class Recording
     {
     private:
         long id;
@@ -108,12 +108,12 @@ namespace music
         std::string album;
         int tracknr;
         
-        SongFeatures* features;
+        RecordingFeatures* features;
     protected:
         
     public:
-        Song();
-        Song(std::string filename);
+        Recording();
+        Recording(std::string filename);
         
         void setID(long id)                             {this->id = id;}
         long getID() const                              {return id;}
@@ -136,8 +136,8 @@ namespace music
         void setTrackNumber(int trackNumber)            {this->tracknr = trackNumber;}
         int getTrackNumber() const                      {return tracknr;}
         
-        void setSongFeatures(SongFeatures* features)    {this->features = features;}
-        SongFeatures* getSongFeatures() const           {return features;}
+        void setRecordingFeatures(RecordingFeatures* features) {this->features = features;}
+        RecordingFeatures* getRecordingFeatures() const        {return features;}
         
     };
 }

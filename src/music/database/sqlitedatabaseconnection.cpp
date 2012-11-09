@@ -13,8 +13,8 @@ namespace music
         
         _getLastInsertRowIDStatement(NULL),
         
-        _saveSongStatement(NULL),
-        _getSongStatement(NULL),
+        _saveRecordingStatement(NULL),
+        _getRecordingByIDStatement(NULL),
         
         _saveArtistStatement(NULL),
         _getArtistByIDStatement(NULL),
@@ -39,10 +39,10 @@ namespace music
         if (_getLastInsertRowIDStatement != NULL)
             sqlite3_finalize(_getLastInsertRowIDStatement);
         
-        if (_saveSongStatement != NULL)
-            sqlite3_finalize(_saveSongStatement);
-        if (_getSongStatement != NULL)
-            sqlite3_finalize(_getSongStatement);
+        if (_saveRecordingStatement != NULL)
+            sqlite3_finalize(_saveRecordingStatement);
+        if (_getRecordingByIDStatement != NULL)
+            sqlite3_finalize(_getRecordingByIDStatement);
             
         if (_saveArtistStatement != NULL)
             sqlite3_finalize(_saveArtistStatement);
@@ -141,7 +141,7 @@ namespace music
         pragmas.push_back("PRAGMA foreign_keys = ON;");
         
         //create list of create table statements
-        ctstatements.push_back("CREATE TABLE IF NOT EXISTS song(songID INTEGER PRIMARY KEY, "
+        ctstatements.push_back("CREATE TABLE IF NOT EXISTS recording(recordingID INTEGER PRIMARY KEY, "
             "artistID INTEGER, title TEXT, albumID INTEGER, tracknr INTEGER, "
             "filename TEXT, genreID INTEGER, featuresID INTEGER, "
             "FOREIGN KEY(artistID)   REFERENCES artist(artistID),"
@@ -168,13 +168,13 @@ namespace music
         ctstatements.push_back("CREATE TABLE IF NOT EXISTS categoryDescription(categoryDescriptionID INTEGER PRIMARY KEY, dummy TEXT"
         ");");
         
-        ctstatements.push_back("CREATE TABLE IF NOT EXISTS categoryExample(categoryID INTEGER NOT NULL, songID INTEGER NOT NULL, PRIMARY KEY(categoryID, songID),"
-        "FOREIGN KEY(songID)     REFERENCES song(songID),"
+        ctstatements.push_back("CREATE TABLE IF NOT EXISTS categoryExample(categoryID INTEGER NOT NULL, recordingID INTEGER NOT NULL, PRIMARY KEY(categoryID, recordingID),"
+        "FOREIGN KEY(recordingID)     REFERENCES recording(recordingID),"
         "FOREIGN KEY(categoryID) REFERENCES category(categoryID)"
         ");");
-        ctstatements.push_back("CREATE TABLE IF NOT EXISTS categoryMembership(categoryID INTEGER NOT NULL, songID INTEGER NOT NULL, score REAL, PRIMARY KEY(categoryID, songID),"
+        ctstatements.push_back("CREATE TABLE IF NOT EXISTS categoryMembership(categoryID INTEGER NOT NULL, recordingID INTEGER NOT NULL, score REAL, PRIMARY KEY(categoryID, recordingID),"
         "FOREIGN KEY(categoryID) REFERENCES category(categoryID),"
-        "FOREIGN KEY(songID)     REFERENCES song(songID)"
+        "FOREIGN KEY(recordingID)     REFERENCES recording(recordingID)"
         ");");
         
         //TODO: create indexes
@@ -311,13 +311,13 @@ namespace music
         return retVal;
     }
     
-    bool SQLiteDatabaseConnection::addSong(Song& song)
+    bool SQLiteDatabaseConnection::addRecording(Recording& recording)
     {
-        DEBUG_OUT("saving new song...", 30);
+        DEBUG_OUT("saving new recording...", 30);
         int rc;
-        if (_saveSongStatement == NULL)
+        if (_saveRecordingStatement == NULL)
         {
-            rc = sqlite3_prepare_v2(_db, "INSERT INTO song VALUES(@songID, @artistID, @title, @albumID, @tracknr, @filename, @genreID, @featuresID);", -1, &_saveSongStatement, NULL);
+            rc = sqlite3_prepare_v2(_db, "INSERT INTO recording VALUES(@recordingID, @artistID, @title, @albumID, @tracknr, @filename, @genreID, @featuresID);", -1, &_saveRecordingStatement, NULL);
             if (rc != SQLITE_OK)
             {
                 ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
@@ -333,19 +333,19 @@ namespace music
         
         DEBUG_OUT("saving genre, album and artist...", 35);
         bool success;
-        success = addOrGetGenre(genreID, song.getGenre());
+        success = addOrGetGenre(genreID, recording.getGenre());
         if (!success)
         {
             ERROR_OUT("could not save genre.", 10);
             return false;
         }
-        success = addOrGetAlbum(albumID, song.getAlbum());
+        success = addOrGetAlbum(albumID, recording.getAlbum());
         if (!success)
         {
             ERROR_OUT("could not save album.", 10);
             return false;
         }
-        success = addOrGetArtist(artistID, song.getArtist());
+        success = addOrGetArtist(artistID, recording.getArtist());
         if (!success)
         {
             ERROR_OUT("could not save artist.", 10);
@@ -354,47 +354,47 @@ namespace music
         DEBUG_OUT("genre, album and artist saved.", 40);
         
         //TODO: save features, if applicable
-        if (song.getSongFeatures() != NULL)
+        if (recording.getRecordingFeatures() != NULL)
         {
-            addSongFeatures(*(song.getSongFeatures()));
-            featuresID = song.getSongFeatures()->getID();
+            addRecordingFeatures(*(recording.getRecordingFeatures()));
+            featuresID = recording.getRecordingFeatures()->getID();
         }
         else
         {
             featuresID = -1;
         }
         
-        sqlite3_bind_null( _saveSongStatement, 1);
-        sqlite3_bind_int64(_saveSongStatement, 2, artistID);
-        sqlite3_bind_text( _saveSongStatement, 3, song.getTitle().c_str(), -1, SQLITE_TRANSIENT);
-        sqlite3_bind_int64(_saveSongStatement, 4, albumID);
-        sqlite3_bind_int(  _saveSongStatement, 5, song.getTrackNumber());
-        sqlite3_bind_text( _saveSongStatement, 6, song.getFilename().c_str(), -1, SQLITE_TRANSIENT);
-        sqlite3_bind_int64(_saveSongStatement, 7, genreID);
+        sqlite3_bind_null( _saveRecordingStatement, 1);
+        sqlite3_bind_int64(_saveRecordingStatement, 2, artistID);
+        sqlite3_bind_text( _saveRecordingStatement, 3, recording.getTitle().c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_int64(_saveRecordingStatement, 4, albumID);
+        sqlite3_bind_int(  _saveRecordingStatement, 5, recording.getTrackNumber());
+        sqlite3_bind_text( _saveRecordingStatement, 6, recording.getFilename().c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_int64(_saveRecordingStatement, 7, genreID);
         if (featuresID == -1)
-            sqlite3_bind_null( _saveSongStatement, 8);
+            sqlite3_bind_null( _saveRecordingStatement, 8);
         else
-            sqlite3_bind_int64(_saveSongStatement, 8, featuresID);
+            sqlite3_bind_int64(_saveRecordingStatement, 8, featuresID);
         
-        rc = sqlite3_step(_saveSongStatement);
+        rc = sqlite3_step(_saveRecordingStatement);
         if (rc != SQLITE_DONE)
         {
             ERROR_OUT("Failed to execute statement. Resultcode: " << rc, 10);
             return false;
         }
         
-        rc = sqlite3_reset(_saveSongStatement);
+        rc = sqlite3_reset(_saveRecordingStatement);
         if (rc != SQLITE_OK)
         {
             ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
             return false;
         }
         
-        song.setID(getLastInsertRowID());
+        recording.setID(getLastInsertRowID());
         return true;
     }
     
-    bool SQLiteDatabaseConnection::addSongFeatures(SongFeatures& song)
+    bool SQLiteDatabaseConnection::addRecordingFeatures(RecordingFeatures& recording)
     {
         return false;
     }
@@ -701,6 +701,62 @@ namespace music
         }
         
         rc = sqlite3_reset(_getArtistByNameStatement);
+        if (rc != SQLITE_OK)
+        {
+            ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        return true;
+    }
+    
+    bool SQLiteDatabaseConnection::getRecordingByID(Recording& recording, bool readFeatures)
+    {
+        id_datatype recordingID = recording.getID();
+        if (recordingID == -1)
+            return false;
+        
+        int rc;
+        
+        if (_getRecordingByIDStatement == NULL)
+        {
+            rc = sqlite3_prepare_v2(_db, "SELECT title, tracknr, filename, genreName, albumName, artistName FROM recording NATURAL JOIN genre NATURAL JOIN artist NATURAL JOIN album WHERE recordingID=@recordingID;", -1, &_getRecordingByIDStatement, NULL);
+            if (rc != SQLITE_OK)
+            {
+                ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        //bind parameters
+        sqlite3_bind_int64(_getRecordingByIDStatement, 1, recordingID);
+        
+        //read data (ideally one line)
+        while ((rc = sqlite3_step(_getRecordingByIDStatement)) != SQLITE_DONE)
+        {
+            if (rc == SQLITE_ROW)
+            {
+                recording.setTitle(      std::string(reinterpret_cast<const char*>(sqlite3_column_text(_getRecordingByIDStatement, 0))));
+                recording.setTrackNumber(sqlite3_column_int( _getRecordingByIDStatement, 1));
+                recording.setFilename(   std::string(reinterpret_cast<const char*>(sqlite3_column_text(_getRecordingByIDStatement, 2))));
+                recording.setGenre(      std::string(reinterpret_cast<const char*>(sqlite3_column_text(_getRecordingByIDStatement, 3))));
+                recording.setAlbum(      std::string(reinterpret_cast<const char*>(sqlite3_column_text(_getRecordingByIDStatement, 4))));
+                recording.setArtist(     std::string(reinterpret_cast<const char*>(sqlite3_column_text(_getRecordingByIDStatement, 5))));
+            }
+            else
+            {
+                ERROR_OUT("Failed to read data from database. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        if (rc != SQLITE_DONE)
+        {
+            ERROR_OUT("Failed to execute statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        rc = sqlite3_reset(_getRecordingByIDStatement);
         if (rc != SQLITE_OK)
         {
             ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);

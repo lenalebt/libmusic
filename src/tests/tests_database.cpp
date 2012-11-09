@@ -50,14 +50,14 @@ namespace tests
             if (endsWith(loweredFilename, ".mp3"))
             {
                 DEBUG_OUT("adding file to database: \"" << filename << "\"", 15);
-                music::Song* song = new music::Song(filename);
-                song->setGenre("unknown");
-                song->setAlbum("unknown");
-                song->setArtist("unknown");
+                music::Recording* recording = new music::Recording(filename);
+                recording->setGenre("unknown");
+                recording->setAlbum("unknown");
+                recording->setArtist("unknown");
                 
-                CHECK(conn->addSong(*song));
+                CHECK(conn->addRecording(*recording));
                 
-                delete song;
+                delete recording;
             }
             else
             {
