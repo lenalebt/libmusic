@@ -1,5 +1,7 @@
 #include "lda_fisher.hpp"
 
+#include <cmath>
+
 namespace music
 {
     Eigen::MatrixXd FisherLDAClassifier::doPCA(const std::vector<std::pair<Eigen::VectorXd, double> >& trainingData)
@@ -22,10 +24,43 @@ namespace music
             Eigen::VectorXd tmpVec = it->first - mean;
             covariance += tmpVec * tmpVec.transpose();
         }
+        DEBUG_VAR_OUT(covariance, 250);
         
+        Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eigensolver(covariance);
+        if (eigensolver.info() != Eigen::Success)
+        {
+            ERROR_OUT("eigenvalues could not be calculated!", 10);
+            //TODO: abort
+        }
+        DEBUG_VAR_OUT(eigensolver.eigenvalues(), 250);
+        DEBUG_VAR_OUT(eigensolver.eigenvectors(), 250);
+        Eigen::MatrixXd u = eigensolver.eigenvectors();
+        Eigen::VectorXd eigenvalues = eigensolver.eigenvalues();
+        int nonzeroEigenvalueCount = eigenvalues.size();
+        for (int i=0; i<eigenvalues.size(); i++)
+        {
+            if (fabs(eigenvalues[i]) < 0.01)
+                nonzeroEigenvalueCount--;
+            else    //eigen values are sorted in increasing order
+                break;
+        }
+        DEBUG_VAR_OUT(nonzeroEigenvalueCount, 250);
+        
+        for (int i=eigenvalues.size()-nonzeroEigenvalueCount; i<eigenvalues.size(); i++)
+        {
+            u.col(i) *= 1.0/sqrt(eigenvalues[i]);
+        }
+        DEBUG_VAR_OUT(u, 250);
+        
+        //u.cols() ersetzen durch die richtigen eigenwerte)
+        Eigen::MatrixXd reducedU = u.block(0, eigenvalues.size() - nonzeroEigenvalueCount, u.rows(), nonzeroEigenvalueCount);
+        DEBUG_VAR_OUT(reducedU, 250);
+        return reducedU;
+        
+        //below here: something with singular values, which works as well.
         //take SVD of covariance matrix
-        Eigen::JacobiSVD<Eigen::MatrixXd> svd(covariance, Eigen::ComputeFullU);
-        Eigen::MatrixXd u = svd.matrixU();
+        //Eigen::JacobiSVD<Eigen::MatrixXd> svd(covariance, Eigen::ComputeFullU);
+        //Eigen::MatrixXd u = svd.matrixU();
         
         //Eigen::VectorXd svds = svd.singularValues();
         //DEBUG_VAR_OUT(svds, 0);
@@ -34,9 +69,9 @@ namespace music
         //TODO: for now, take all nonzero values. might suffice.
         
         //give matrix back that does the transform
-        Eigen::MatrixXd reducedU = u.block(0, 0, u.rows(), svd.nonzeroSingularValues());
+        //Eigen::MatrixXd reducedU = u.block(0, 0, u.rows(), svd.nonzeroSingularValues());
         
-        return reducedU;
+        //return reducedU;
     }
     
     FisherLDAClassifier::FisherLDAClassifier(bool applyPCA) :
@@ -115,8 +150,8 @@ namespace music
         mean1 /= class1Count;
         mean2 /= class2Count;
         
-        DEBUG_VAR_OUT(mean1, 0);
-        DEBUG_VAR_OUT(mean2, 0);
+        DEBUG_VAR_OUT(mean1, 250);
+        DEBUG_VAR_OUT(mean2, 250);
         
         
         if (callback != NULL)
@@ -156,11 +191,11 @@ namespace music
             callback->progress(3.0/steps, "calculating Sw and Sb...");
         //TODO: calculate disriminant
         
-        DEBUG_VAR_OUT(covariance1, 0);
-        DEBUG_VAR_OUT(covariance2, 0);
+        DEBUG_VAR_OUT(covariance1, 250);
+        DEBUG_VAR_OUT(covariance2, 250);
         
         Sw = covariance1 + covariance2;
-        DEBUG_VAR_OUT(Sw, 0);
+        DEBUG_VAR_OUT(Sw, 250);
         /*{
             Eigen::VectorXd m1 = mean1 - mean;
             Eigen::VectorXd m2 = mean2 - mean;
@@ -175,13 +210,21 @@ namespace music
         
         if (callback != NULL)
             callback->progress(4.0/steps, "calculating optimal discriminant...");
-        //TODO: calculate disriminant
-        //calculate by finding the largest eigenvalue of Sw^-1 * Sb.
         
-        w = Sw.inverse() * (mean1 - mean2);
-        DEBUG_VAR_OUT(w, 0);
-        w0 = w.transpose() * mean;
-        DEBUG_VAR_OUT(w0, 0);
+        if ((*data)[0].first.size() == 1)
+        {
+            w = Eigen::MatrixXd(1,1);
+            w(0,0)=1.0;
+            w0 = mean[0];
+        }
+        else
+        {
+            w = Sw.inverse() * (mean1 - mean2);
+            w0 = w.transpose() * mean;
+        }
+        
+        DEBUG_VAR_OUT(w,  250);
+        DEBUG_VAR_OUT(w0, 250);
         
         if (applyPCA)
             delete data;
