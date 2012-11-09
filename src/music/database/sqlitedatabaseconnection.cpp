@@ -2,6 +2,7 @@
 
 #include <list>
 #include <assert.h>
+#include <sstream>
 
 #include "debug.hpp"
 
@@ -10,6 +11,8 @@ namespace music
     SQLiteDatabaseConnection::SQLiteDatabaseConnection() :
         _dbOpen                                         (false),
         _db                                             (NULL),
+        
+        _transactionStack                               (),
         
         _getLastInsertRowIDStatement                    (NULL),
         
@@ -339,12 +342,25 @@ namespace music
     {
         DEBUG_OUT("Begin transaction.", 40);
         char* errorMsg;
+        int rc;
         
-        int rc = sqlite3_exec(_db, "BEGIN TRANSACTION;", NULL, 0, &errorMsg);
+        if (_transactionStack.empty())
+        {
+            _transactionStack.push("1");
+            rc = sqlite3_exec(_db, "BEGIN TRANSACTION;", NULL, 0, &errorMsg);
+        }
+        else
+        {
+            std::stringstream ss;
+            ss << _transactionStack.size() + 1;
+            _transactionStack.push(ss.str());
+            rc = sqlite3_exec(_db, (std::string("SAVEPOINT s") + _transactionStack.top() + ";").c_str(), NULL, 0, &errorMsg);
+        }
         
         if (rc != SQLITE_OK)
         {
-            ERROR_OUT("Failed to begin transaction. Error message: \"" << errorMsg << "\"", 10);
+            ERROR_OUT("Failed to begin transaction for element \"" << _transactionStack.top() << "\". Error message: \"" << errorMsg << "\"", 10);
+            _transactionStack.pop();
             sqlite3_free(errorMsg);
             return false;
         }
@@ -356,12 +372,31 @@ namespace music
     {
         DEBUG_OUT("End transaction.", 40);
         char* errorMsg;
+        int rc;
         
-        int rc = sqlite3_exec(_db, "END TRANSACTION;", NULL, 0, &errorMsg);
+        if (!_transactionStack.empty())
+        {
+            if (_transactionStack.top() == "1")
+            {
+                rc = sqlite3_exec(_db, "END TRANSACTION;", NULL, 0, &errorMsg);
+                _transactionStack.pop();
+            }
+            else
+            {
+                rc = sqlite3_exec(_db, (std::string("RELEASE SAVEPOINT s") + _transactionStack.top() + ";").c_str(), NULL, 0, &errorMsg);
+                _transactionStack.pop();
+            }
+        }
+        else
+        {
+            ERROR_OUT("invalid state while ending transaction: no open transaction available that could be closed.", 10);
+            return false;
+        }
         
         if (rc != SQLITE_OK)
         {
-            ERROR_OUT("Failed to begin transaction. Error message: \"" << errorMsg << "\"", 10);
+            ERROR_OUT("Failed to end transaction for element \"" << _transactionStack.top() << "\". Error message: \"" << errorMsg << "\"", 10);
+            _transactionStack.pop();
             sqlite3_free(errorMsg);
             return false;
         }
@@ -372,12 +407,31 @@ namespace music
     {
         DEBUG_OUT("Rollback transaction.", 40);
         char* errorMsg;
+        int rc;
         
-        int rc = sqlite3_exec(_db, "ROLLBACK TRANSACTION;", NULL, 0, &errorMsg);
+        if (!_transactionStack.empty())
+        {
+            if (_transactionStack.top() == "1")
+            {
+                rc = sqlite3_exec(_db, "ROLLBACK TRANSACTION;", NULL, 0, &errorMsg);
+                _transactionStack.pop();
+            }
+            else
+            {
+                rc = sqlite3_exec(_db, (std::string("ROLLBACK TRANSACTION TO SAVEPOINT s") + _transactionStack.top() + ";").c_str(), NULL, 0, &errorMsg);
+                _transactionStack.pop();
+            }
+        }
+        else
+        {
+            ERROR_OUT("invalid state while rollback transaction: no open transaction available that could be rolled back.", 10);
+            return false;
+        }
         
         if (rc != SQLITE_OK)
         {
-            ERROR_OUT("Failed to rollback transaction. Error message: \"" << errorMsg << "\"", 10);
+            ERROR_OUT("Failed to rollback transaction for element \"" << _transactionStack.top() << "\". Error message: \"" << errorMsg << "\"", 10);
+            _transactionStack.pop();
             sqlite3_free(errorMsg);
             return false;
         }
