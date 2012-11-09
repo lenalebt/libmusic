@@ -3,6 +3,7 @@
 #include <Eigen/LU>
 #include <assert.h>
 #include "debug.hpp"
+#include <set>
 
 namespace music
 {
@@ -198,17 +199,27 @@ namespace music
         {
             DEBUG_OUT("no init vectors given. using random values...", 20);
             //init with random data points and identity matricies as covariance matrix
-            for (unsigned int g=0; g<gaussianCount; g++)
+            //first add points to a set, such that we have distinct init elements.
+            std::set<unsigned int> initElements;
+            UniformRNG<unsigned int> uniRNG(0, dataSize);
+            while (initElements.size() < gaussianCount)
             {
-                DEBUG_OUT("adding gaussian distribution " << g << "...", 25);
-                
-                means.push_back(data[std::rand() % dataSize]);
-                fullCovs.push_back(10000 * Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>::Identity(dimension, dimension));
+                int newElement = uniRNG.rand();
+                if (initElements.count(newElement) == 0)
+                {
+                    initElements.insert(newElement);
+                }
+            }
+            //use the set to draw the elements
+            for (std::set<unsigned int>::iterator it = initElements.begin(); it != initElements.end(); it++)
+            {
+                means.push_back(data[*it]);
+                fullCovs.push_back(10000.0 * Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>::Identity(dimension, dimension));
             }
         }
         else
         {
-            DEBUG_OUT("init vectors given. using them for means...", 20);
+            DEBUG_OUT("init vectors given. using them...", 20);
             assert(init.size() == gaussianCount);
             //init with random data points and identity matricies as covariance matrix
             for (unsigned int g=0; g<gaussianCount; g++)
@@ -395,17 +406,27 @@ namespace music
         {
             DEBUG_OUT("no init vectors given. using random values...", 20);
             //init with random data points and identity matricies as covariance matrix
-            for (unsigned int g=0; g<gaussianCount; g++)
+            //first add points to a set, such that we have distinct init elements.
+            std::set<unsigned int> initElements;
+            UniformRNG<unsigned int> uniRNG(0, dataSize);
+            while (initElements.size() < gaussianCount)
             {
-                DEBUG_OUT("adding gaussian distribution " << g << "...", 25);
-                
-                means.push_back(data[std::rand() % dataSize]);
+                int newElement = uniRNG.rand();
+                if (initElements.count(newElement) == 0)
+                {
+                    initElements.insert(newElement);
+                }
+            }
+            //use the set to draw the elements
+            for (std::set<unsigned int>::iterator it = initElements.begin(); it != initElements.end(); it++)
+            {
+                means.push_back(data[*it]);
                 diagCovs.push_back(Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>::Constant(dimension, 1, 10000.0));
             }
         }
         else
         {
-            DEBUG_OUT("init vectors given. using them for means...", 20);
+            DEBUG_OUT("init vectors given. using them...", 20);
             assert(init.size() == gaussianCount);
             //init with random data points and identity matricies as covariance matrix
             for (unsigned int g=0; g<gaussianCount; g++)
