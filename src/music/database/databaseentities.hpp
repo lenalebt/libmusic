@@ -148,7 +148,7 @@ namespace music
         public:
             CategoryDescription();
             void setID(id_datatype id)                      {this->id = id;}
-            id_datatype getID()                             {return id;}
+            id_datatype getID() const                       {return id;}
             
             void setTimbreModel(const std::string& model)   {this->timbreModel = model;}
             std::string getTimbreModel() const              {return timbreModel;}
@@ -170,13 +170,13 @@ namespace music
             Category();
             ~Category();
             void setID(id_datatype id)                      {this->id = id;}
-            id_datatype getID()                             {return id;}
+            id_datatype getID() const                       {return id;}
             
             void setCategoryName(std::string categoryName)  {this->categoryName = categoryName;}
-            std::string getCategoryName()                   {return categoryName;}
+            std::string getCategoryName() const             {return categoryName;}
             
             void setCategoryDescription(CategoryDescription* categoryDescription) {this->categoryDescription = categoryDescription;}
-            CategoryDescription* getCategoryDescription()                         {return categoryDescription;}
+            CategoryDescription* getCategoryDescription() const                   {return categoryDescription;}
         };
         
     }

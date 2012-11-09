@@ -55,6 +55,7 @@ namespace music
         bool updateRecordingFeaturesByID(databaseentities::RecordingFeatures& recordingFeatures);
         
         bool addCategory(databaseentities::Category& category);
+        bool updateCategory(const databaseentities::Category& category, bool updateCategoryDescription=true);
         bool getCategoryByID(databaseentities::Category& category, bool readDescription=false);
         /**
          * @copydoc DatabaseConnection::getCategoryIDsByName()
@@ -64,7 +65,7 @@ namespace music
          */
         bool getCategoryIDsByName(std::vector<databaseentities::id_datatype>& categoryIDs, const std::string& categoryName);
         bool addCategoryDescription(databaseentities::CategoryDescription& categoryDescription);
-        bool updateCategoryDescriptionByID(databaseentities::CategoryDescription& categoryDescription);
+        bool updateCategoryDescription(const databaseentities::CategoryDescription& categoryDescription);
         bool getCategoryDescriptionByID(databaseentities::CategoryDescription& categoryDescription);
         
         bool deleteRecordingToCategoryScoresByRecordingID(databaseentities::id_datatype& recordingID);
@@ -110,6 +111,7 @@ namespace music
         sqlite3_stmt* _getGenreByNameStatement;
         
         sqlite3_stmt* _saveCategoryStatement;
+        sqlite3_stmt* _updateCategoryByIDStatement;
         sqlite3_stmt* _getCategoryByIDStatement;
         sqlite3_stmt* _getCategoryByNameStatement;
         sqlite3_stmt* _getCategoryIDsByNameStatement;

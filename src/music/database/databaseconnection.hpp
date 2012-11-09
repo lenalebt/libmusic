@@ -222,6 +222,16 @@ namespace music
         virtual bool getCategoryByID(databaseentities::Category& category, bool readDescription=false)=0;
         
         /**
+         * @brief Updates the category in the database
+         * 
+         * @param category The category that should be updated
+         * @param updateCategoryDescription If the description of the category should be updated, too
+         * 
+         * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
+         */
+        virtual bool updateCategory(const databaseentities::Category& category, bool updateCategoryDescription=true)=0;
+        
+        /**
          * @brief Reads the category IDs that belong to a given category name.
          * 
          * @param[out] categoryIDs The IDs of the categories that are found. Empty, if no categories were found.
@@ -262,7 +272,7 @@ namespace music
          *      A new id will be generated and stored in this parameter.
          * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
          */
-        virtual bool updateCategoryDescriptionByID(databaseentities::CategoryDescription& categoryDescription)=0;
+        virtual bool updateCategoryDescription(const databaseentities::CategoryDescription& categoryDescription)=0;
         
         /**
          * @brief Reads a category description from the database by giving the id.
@@ -271,7 +281,6 @@ namespace music
          * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
          */
         virtual bool getCategoryDescriptionByID(databaseentities::CategoryDescription& categoryDescription)=0;
-        //TODO: need update for category description.
         
         /**
          * @brief Deletes all relationships between the given recording and any category score.
