@@ -26,12 +26,12 @@ namespace music
     {
     private:
         DatabaseConnection* conn;
-        unsigned int songGroupTimbreModelGaussianCount;
+        unsigned int categoryTimbreModelSize;
+        unsigned int categoryPerSongSampleCount;
     public:
-        ClassificationProcessor(DatabaseConnection* conn);
+        ClassificationProcessor(DatabaseConnection* conn, unsigned int categoryTimbreModelSize = 60, unsigned int categoryPerSongSampleCount = 20000);
         
         
-        //recalculate the timbre model for the category (maybe other things). rebuild the classifier/train it
         /**
          * @brief This function retrains the classifier based on the category examples of this category.
          * 
@@ -41,12 +41,22 @@ namespace music
          *      In most cases, this is what you want
          * @param callback A callback object that will be called when progress is made
          * 
-         * @return <code>true</code> if the operation succeeded, <code>false</code> if it failed for some reason
+         * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
          */
         bool recalculateCategory(databaseentities::Category& category, bool recalculateCategoryMembershipScores_ = true, ProgressCallbackCaller* callback = NULL);
         
         //first delete all scores, then it is possible to read from the db with another thread all the new scores. or from the callback, then no other thread is necessary.
         //recalulates all scores for songs to this category.
+        /**
+         * @brief Recalculates the membership scores of all songs for a given category.
+         * 
+         * @param category The category for which the scores should be recalculated.
+         *      It only uses the ID of the category. If the ID is <code>-1</code>,
+         *      then the operation fails.
+         * @param callback A callback object that will be called when progress is made
+         * 
+         * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
+         */
         bool recalculateCategoryMembershipScores(const databaseentities::Category& category, ProgressCallbackCaller* callback = NULL);
         //recalculates the score for a single song (maybe better for debugging etc and may be used from the other function)
         bool recalculateCategoryMembershipScore(const databaseentities::Category& category, const databaseentities::Recording& recording);

@@ -1,15 +1,19 @@
 #include "classificationprocessor.hpp"
 
 #include "classificationcategory.hpp"
+#include "debug.hpp"
 
 namespace music
 {
-    ClassificationProcessor::ClassificationProcessor(DatabaseConnection* conn) :
-        conn(conn)
+    ClassificationProcessor::ClassificationProcessor(DatabaseConnection* conn, unsigned int categoryTimbreModelSize, unsigned int categoryPerSongSampleCount) :
+        conn(conn),
+        categoryTimbreModelSize(categoryTimbreModelSize),
+        categoryPerSongSampleCount(categoryPerSongSampleCount)
     {
         
     }
     
+    /** @todo maybe we need to do more here than to recalculate the timbre model. */
     bool ClassificationProcessor::recalculateCategory(databaseentities::Category& category, bool recalculateCategoryMembershipScores_, ProgressCallbackCaller* callback)
     {
         //all accesses will be in one transaction
@@ -57,7 +61,7 @@ namespace music
         //combine timbre models
         if (timbreModels.size() != 0)
         {
-            if (cat.calculateTimbreModel(timbreModels, 60, 20000))
+            if (cat.calculateTimbreModel(timbreModels, categoryTimbreModelSize, categoryPerSongSampleCount))
             {
                 category.getCategoryDescription()->setTimbreModel(cat.getTimbreModel()->toJSONString());
             }
@@ -98,7 +102,13 @@ namespace music
         if (callback)
             callback->progress(0.98, "saving results to database");
         
-        conn->updateCategory(category);
+        if (!conn->updateCategory(category))
+        {
+            conn->rollbackTransaction();
+            return false;
+        }
+        
+        conn->endTransaction();
         
         if (callback)
             callback->progress(1.0, "finished");
@@ -108,7 +118,91 @@ namespace music
     
     bool ClassificationProcessor::recalculateCategoryMembershipScores(const databaseentities::Category& category, ProgressCallbackCaller* callback)
     {
-        return false;
+        conn->beginTransaction();
+        
+        if (callback)
+            callback->progress(0.0, "init");
+        
+        if (category.getCategoryDescription() == NULL)
+        {
+            ERROR_OUT("category description may not be NULL, aborting.", 10);
+            conn->rollbackTransaction();
+            return false;
+        }
+        if (category.getCategoryDescription()->getTimbreModel().empty())
+        {
+            ERROR_OUT("category timbre model may not be empty, aborting.", 10);
+            conn->rollbackTransaction();
+            return false;
+        }
+        
+        GaussianMixtureModel<kiss_fft_scalar>* categoryModel = 
+            GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(
+              category.getCategoryDescription()->getTimbreModel()
+            );
+        
+        if (callback)
+            callback->progress(0.05, "calculating new scores...");
+        
+        //the next block does:
+        //for all recordingIDs do
+        //    recalculate song-to-category-score and save it to the database
+        std::vector<databaseentities::id_datatype> recordingIDs;
+        databaseentities::id_datatype minID=0;
+        do
+        {
+            recordingIDs.clear();
+            if (!conn->getRecordingIDs(recordingIDs, minID, 20000))
+            {
+                std::cerr << "error..." << std::endl;
+                conn->rollbackTransaction();
+                delete categoryModel;
+                return false;
+            }
+            
+            int i=0;
+            for (std::vector<databaseentities::id_datatype>::iterator it = recordingIDs.begin(); it != recordingIDs.end(); ++it)
+            {
+                if ((i%50==0) && (callback))
+                    callback->progress(0.05 + (0.9 * double(i)/double(recordingIDs.size())), "calculating scores...");
+                
+                databaseentities::Recording recording;
+                recording.setID(*it);
+                conn->getRecordingByID(recording, true);
+                
+                if (recording.getRecordingFeatures() == NULL)
+                {
+                    if (callback)
+                        callback->progress(-1.0, std::string("skipping file \"") + recording.getFilename() + "\": no extracted features found");
+                    continue;
+                }
+                
+                GaussianMixtureModel<kiss_fft_scalar>* recordingModel = 
+                    GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(
+                      recording.getRecordingFeatures()->getTimbreModel()
+                    );
+                
+                if (!conn->updateRecordingToCategoryScore(recording.getID(), category.getID(), recordingModel->compareTo(*categoryModel)))
+                {
+                    conn->rollbackTransaction();
+                    delete categoryModel;
+                    delete recordingModel;
+                    return false;
+                }
+                
+                delete recordingModel;
+                i++;
+            }
+        } while (!recordingIDs.empty());
+        
+        delete categoryModel;
+        
+        conn->endTransaction();
+        
+        if (callback)
+            callback->progress(1.0, "finished");
+        
+        return true;
     }
     
     bool ClassificationProcessor::recalculateCategoryMembershipScore(const databaseentities::Category& category, const databaseentities::Recording& recording)
