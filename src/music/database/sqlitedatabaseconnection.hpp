@@ -39,6 +39,9 @@ namespace music
         bool getRecordingByID(databaseentities::Recording& recording, bool readFeatures=false);
         
         bool addCategory(databaseentities::Category& category);
+        bool getCategoryByID(databaseentities::Category& category, bool readDescription=false);
+        bool addCategoryDescription(databaseentities::CategoryDescription& categoryDescription);
+        bool getCategoryDescriptionByID(databaseentities::CategoryDescription& categoryDescription);
     private:
         
     protected:
@@ -61,6 +64,13 @@ namespace music
         sqlite3_stmt* _saveGenreStatement;
         sqlite3_stmt* _getGenreByIDStatement;
         sqlite3_stmt* _getGenreByNameStatement;
+        
+        sqlite3_stmt* _saveCategoryStatement;
+        sqlite3_stmt* _getCategoryByIDStatement;
+        sqlite3_stmt* _getCategoryByNameStatement;
+        
+        sqlite3_stmt* _saveCategoryDescriptionStatement;
+        sqlite3_stmt* _getCategoryDescriptionByIDStatement;
         
         /**
          * @brief Creates the needed tables in the database file.
@@ -116,6 +126,13 @@ namespace music
          * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
          */
         bool getArtistIDByName(databaseentities::id_datatype& artistID, std::string artistName);
+        /**
+         * @brief Reads the category ID by name.
+         * @param[out] categoryID the category ID, or -1 if the category was not found.
+         * @param categoryName the name of the category that should be searched for.
+         * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
+         */
+        bool getCategoryIDByName(databaseentities::id_datatype& categoryID, std::string categoryName);
     };
 }
 #endif //SQLITEDATABASECONNECTION_HPP

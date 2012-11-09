@@ -13,20 +13,27 @@ namespace music
         
         _getLastInsertRowIDStatement(NULL),
         
-        _saveRecordingStatement(NULL),
-        _getRecordingByIDStatement(NULL),
+        _saveRecordingStatement     (NULL),
+        _getRecordingByIDStatement  (NULL),
         
-        _saveArtistStatement(NULL),
-        _getArtistByIDStatement(NULL),
-        _getArtistByNameStatement(NULL),
+        _saveArtistStatement        (NULL),
+        _getArtistByIDStatement     (NULL),
+        _getArtistByNameStatement   (NULL),
         
-        _saveAlbumStatement(NULL),
-        _getAlbumByIDStatement(NULL),
-        _getAlbumByNameStatement(NULL),
+        _saveAlbumStatement         (NULL),
+        _getAlbumByIDStatement      (NULL),
+        _getAlbumByNameStatement    (NULL),
         
-        _saveGenreStatement(NULL),
-        _getGenreByIDStatement(NULL),
-        _getGenreByNameStatement(NULL)
+        _saveGenreStatement         (NULL),
+        _getGenreByIDStatement      (NULL),
+        _getGenreByNameStatement    (NULL),
+        
+        _saveCategoryStatement      (NULL),
+        _getCategoryByIDStatement   (NULL),
+        _getCategoryByNameStatement (NULL),
+        
+        _saveCategoryDescriptionStatement(NULL),
+        _getCategoryDescriptionByIDStatement(NULL)
     {
         
     }
@@ -64,6 +71,18 @@ namespace music
             sqlite3_finalize(_getGenreByIDStatement);
         if (_getGenreByNameStatement != NULL)
             sqlite3_finalize(_getGenreByNameStatement);
+        
+        if (_saveCategoryStatement != NULL)
+            sqlite3_finalize(_saveCategoryStatement);
+        if (_getCategoryByIDStatement != NULL)
+            sqlite3_finalize(_getCategoryByIDStatement);
+        if (_getCategoryByNameStatement != NULL)
+            sqlite3_finalize(_getCategoryByNameStatement);
+        
+        if (_saveCategoryDescriptionStatement != NULL)
+            sqlite3_finalize(_saveCategoryDescriptionStatement);
+        if (_getCategoryDescriptionByIDStatement != NULL)
+            sqlite3_finalize(_getCategoryDescriptionByIDStatement);
     }
     
     bool SQLiteDatabaseConnection::open(std::string dbConnectionString)
@@ -162,7 +181,7 @@ namespace music
         ctstatements.push_back("CREATE TABLE IF NOT EXISTS chords(chordsID INTEGER NOT NULL, starttime REAL, endtime REAL, timbreVector TEXT);");
         ctstatements.push_back("CREATE TABLE IF NOT EXISTS timbre(timbreID INTEGER NOT NULL, starttime REAL, endtime REAL, chordVector TEXT);");
         
-        ctstatements.push_back("CREATE TABLE IF NOT EXISTS category(categoryID INTEGER PRIMARY KEY, categoryName TEXT, "
+        ctstatements.push_back("CREATE TABLE IF NOT EXISTS category(categoryID INTEGER PRIMARY KEY, categoryName TEXT UNIQUE, "
             "categoryDescriptionID INTEGER NOT NULL,"
             "FOREIGN KEY(categoryDescriptionID) REFERENCES categoryDescription(categoryDescriptionID)"
             ");");
@@ -618,6 +637,54 @@ namespace music
         
         return true;
     }
+    
+    bool SQLiteDatabaseConnection::getCategoryIDByName(databaseentities::id_datatype& categoryID, std::string categoryName)
+    {
+        categoryID = -1;
+        int rc;
+        
+        if (_getCategoryByNameStatement == NULL)
+        {
+            rc = sqlite3_prepare_v2(_db, "SELECT categoryID, categoryName FROM category WHERE categoryName=@categoryName;", -1, &_getCategoryByNameStatement, NULL);
+            if (rc != SQLITE_OK)
+            {
+                ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        //bind parameters
+        sqlite3_bind_text(_getCategoryByNameStatement, 1, categoryName.c_str(), -1, SQLITE_TRANSIENT);
+        
+        //read data (ideally one line)
+        while ((rc = sqlite3_step(_getCategoryByNameStatement)) != SQLITE_DONE)
+        {
+            if (rc == SQLITE_ROW)
+            {
+                categoryID = sqlite3_column_int64(_getCategoryByNameStatement, 0);
+            }
+            else
+            {
+                ERROR_OUT("Failed to read data from database. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        if (rc != SQLITE_DONE)
+        {
+            ERROR_OUT("Failed to execute statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        rc = sqlite3_reset(_getCategoryByNameStatement);
+        if (rc != SQLITE_OK)
+        {
+            ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        return true;
+    }
     bool SQLiteDatabaseConnection::getAlbumIDByName(databaseentities::id_datatype& albumID, std::string albumName)
     {
         albumID = -1;
@@ -771,6 +838,112 @@ namespace music
     }
     
     bool SQLiteDatabaseConnection::addCategory(databaseentities::Category& category)
+    {
+        int rc;
+        
+        //first take a look if the category can be found, so we don't need to save it another time
+        databaseentities::id_datatype categoryID = category.getID();
+        bool success = getCategoryIDByName(categoryID, category.getCategoryName());
+        //could not read data. error!
+        if (!success)
+        {
+            ERROR_OUT("could not read category id.", 10);
+            return false;
+        }
+        
+        if (categoryID != -1)
+        {   //found entry. take this one!
+            category.setID(categoryID);
+            return true;
+        }
+        else
+        {   //did not find entry. create a new one!
+            if (_saveCategoryStatement == NULL)
+            {
+                rc = sqlite3_prepare_v2(_db, "INSERT INTO category VALUES(@categoryID, @categoryName, @categoryDescriptionID);", -1, &_saveCategoryStatement, NULL);
+                if (rc != SQLITE_OK)
+                {
+                    ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
+                    return false;
+                }
+            }
+            
+            //bind parameters
+            sqlite3_bind_null(_saveCategoryStatement, 1);
+            sqlite3_bind_text(_saveCategoryStatement, 2, category.getCategoryName().c_str(), -1, SQLITE_TRANSIENT);
+            if (category.getCategoryDescription() == NULL)
+            {
+                category.setCategoryDescription(new databaseentities::CategoryDescription());
+                addCategoryDescription(*(category.getCategoryDescription()));
+            }
+            else if (category.getCategoryDescription()->getID() == -1)
+            {
+                addCategoryDescription(*(category.getCategoryDescription()));
+            }
+            sqlite3_bind_int64(_saveCategoryStatement, 3, category.getCategoryDescription()->getID());
+            
+            
+            rc = sqlite3_step(_saveCategoryStatement);
+            if (rc != SQLITE_DONE)
+            {
+                ERROR_OUT("Failed to execute statement. Resultcode: " << rc, 10);
+                return false;
+            }
+            
+            rc = sqlite3_reset(_saveCategoryStatement);
+            if (rc != SQLITE_OK)
+            {
+                ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
+                return false;
+            }
+            
+            category.setID(getLastInsertRowID());
+            return true;
+        }
+        
+        return true;
+    }
+    bool SQLiteDatabaseConnection::addCategoryDescription(databaseentities::CategoryDescription& categoryDescription)
+    {
+        int rc;
+        
+        if (_saveCategoryDescriptionStatement == NULL)
+        {
+            rc = sqlite3_prepare_v2(_db, "INSERT INTO categoryDescription VALUES(@categoryDescriptionID, @dummy);", -1, &_saveCategoryDescriptionStatement, NULL);
+            if (rc != SQLITE_OK)
+            {
+                ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        //bind parameters
+        sqlite3_bind_null(_saveCategoryDescriptionStatement, 1);
+        sqlite3_bind_text(_saveCategoryDescriptionStatement, 2, "", -1, SQLITE_TRANSIENT);
+        
+        rc = sqlite3_step(_saveCategoryDescriptionStatement);
+        if (rc != SQLITE_DONE)
+        {
+            ERROR_OUT("Failed to execute statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        rc = sqlite3_reset(_saveCategoryDescriptionStatement);
+        if (rc != SQLITE_OK)
+        {
+            ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        categoryDescription.setID(getLastInsertRowID());
+        return true;
+    }
+    
+    bool SQLiteDatabaseConnection::getCategoryDescriptionByID(databaseentities::CategoryDescription& categoryDescription)
+    {
+        return false;
+    }
+    bool SQLiteDatabaseConnection::getCategoryByID(databaseentities::Category& category, bool readDescription)
     {
         return false;
     }

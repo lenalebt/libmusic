@@ -29,7 +29,19 @@ namespace music
             
         }
         
+        Recording::~Recording()
+        {
+            if (features != NULL)
+                delete features;
+        }
+        
         RecordingFeatures::RecordingFeatures() :
+            id(-1)
+        {
+            
+        }
+        
+        CategoryDescription::CategoryDescription() :
             id(-1)
         {
             
@@ -37,9 +49,16 @@ namespace music
         
         Category::Category() :
             id(-1),
-            categoryName("")
+            categoryName(""),
+            categoryDescription(NULL)
         {
             
         }
+        Category::~Category()
+        {
+            if (categoryDescription != NULL)
+                delete categoryDescription;
+        }
+        
     }
 }

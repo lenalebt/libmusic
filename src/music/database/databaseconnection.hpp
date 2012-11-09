@@ -100,6 +100,10 @@ namespace music
         virtual bool getRecordingByID(databaseentities::Recording& recording, bool readFeatures=false)=0;
         
         virtual bool addCategory(databaseentities::Category& category)=0;
+        virtual bool getCategoryByID(databaseentities::Category& category, bool readDescription=false)=0;
+        virtual bool addCategoryDescription(databaseentities::CategoryDescription& categoryDescription)=0;
+        virtual bool getCategoryDescriptionByID(databaseentities::CategoryDescription& categoryDescription)=0;
+        //TODO: need update for category description.
     };
 }
 #endif  //DATABASECONNECTION_HPP
