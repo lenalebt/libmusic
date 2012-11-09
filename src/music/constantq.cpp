@@ -6,6 +6,7 @@
 #include <assert.h>
 
 #include <iostream>
+#include <fstream>
 
 namespace music
 {
@@ -341,14 +342,19 @@ namespace music
             }
         }
         
-        delete[] fftData;
-        delete[] fftSourceDataZeroPadMemory;
+        //TODO:has problems freeing the memory. why?
+        //delete[] fftData;
+        //delete[] fftSourceDataZeroPadMemory;
         
-        //TODO: Map buffer to a Eigen vector via Map<>, see
-        // http://eigen.tuxfamily.org/dox/TutorialMapClass.html
-        //Eigen::Map<Eigen::Matrix<std::complex<float>, Eigen::Dynamic, 1> > bufferMap(floatBuffer);
-        
-        //then run over samples and calculate cqt.
+        std::ofstream outstr("file.dat");
+        for (int i=0; i < transformResult->octaveMatrix[octaveCount]->rows(); i++)
+        {
+            for (int j=0; j < transformResult->octaveMatrix[octaveCount]->cols(); j++)
+            {
+                outstr << abs((*transformResult->octaveMatrix[octaveCount])(i,j)) << " ";
+            }
+            outstr << std::endl;
+        }
         
         return transformResult;
     }
