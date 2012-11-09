@@ -87,7 +87,7 @@ namespace music
             features->setLength(transformResult->getOriginalDuration());
             
             if (callback != NULL)
-                callback->progress(5.0/stepCount, "calculating RMS...");
+                callback->progress(5.0/stepCount, "calculating dynamic range...");
             
             music::PerTimeSliceStatistics<kiss_fft_scalar> perTimeSliceStatistics(transformResult, 0.005);
             music::DynamicRangeCalculator<kiss_fft_scalar> dynamicRangeCalculator(&perTimeSliceStatistics);
@@ -104,10 +104,13 @@ namespace music
             features->setTempo(bpmEst.getBPMMean());
             //other tempo features should also be important!
             
+            if (callback != NULL)
+                callback->progress(10.0/stepCount, "calculating timbre model...");
+            
             //TODO: calculate features.
             music::TimbreModel timbreModel(transformResult);
-            //build model from 5 gaussians, 20ms slices
-            timbreModel.calculateModel(5, 0.02);
+            //build model from 15 gaussians, 10ms slices
+            timbreModel.calculateModel(15, 0.01);
             features->setTimbreModel(timbreModel.getModel()->toJSONString());
             
             

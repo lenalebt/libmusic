@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include "stringhelper.hpp"
 
-void loadFilenames(const std::string& folder, std::vector<std::string>& files)
+void loadFilenames(const std::string& folder, std::vector<std::string>& files, const std::string& ending)
 {
     files.clear();
     
@@ -15,7 +15,7 @@ void loadFilenames(const std::string& folder, std::vector<std::string>& files)
     while ((ent = readdir (dir)) != NULL)
     {
         std::string filename(ent->d_name);
-        if ((filename != ".") && (filename != ".."))
+        if ((filename != ".") && (filename != "..") && endsWith(filename, ending))
             files.push_back(filename);
     }
 }

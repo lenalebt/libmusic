@@ -22,17 +22,15 @@
 
 namespace performance_tests
 {
-    int testInstrumentSimilarity()
+    int testInstrumentSimilarity(const std::string& folder)
     {
         DEBUG_OUT("running instrument similarity performance test...", 0);
         DEBUG_OUT("load files and train their GMMs...", 5);
         //first load files and create models for them
         
-        std::string folder("./testdata/instrument/singlenotes/");
-        
         std::vector<std::string> files;
         std::vector<std::string> basefiles;
-        loadFilenames(folder, files);
+        loadFilenames(folder, files, ".mp3");
         sort(files.begin(), files.end());
         
         for (unsigned int i = 0; i < files.size(); i++)
@@ -44,6 +42,8 @@ namespace performance_tests
             }
             DEBUG_OUT(i << ":\t " << files[i], 10);
         }
+        if (basefiles.size() == 0)
+            basefiles.push_back("xxx---null---xxx");
         
         std::vector<music::GaussianMixtureModel<kiss_fft_scalar>* > gmmFile;
         std::vector<music::GaussianMixtureModel<kiss_fft_scalar>* > gmmBase;
@@ -59,15 +59,15 @@ namespace performance_tests
         music::OutputStreamCallback osc(std::cout);
         std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > data;
         std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > instrumentTimbre;
-        for (unsigned int i = 0; i < /*5*8*/files.size(); i++)
+        for (unsigned int i = 0; i < files.size(); i++)
         {
             data.clear();
             
             DEBUG_OUT("Processing file: \"" << folder + files[i] << "\"", 7);
-            if (!contains(files[i], basefiles[j]))
+            if ((basefiles.size()) > 1 && (!contains(files[i], basefiles[j])))
             {
                 music::TimbreModel iModel(NULL);
-                iModel.calculateModel(instrumentTimbre, 8, 0.01, 12, &osc);
+                iModel.calculateModel(instrumentTimbre, 20, 0.01, 12, &osc);
                 gmmBase.push_back(iModel.getModel()->clone());
                 instrumentTimbre.clear();
                 j++;
@@ -91,20 +91,38 @@ namespace performance_tests
             music::TimbreModel tModel(tResult);
             
             //calculate model
+            assert(data.empty());
             tModel.calculateModel(data, 3, 0.01, 12, &osc);
             
-            //save timbre vectors for processing of instrument similarity
-            instrumentTimbre.reserve(instrumentTimbre.size() + data.size());
-            for (std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> >::iterator it = data.begin(); it != data.end(); it++)
-                instrumentTimbre.push_back(*it);
-            
+            if (basefiles.size() > 1)
+            {
+                //save timbre vectors for processing of instrument similarity
+                instrumentTimbre.reserve(instrumentTimbre.size() + data.size());
+                for (std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> >::iterator it = data.begin(); it != data.end(); it++)
+                    instrumentTimbre.push_back(*it);
+            }
             music::GaussianMixtureModel<kiss_fft_scalar>* model = tModel.getModel();
             DEBUG_OUT(model->toJSONString(), 10);
             gmmFile.push_back(model->clone());
             
+            std::ofstream outstr((std::string("./performance/") + tests::basename(files[i], true) + ".dat").c_str());
+            for (int j=0; j<data.size(); j++)
+                outstr << data[j].transpose() << std::endl;
+            
             delete tResult;
             delete buffer;
         }
+        
+        if (basefiles.size() > 1)
+        {
+            //get last model for instruments right...
+            music::TimbreModel iModel(NULL);
+            iModel.calculateModel(instrumentTimbre, 20, 0.01, 12, &osc);
+            gmmBase.push_back(iModel.getModel()->clone());
+            instrumentTimbre.clear();
+        }
+        data.clear();
+        instrumentTimbre.clear();
         DEBUG_OUT("finished calculating GMMs.", 10);
         
         DEBUG_OUT("calculate model similarity matricies...", 5);
@@ -138,6 +156,12 @@ namespace performance_tests
         std::ofstream outstr2("./performance/instrument-single-perinstrument.dat");
         outstr2 << instrumentSimilarity << std::endl;
         DEBUG_VAR_OUT(instrumentSimilarity, 0);
+        
+        for (unsigned int i = 0; i < basefiles.size(); i++)
+        {
+            DEBUG_OUT(i+1 << ": " << basefiles[i], 10);
+        }
+        
         
         delete cqt;
         delete lowpassFilter;

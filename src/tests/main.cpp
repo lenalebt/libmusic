@@ -103,7 +103,16 @@ int main(int argc, char *argv[])
     }   //FROM HERE ON: PERFORMANCE TESTS
     else if (testname == "instrumentsimilarityperformance")
     {
-        return performance_tests::testInstrumentSimilarity();
+        if (argc < 3)
+        {
+            std::cout << "this test can be called with extra parameters:" << std::endl;
+            std::cout << "call \"" << argv[0] << " instrumentsimilarityperformance folder\"" << std::endl;
+            return performance_tests::testInstrumentSimilarity();
+        }
+        else
+        {
+            return performance_tests::testInstrumentSimilarity(argv[2]);
+        }
     }
     else
     {
