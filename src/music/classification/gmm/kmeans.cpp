@@ -11,7 +11,7 @@ namespace music
         
     }
     
-    void KMeans::trainKMeans(const std::vector<Eigen::VectorXd>& data, unsigned int meanCount, unsigned int maxIterations, const std::vector<Eigen::VectorXd>& init)
+    bool KMeans::trainKMeans(const std::vector<Eigen::VectorXd>& data, unsigned int meanCount, unsigned int maxIterations, const std::vector<Eigen::VectorXd>& init)
     {
         assert(data.size() > 0u);
         DEBUG_OUT("initialize k-means algorithm...", 20);
@@ -112,5 +112,7 @@ namespace music
         
         delete[] assignments;
         delete[] oldAssignments;
+        
+        return converged;
     }
 }
