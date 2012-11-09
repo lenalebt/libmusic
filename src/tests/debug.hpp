@@ -32,19 +32,28 @@
 
 #ifdef DEBUG_LEVEL
     #if defined __FILE__ && defined __LINE__
-        #define DEBUG_OUT_NOENDL_LEVEL(str,level)   if (DEBUG_LEVEL >= level)   \
-                                                    {                           \
-                                                        std::cerr << std::setw(30+(level/2)) << colors::ConsoleColors::yellow() + tests::basename(std::string(QUOTEME(__FILE__))) + colors::ConsoleColors::defaultText() + ":" + colors::ConsoleColors::cyan() + QUOTEME(__LINE__) + colors::ConsoleColors::defaultText() +  ": " << str;            \
-                                                    }                           \
+        #define DEBUG_OUT_NOENDL_LEVEL(str,level)   {if (DEBUG_LEVEL >= level)   \
+                                                    {                            \
+                                                        std::cerr << std::left << std::setw(55) << colors::ConsoleColors::yellow() + tests::basename(std::string(QUOTEME(__FILE__))) + colors::ConsoleColors::defaultText() + ":" + colors::ConsoleColors::cyan() + QUOTEME(__LINE__) + colors::ConsoleColors::defaultText() +  ": " << std::setw(level/2) << str;                  \
+                                                    }}                           \
+                                        
+        #define ERROR_OUT_NOENDL_LEVEL(str,level)   {if (DEBUG_LEVEL >= level)   \
+                                                    {                            \
+                                                        std::cerr << colors::ConsoleColors::yellow() << tests::basename(std::string(QUOTEME(__FILE__))) << colors::ConsoleColors::defaultText() << ":" + colors::ConsoleColors::cyan() << QUOTEME(__LINE__) << colors::ConsoleColors::defaultText() << ": " << colors::ConsoleColors::red() << colors::ConsoleColors::bold() << "error of level " << level << colors::ConsoleColors::defaultText() << ": " << str;                         \
+                                                    }}                           \
                                         
     #else
         #define DEBUG_OUT_NOENDL_LEVEL(str,level)   std::cerr << str;
+        #define ERROR_OUT_NOENDL_LEVEL(str,level)   std::cerr << str;
     #endif
 #else
     #define DEBUG_OUT_NOENDL_LEVEL(str,level)     ;
+    #define ERROR_OUT_NOENDL_LEVEL(str,level)     ;
 #endif
 #define DEBUG_OUT_NOENDL(str,level) DEBUG_OUT_NOENDL_LEVEL(str, level)
 #define DEBUG_OUT(str,level)        DEBUG_OUT_NOENDL(str << std::endl, level)
+#define ERROR_OUT_NOENDL(str,level) ERROR_OUT_NOENDL_LEVEL(str, level)
+#define ERROR_OUT(str,level)        ERROR_OUT_NOENDL(str << std::endl, level)
 
 
 namespace tests
