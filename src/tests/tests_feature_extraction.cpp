@@ -28,6 +28,12 @@
 
 #include "console_colors.hpp"
 
+//this is used for creating directories (via mkdir() )
+#include <dirent.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include "stringhelper.hpp"
+
 namespace tests
 {
     void operator<<(std::queue<std::string>& queue, const std::string& str)
@@ -559,76 +565,94 @@ namespace tests
         
         std::queue<std::string> files;
         
-        files << "./testdata/chord-major-a-guitar.mp3";
-        files << "./testdata/chord-major-c7-guitar.mp3";
-        files << "./testdata/chord-major-c-guitar.mp3";
-        files << "./testdata/chord-major-d4-guitar.mp3";
-        files << "./testdata/chord-major-d7-guitar.mp3";
-        files << "./testdata/chord-major-d9-guitar.mp3";
-        files << "./testdata/chord-major-d-guitar.mp3";
-        files << "./testdata/chord-major-dmaj7-guitar.mp3";
-        files << "./testdata/chord-major-e-guitar.mp3";
-        files << "./testdata/chord-major-f-guitar.mp3";
-        files << "./testdata/chord-major-g7-guitar.mp3";
-        files << "./testdata/chord-major-g-guitar.mp3";
-        files << "./testdata/chord-minor-a7-guitar.mp3";
-        files << "./testdata/chord-minor-a-guitar.mp3";
-        files << "./testdata/chord-minor-b-guitar.mp3";
-        files << "./testdata/chord-minor-c-guitar.mp3";
-        files << "./testdata/chord-minor-d-guitar.mp3";
-        files << "./testdata/chord-minor-e-guitar.mp3";
-        files << "./testdata/chord-minor-f-guitar.mp3";
-        files << "./testdata/chord-minor-g-guitar.mp3";
+        /*files << "./testdata/chords/chord-major-a-guitar.mp3";
+        files << "./testdata/chords/chord-major-c7-guitar.mp3";
+        files << "./testdata/chords/chord-major-c-guitar.mp3";
+        files << "./testdata/chords/chord-major-d4-guitar.mp3";
+        files << "./testdata/chords/chord-major-d7-guitar.mp3";
+        files << "./testdata/chords/chord-major-d9-guitar.mp3";
+        files << "./testdata/chords/chord-major-d-guitar.mp3";
+        files << "./testdata/chords/chord-major-dmaj7-guitar.mp3";
+        files << "./testdata/chords/chord-major-e-guitar.mp3";
+        files << "./testdata/chords/chord-major-f-guitar.mp3";
+        files << "./testdata/chords/chord-major-g7-guitar.mp3";
+        files << "./testdata/chords/chord-major-g-guitar.mp3";
+        files << "./testdata/chords/chord-minor-a7-guitar.mp3";
+        files << "./testdata/chords/chord-minor-a-guitar.mp3";
+        files << "./testdata/chords/chord-minor-b-guitar.mp3";
+        files << "./testdata/chords/chord-minor-c-guitar.mp3";
+        files << "./testdata/chords/chord-minor-d-guitar.mp3";
+        files << "./testdata/chords/chord-minor-e-guitar.mp3";
+        files << "./testdata/chords/chord-minor-f-guitar.mp3";
+        files << "./testdata/chords/chord-minor-g-guitar.mp3";
         
-        files << "./testdata/chord-major-a-keyboard.mp3";
-        files << "./testdata/chord-major-a#-keyboard.mp3";
-        files << "./testdata/chord-major-b-keyboard.mp3";
-        files << "./testdata/chord-major-c-keyboard.mp3";
-        files << "./testdata/chord-major-c#-keyboard.mp3";
-        files << "./testdata/chord-major-d-keyboard.mp3";
-        files << "./testdata/chord-major-d#-keyboard.mp3";
-        files << "./testdata/chord-major-e-keyboard.mp3";
-        files << "./testdata/chord-major-f-keyboard.mp3";
-        files << "./testdata/chord-major-f#-keyboard.mp3";
-        files << "./testdata/chord-major-g-keyboard.mp3";
-        files << "./testdata/chord-major-g#-keyboard.mp3";
-        files << "./testdata/chord-minor-a-keyboard.mp3";
-        files << "./testdata/chord-minor-a#-keyboard.mp3";
-        files << "./testdata/chord-minor-b-keyboard.mp3";
-        files << "./testdata/chord-minor-c-keyboard.mp3";
-        files << "./testdata/chord-minor-c#-keyboard.mp3";
-        files << "./testdata/chord-minor-d-keyboard.mp3";
-        files << "./testdata/chord-minor-d#-keyboard.mp3";
-        files << "./testdata/chord-minor-e-keyboard.mp3";
-        files << "./testdata/chord-minor-f-keyboard.mp3";
-        files << "./testdata/chord-minor-f#-keyboard.mp3";
-        files << "./testdata/chord-minor-g-keyboard.mp3";
-        files << "./testdata/chord-minor-g#-keyboard.mp3";
+        files << "./testdata/chords/chord-major-a-keyboard.mp3";
+        files << "./testdata/chords/chord-major-a#-keyboard.mp3";
+        files << "./testdata/chords/chord-major-b-keyboard.mp3";
+        files << "./testdata/chords/chord-major-c-keyboard.mp3";
+        files << "./testdata/chords/chord-major-c#-keyboard.mp3";
+        files << "./testdata/chords/chord-major-d-keyboard.mp3";
+        files << "./testdata/chords/chord-major-d#-keyboard.mp3";
+        files << "./testdata/chords/chord-major-e-keyboard.mp3";
+        files << "./testdata/chords/chord-major-f-keyboard.mp3";
+        files << "./testdata/chords/chord-major-f#-keyboard.mp3";
+        files << "./testdata/chords/chord-major-g-keyboard.mp3";
+        files << "./testdata/chords/chord-major-g#-keyboard.mp3";
+        files << "./testdata/chords/chord-minor-a-keyboard.mp3";
+        files << "./testdata/chords/chord-minor-a#-keyboard.mp3";
+        files << "./testdata/chords/chord-minor-b-keyboard.mp3";
+        files << "./testdata/chords/chord-minor-c-keyboard.mp3";
+        files << "./testdata/chords/chord-minor-c#-keyboard.mp3";
+        files << "./testdata/chords/chord-minor-d-keyboard.mp3";
+        files << "./testdata/chords/chord-minor-d#-keyboard.mp3";
+        files << "./testdata/chords/chord-minor-e-keyboard.mp3";
+        files << "./testdata/chords/chord-minor-f-keyboard.mp3";
+        files << "./testdata/chords/chord-minor-f#-keyboard.mp3";
+        files << "./testdata/chords/chord-minor-g-keyboard.mp3";
+        files << "./testdata/chords/chord-minor-g#-keyboard.mp3";
         
-        files << "./testdata/dead_rocks.mp3";
-        files << "./testdata/instrument-alto_sax.mp3";
-        files << "./testdata/instrument-b4blues.mp3";
-        files << "./testdata/instrument-bassoon.mp3";
-        files << "./testdata/instrument-bells.mp3";
-        files << "./testdata/instrument-clarinet2.mp3";
-        files << "./testdata/instrument-classical_trumpet.mp3";
-        files << "./testdata/instrument-concert_piano.mp3";
-        files << "./testdata/instrument-flute_vibrato.mp3";
-        files << "./testdata/instrument-hapsichord.mp3";
-        files << "./testdata/instrument-harp.mp3";
-        files << "./testdata/instrument-marimba.mp3";
-        files << "./testdata/instrument-oboe_vibrato.mp3";
-        files << "./testdata/instrument-rec-git-aenima.mp3";
-        files << "./testdata/instrument-rec-git-clean-hall.mp3";
-        files << "./testdata/instrument-rec-git-dist_nemo.mp3";
-        files << "./testdata/instrument-rec-git-message.mp3";
-        files << "./testdata/instrument-rec-git-pop_flange.mp3";
-        files << "./testdata/instrument-rec-git-uk80.mp3";
-        files << "./testdata/instrument-rockacoustic_piano.mp3";
-        files << "./testdata/instrument-screamb4.mp3";
-        files << "./testdata/instrument-viola_vibrato.mp3";
-        files << "./testdata/instrument-viola_warm_section.mp3";
-        files << "./testdata/instrument-violin_warm_section.mp3";
+        files << "./testdata/instrument/multiplenotes/instrument-alto_sax.mp3";
+        files << "./testdata/instrument/multiplenotes/instrument-b4blues.mp3";
+        files << "./testdata/instrument/multiplenotes/instrument-bassoon.mp3";
+        files << "./testdata/instrument/multiplenotes/instrument-bells.mp3";
+        files << "./testdata/instrument/multiplenotes/instrument-clarinet2.mp3";
+        files << "./testdata/instrument/multiplenotes/instrument-classical_trumpet.mp3";
+        files << "./testdata/instrument/multiplenotes/instrument-concert_piano.mp3";
+        files << "./testdata/instrument/multiplenotes/instrument-flute_vibrato.mp3";
+        files << "./testdata/instrument/multiplenotes/instrument-hapsichord.mp3";
+        files << "./testdata/instrument/multiplenotes/instrument-harp.mp3";
+        files << "./testdata/instrument/multiplenotes/instrument-marimba.mp3";
+        files << "./testdata/instrument/multiplenotes/instrument-oboe_vibrato.mp3";
+        files << "./testdata/instrument/multiplenotes/instrument-rec-git-aenima.mp3";
+        files << "./testdata/instrument/multiplenotes/instrument-rec-git-clean-hall.mp3";
+        files << "./testdata/instrument/multiplenotes/instrument-rec-git-dist_nemo.mp3";
+        files << "./testdata/instrument/multiplenotes/instrument-rec-git-message.mp3";
+        files << "./testdata/instrument/multiplenotes/instrument-rec-git-pop_flange.mp3";
+        files << "./testdata/instrument/multiplenotes/instrument-rec-git-uk80.mp3";
+        files << "./testdata/instrument/multiplenotes/instrument-rockacoustic_piano.mp3";
+        files << "./testdata/instrument/multiplenotes/instrument-screamb4.mp3";
+        files << "./testdata/instrument/multiplenotes/instrument-viola_vibrato.mp3";
+        files << "./testdata/instrument/multiplenotes/instrument-viola_warm_section.mp3";
+        files << "./testdata/instrument/multiplenotes/instrument-violin_warm_section.mp3";*/
+        
+        DEBUG_OUT("adding files in \"./testdata/instrument/singlenotes/\" to the file list...", 10);
+        DIR* dir = NULL;        //POSIX standard calls
+        struct dirent *ent;
+        dir = opendir("./testdata/instrument/singlenotes/");
+        int filecount=0;
+        while ((ent = readdir (dir)) != NULL)
+        {
+            filecount++;
+            std::string filename(ent->d_name);
+            std::string loweredFilename(filename);
+            tolower(loweredFilename);
+            if (endsWith(loweredFilename, ".mp3"))
+            {
+                files << "./testdata/instrument/singlenotes/" + filename;
+            }
+        }
+        DEBUG_OUT("added " << filecount << " files.", 10);
+        
         files << "./testdata/mixture-all_but_bass.mp3";
         files << "./testdata/mixture-all_but_drums.mp3";
         files << "./testdata/mixture-all_but_rhgit.mp3";
@@ -647,6 +671,7 @@ namespace tests
         files << "./testdata/rhythm-drums-80-4_4-8th_hihat.mp3";
         files << "./testdata/rhythm-metronom-180.mp3";
         files << "./testdata/rhythm-metronom-80.mp3";
+        files << "./testdata/dead_rocks.mp3";
         files << "./testdata/tenpenny_joke.mp3";
         files << "./testdata/test.mp3";
         
@@ -654,6 +679,8 @@ namespace tests
         musicaccess::Resampler22kHzMono resampler;
         CHECK(!file.isFileOpen());
         float* buffer = NULL;
+        
+        mkdir("./cqfcc", 0777);
         
         while (!files.empty())
         {
@@ -688,13 +715,13 @@ namespace tests
                 time = (1.0/32.0) * i;
                 //DEBUG_VAR_OUT(time, 0);
                 Eigen::VectorXd tmp = t.estimateTimbre(time, time + 0.02);
-                if (tmp.norm() > 0.1)
-                    data.push_back(tmp.normalized());
-                //data.push_back(tmp);
+                //if (tmp.norm() > 0.1)
+                //    data.push_back(tmp.normalized());
+                data.push_back(tmp);
             }
             DEBUG_VAR_OUT(data.size(), 0);
             
-            std::string outdatfile = std::string("cqfcc_") + basename(filename, true) + ".dat";
+            std::string outdatfile = std::string("cqfcc/") + basename(filename, true) + ".dat";
             DEBUG_OUT("Writing CQFCCs to file\"" << outdatfile << "\"...", 10);
             std::ofstream outstr(outdatfile.c_str());
             //std::ofstream outstr("cqfcc-oboe_vibrato.dat");
