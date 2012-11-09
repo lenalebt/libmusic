@@ -106,6 +106,8 @@ namespace music
         int fftHop;
         int fftLen;
         
+        int atomNr;
+        
         int nkMax;      //length of the largest atom in samples
         
         Eigen::SparseMatrix<std::complex<kiss_fft_scalar> >* fKernel;  //the transform kernel for one octave
@@ -173,13 +175,22 @@ namespace music
         double getq() {return q;}
         /**
          * @brief Returns the threshold at which values in the spectral kernel will be seen as zero in this transform.
-         * @return the threshold of values being treated as zero
+         * @return the threshold of values being treated as zero.
          */
         double getThreshold() {return threshold;}
         /**
          * @todo write description
          */
         double getAtomHopFactor() {return atomHopFactor;}
+        
+        /**
+         * @brief Returns the number of atoms per FFT frame.
+         * 
+         * The atoms are shifted to get a better resolution
+         * 
+         * @return the number of atoms per FFT frame.
+         */
+        int getAtomNr() {return atomNr;}
         
         /**
          * @brief Returns the length of the FFT to apply to the input data

@@ -21,6 +21,7 @@ namespace music
         threshold(0.0005),
         fftHop(64),
         fftLen(128),
+        atomNr(7),
         nkMax(0),
         fKernel(NULL)
     {
@@ -64,26 +65,27 @@ namespace music
         
         cqt->fftLen = pow(2.0, int(log2(first_center + ceil_nkMax_2))+1);    //the nextpow2 thing
         
-        int winNr = std::floor(double(cqt->fftLen - ceil_nkMax_2 - first_center) / atomHop)+1;
+        cqt->atomNr = std::floor(double(cqt->fftLen - ceil_nkMax_2 - first_center) / atomHop)+1;
         
-        int last_center = first_center + (winNr-1) * atomHop;
+        int last_center = first_center + (cqt->atomNr-1) * atomHop;
         
         cqt->fftHop = (last_center + atomHop) - first_center;
         
-        
+        /*
         std::cerr << "nkMax:" << cqt->nkMax << std::endl;
         std::cerr << "ceil_nkMax_2:" << ceil_nkMax_2 << std::endl;
         std::cerr << "nkMin:" << nkMin << std::endl;
         std::cerr << "atomHop:" << atomHop << std::endl;
         std::cerr << "first_center:" << first_center << std::endl;
         std::cerr << "FFTLen:" << cqt->fftLen << std::endl;
-        std::cerr << "winNr:" << winNr << std::endl;
+        std::cerr << "atomNr:" << cqt->atomNr << std::endl;
         std::cerr << "last_center:" << last_center << std::endl;
         std::cerr << "FFTHop:" << cqt->fftHop << std::endl;
-        
+        */
         
         //TODO: Calculate spectral kernels for one octave
-        Eigen::Matrix<std::complex<kiss_fft_scalar>, Eigen::Dynamic, Eigen::Dynamic> tmpFKernel(binsPerOctave, cqt->fftLen);     //fill into non-sparse matrix first, and then make sparse out of it (does not need that much memory)
+        Eigen::Matrix<std::complex<kiss_fft_scalar>, Eigen::Dynamic, Eigen::Dynamic>* tmpFKernel =
+            new Eigen::Matrix<std::complex<kiss_fft_scalar>, Eigen::Dynamic, Eigen::Dynamic>(binsPerOctave * cqt->atomNr, cqt->fftLen);     //fill into non-sparse matrix first, and then make sparse out of it (does not need that much memory)
         FFT fft;
         
         for (int bin = 1; bin <= binsPerOctave; bin++)
@@ -93,48 +95,59 @@ namespace music
             
             assert (nk <= cqt->nkMax);
             
-            std::complex<kiss_fft_scalar>* temporalKernel = new std::complex<kiss_fft_scalar>[cqt->fftLen];
-            std::complex<kiss_fft_scalar>* spectralKernel = new std::complex<kiss_fft_scalar>[cqt->fftLen];
+            std::complex<kiss_fft_scalar>* tmpTemporalKernel = new std::complex<kiss_fft_scalar>[nk];
             
-            for (int i=0; i<cqt->fftLen; i++)
-            {
-                temporalKernel[i]=0;
-            }
+            std::complex<kiss_fft_scalar>* temporalKernel = new std::complex<kiss_fft_scalar>[cqt->fftLen * cqt->atomNr];
+            std::complex<kiss_fft_scalar>* spectralKernel = new std::complex<kiss_fft_scalar>[cqt->fftLen * cqt->atomNr];
             
+            //temporarily compute nonshifted temporal kernel (to speed up calculations later on)
             for (int i=0; i<nk; i++)
             {
-                temporalKernel[i+first_center-(nk/2+(nk&1))] = window<kiss_fft_scalar>(nk, i)/nk * exp( kiss_fft_scalar((2.0 * M_PI * fk ) / fs) * i * std::complex<kiss_fft_scalar>(0.0 ,1.0) );
-                                                   //^^this rounds up if necessary.
+                tmpTemporalKernel[i] = window<kiss_fft_scalar>(nk, i)/nk * exp( kiss_fft_scalar((2.0 * M_PI * fk ) / fs) * i * std::complex<kiss_fft_scalar>(0.0 ,1.0) );
                 if (bin==1)
                     std::cerr << temporalKernel[i+first_center-(nk/2+(nk&1))] << " " << std::endl;
                     //std::cerr << window<float>(nk, i)/nk << " " << std::endl;
             }
             
-            int fftlength=0;
-            fft.docFFT((kiss_fft_cpx*)temporalKernel, cqt->fftLen, (kiss_fft_cpx*)spectralKernel, fftlength);
-            assert(cqt->fftLen == fftlength);
-            
-            //we have our spectral kernel now in spectralKernel. save it!
-            
-            for (int i=0; i<cqt->fftLen; i++)
+            //initialize memory of temporal kernels to 0.0+0.0*i
+            for (int i=0; i<cqt->fftLen * cqt->atomNr; i++)
             {
-                tmpFKernel(bin-1, i) = spectralKernel[i];
-                if (bin==1)
-                    std::cerr << " " << (abs(spectralKernel[i]) > threshold ? spectralKernel[i] : 0.0) << std::endl;
+                temporalKernel[i]=std::complex<kiss_fft_scalar>(0.0, 0.0);
             }
             
+            //set temporal kernels. they are shifted versions of tmpTemporalKernel.
+            for (int k=0; k<cqt->atomNr; k++)
+            {
+                int atomOffset = first_center-(nk/2+(nk&1));
+                for (int i=0; i<nk; i++)
+                {
+                    temporalKernel[(k*atomHop) + i + atomOffset] = tmpTemporalKernel[i];
+                }
+                int fftlength=0;
+                fft.docFFT((kiss_fft_cpx*)(temporalKernel+k*atomHop), cqt->fftLen, (kiss_fft_cpx*)(spectralKernel+k*atomHop), fftlength);
+                assert(cqt->fftLen == fftlength);
+            }
+            
+            //we have our spectral kernels now in spectralKernel. save it!
+            for (int k=0; k<cqt->atomNr; k++)
+            {
+                for (int i=0; i<cqt->fftLen; i++)
+                {
+                    (*tmpFKernel)(bin-1 + k*cqt->atomNr, i) = spectralKernel[i];
+                }
+            }
             
             delete[] temporalKernel;
             delete[] spectralKernel;
         }
         
-        cqt->fKernel = new Eigen::SparseMatrix<std::complex<kiss_fft_scalar> >(binsPerOctave, cqt->fftLen);
-        for (int i=0; i<binsPerOctave; i++)
+        cqt->fKernel = new Eigen::SparseMatrix<std::complex<kiss_fft_scalar> >(binsPerOctave * cqt->atomNr, cqt->fftLen);
+        for (int i=0; i<binsPerOctave * cqt->atomNr; i++)
         {
             for (int j=0; j<cqt->fftLen; j++)
             {
-                if (abs(tmpFKernel(i,j)) >= threshold)
-                    cqt->fKernel->insert(i, j) = tmpFKernel(i,j);
+                if (abs((*tmpFKernel)(i,j)) >= threshold)
+                    cqt->fKernel->insert(i, j) = (*tmpFKernel)(i,j);
             }
         }
         
