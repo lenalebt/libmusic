@@ -108,9 +108,18 @@ namespace tests
             }
         }
         conn->endTransaction();
-        closedir (dir);
-
         
+        //test for the behaviour of the database in case the data is not found
+        music::databaseentities::Recording rec;
+        rec.setID(-1);
+        CHECK(conn->getRecordingByID(rec));
+        rec.setID(456);
+        CHECK(conn->getRecordingByID(rec));
+        //or found...
+        rec.setID(1);
+        CHECK(conn->getRecordingByID(rec));
+        
+        closedir (dir);
         
         CHECK(conn->close());
         

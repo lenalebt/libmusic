@@ -69,7 +69,7 @@ namespace music
          */
         bool createTables();
         bool execStatement(std::string statement);
-        id_datatype getLastInsertRowID();
+        databaseentities::id_datatype getLastInsertRowID();
         
         /**
          * @brief Adds a genre to the database, or reads the ID if it already is present.
@@ -77,21 +77,21 @@ namespace music
          * @param genreName the name of the genre that should be searched for/created.
          * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
          */
-        bool addOrGetGenre( DatabaseConnection::id_datatype& id, std::string genreName);
+        bool addOrGetGenre( databaseentities::id_datatype& id, std::string genreName);
         /**
          * @brief Adds an album to the database, or reads the ID if it already is present.
          * @param[out] id the album ID, no matter if it was found or created.
          * @param albumName the name of the album that should be searched for/created.
          * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
          */
-        bool addOrGetAlbum( DatabaseConnection::id_datatype& id, std::string albumName);
+        bool addOrGetAlbum( databaseentities::id_datatype& id, std::string albumName);
         /**
          * @brief Adds an artist to the database, or reads the ID if it already is present.
          * @param[out] id the artist ID, no matter if it was found or created.
          * @param artistName the name of the artist that should be searched for/created.
          * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
          */
-        bool addOrGetArtist(DatabaseConnection::id_datatype& id, std::string artistName);
+        bool addOrGetArtist(databaseentities::id_datatype& id, std::string artistName);
         
         /**
          * @brief Reads the genre ID by name.
@@ -99,21 +99,21 @@ namespace music
          * @param genreName the name of the genre that should be searched for.
          * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
          */
-        bool getGenreIDByName(DatabaseConnection::id_datatype& genreID, std::string genreName);
+        bool getGenreIDByName(databaseentities::id_datatype& genreID, std::string genreName);
         /**
          * @brief Reads the album ID by name.
          * @param[out] albumID the album ID, or -1 if the album was not found.
          * @param albumName the name of the album that should be searched for.
          * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
          */
-        bool getAlbumIDByName(DatabaseConnection::id_datatype& albumID, std::string albumName);
+        bool getAlbumIDByName(databaseentities::id_datatype& albumID, std::string albumName);
         /**
          * @brief Reads the artist ID by name.
          * @param[out] artistID the artist ID, or -1 if the artist was not found.
          * @param artistName the name of the artist that should be searched for.
          * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
          */
-        bool getArtistIDByName(DatabaseConnection::id_datatype& artistID, std::string artistName);
+        bool getArtistIDByName(databaseentities::id_datatype& artistID, std::string artistName);
     };
 }
 #endif //SQLITEDATABASECONNECTION_HPP

@@ -30,7 +30,6 @@ namespace music
     protected:
         
     public:
-        typedef long id_datatype;
         
         /**
          * @brief Opens the database connection.

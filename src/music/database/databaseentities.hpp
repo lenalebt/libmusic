@@ -8,6 +8,8 @@ namespace music
 {
     namespace databaseentities
     {
+        typedef long id_datatype;
+        
         /**
          * @brief Objects of this class are database value objects for the timbre feature.
          * 
@@ -73,7 +75,7 @@ namespace music
         class RecordingFeatures
         {
         private:
-            long id;
+            id_datatype id;
             double length;
             double tempo;
             double dynamicrange;
@@ -84,8 +86,8 @@ namespace music
              */
             RecordingFeatures();
             
-            void setID(long id)             {this->id = id;}
-            long getID() const              {return id;}
+            void setID(id_datatype id)             {this->id = id;}
+            id_datatype getID() const              {return id;}
         };
         
         /**
@@ -102,7 +104,7 @@ namespace music
         class Recording
         {
         private:
-            long id;
+            id_datatype id;
             std::string filename;
             std::string artist;
             std::string title;
@@ -117,8 +119,8 @@ namespace music
             Recording();
             Recording(std::string filename);
             
-            void setID(long id)                             {this->id = id;}
-            long getID() const                              {return id;}
+            void setID(id_datatype id)                      {this->id = id;}
+            id_datatype getID() const                       {return id;}
             
             void setFilename(std::string filename)          {this->filename = filename;}
             std::string getFilename() const                 {return filename;}
@@ -146,11 +148,13 @@ namespace music
         class Category
         {
         private:
-            
+            id_datatype id;
+            std::string categoryName;
         protected:
             
         public:
-            
+            void setID(id_datatype id)                      {this->id = id;}
+            id_datatype getID()                             {return id;}
         };
     }
 }
