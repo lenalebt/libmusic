@@ -16,6 +16,7 @@ namespace music
      * 
      * @todo implement
      * 
+     * @ingroup database
      * @author Lena Brueder
      * @date 2012-07-16
      */

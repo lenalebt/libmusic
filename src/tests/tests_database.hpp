@@ -3,6 +3,8 @@
 
 namespace tests
 {
+    /** @ingroup tests
+     */
     int testSQLiteDatabaseConnection();
 }
 

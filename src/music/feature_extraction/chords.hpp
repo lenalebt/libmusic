@@ -14,6 +14,7 @@ namespace music
     /**
      * @todo Doku schreiben
      * @todo Implementierung überdenken
+     * @ingroup feature_extraction
      */
     class ChordHypothesis
     {
@@ -34,7 +35,9 @@ namespace music
         friend std::ostream& operator<<(std::ostream& os, const ChordHypothesis& chord);
         friend class ChordEstimator;
     };
-
+    /**
+     * @ingroup feature_extraction
+     */
     class ChordEstimator
     {
     private:

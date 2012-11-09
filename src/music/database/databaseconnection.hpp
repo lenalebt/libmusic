@@ -6,6 +6,11 @@
 namespace music
 {
     /**
+     * @defgroup database Database
+     * @brief All classes in this module belong to the database
+     */
+     
+    /**
      * @brief This class is an interface for all database connections.
      * 
      * Have a look at the implementations for details.
@@ -13,6 +18,7 @@ namespace music
      * @todo implement
      * 
      * @see SQLiteDatabaseConnection
+     * @ingroup database
      * @author Lena Brueder
      * @date 2012-07-16
      */

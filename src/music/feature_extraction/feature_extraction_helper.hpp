@@ -7,6 +7,11 @@
 namespace music
 {
     /**
+     * @defgroup feature_extraction Feature Extraction
+     * @brief All classes in this module belong to feature extraction.
+     */
+    
+    /**
      * @brief This class creates statistics per bin of a constant Q transform result.
      * 
      * The class is optimized for computation speed, so it tries to calculate some
@@ -14,6 +19,7 @@ namespace music
      * you need some information at once.
      * 
      * @author Lena Brueder
+     * @ingroup feature_extraction
      * @date 2012-07-02
      */
     class PerBinStatistics

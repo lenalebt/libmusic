@@ -20,6 +20,11 @@
 #define CHECK(a)                if (!check_equality(LINESTR(a,true), a, true)) return EXIT_FAILURE;
 
 /**
+ * @defgroup tests
+ * @brief The testing module contains all tests.
+ */
+
+/**
  * @ingroup tests
  * @brief testing functions will be put in this namespace.
  */
