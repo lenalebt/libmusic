@@ -132,6 +132,13 @@ namespace tests
                 CHECK(conn->getRecordingByID(*recording, true));
                 CHECK_OP(recording->getAlbum(), ==, std::string("unknownAlbum"));
                 
+                music::databaseentities::id_datatype recordingID = -1;
+                CHECK(conn->getRecordingIDByFilename(recordingID, recording->getFilename()));
+                CHECK_EQ(recording->getID(), recordingID);
+                
+                std::vector<music::databaseentities::id_datatype> recordingIDs;
+                CHECK(conn->getRecordingIDByProperties(recordingIDs, recording->getArtist(), recording->getTitle(), recording->getAlbum()));
+                CHECK_OP(recordingIDs.size(), >, 0);
                 
                 delete recording;
             }
