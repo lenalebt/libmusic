@@ -34,12 +34,15 @@ namespace music
     protected:
         ConstantQTransformResult* transformResult;
         DCT dct;
+        unsigned int timbreVectorSize;
+        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> cosValues;
         
         Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> estimateTimbre1(double fromTime, double toTime);
         Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> estimateTimbre2(double fromTime, double toTime);
         Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> estimateTimbre3(double fromTime, double toTime);
+        Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> estimateTimbre4(double fromTime, double toTime);
     public:
-        TimbreEstimator(ConstantQTransformResult* transformResult);
+        TimbreEstimator(ConstantQTransformResult* transformResult, unsigned int timbreVectorSize=12);
         Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> estimateTimbre(double fromTime, double toTime);
     };
     

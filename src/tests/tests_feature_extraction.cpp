@@ -613,7 +613,7 @@ namespace tests
         }
         
         
-        music::GaussianMixtureModelFullCov<kiss_fft_scalar> gmm;
+        music::GaussianMixtureModelDiagCov<kiss_fft_scalar> gmm;
         gmm.trainGMM(data, 3);
         std::vector<music::Gaussian<kiss_fft_scalar>*> gaussians = gmm.getGaussians();
         DEBUG_OUT("gaussians of gmm algorithm:", 10);

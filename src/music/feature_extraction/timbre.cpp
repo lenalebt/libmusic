@@ -8,7 +8,55 @@ namespace music
 {
     Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> TimbreEstimator::estimateTimbre(double fromTime, double toTime)
     {
-        return this->estimateTimbre3(fromTime, toTime);
+        return this->estimateTimbre4(fromTime, toTime);
+    }
+    Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> TimbreEstimator::estimateTimbre4(double fromTime, double toTime)
+    {
+        assert (fromTime <= toTime);
+        
+        Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> vec(transformResult->getOctaveCount() * transformResult->getBinsPerOctave());
+        
+        //we need less than 128 bins, otherwise we might not use the stack to store the arrays.
+        assert(transformResult->getOctaveCount() * transformResult->getBinsPerOctave());
+        
+        int i=0;
+        double duration = toTime - fromTime;
+        double sum=0.0, sumEl, max=0.0;
+        for (int octave=0; octave<transformResult->getOctaveCount(); octave++)
+        {
+            for (int bin=0; bin<transformResult->getBinsPerOctave(); bin++)
+            {
+                //when taking the mean values, absolute values are returned.
+                vec[i] = log(sumEl=transformResult->getNoteValueMean(toTime, octave, bin, duration));
+                sum += sumEl;
+                if (sumEl > max)
+                    max = sumEl;
+                
+                if (vec[i] < -100)
+                    vec[i] = -100;
+                
+                i++;
+            }
+        }
+        
+        //on low values, do not calculate timbre. instead, give back an error value.
+        if (sum < 5.0)
+            return Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1>::Zero(1);
+        
+        
+        Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> timbre(timbreVectorSize);
+        //apply dct...
+        for (unsigned int k=1; k<=timbreVectorSize; k++)
+        {
+            double sum=0.0;
+            for (int n=0; n<cosValues.rows(); n++)
+            {
+                sum += vec[n] * cosValues(n, k-1);
+            }
+            timbre[k-1] = sum;
+        }
+        DEBUG_VAR_OUT(timbre.transpose(), 0);
+        return timbre;
     }
     Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> TimbreEstimator::estimateTimbre3(double fromTime, double toTime)
     {
@@ -169,10 +217,17 @@ namespace music
         return timbre;
     }
     
-    TimbreEstimator::TimbreEstimator(ConstantQTransformResult* transformResult) :
-        transformResult(transformResult)
+    TimbreEstimator::TimbreEstimator(ConstantQTransformResult* transformResult, unsigned int timbreVectorSize) :
+        transformResult(transformResult), timbreVectorSize(timbreVectorSize), cosValues(transformResult->getOctaveCount() * transformResult->getBinsPerOctave(), timbreVectorSize)
     {
-        
+        assert(timbreVectorSize > 1);
+        for (unsigned int k=1; k<=timbreVectorSize; k++)
+        {
+            for (int n=0; n<cosValues.rows(); n++)
+            {
+                cosValues(n, k-1) = cos(M_PI/double(cosValues.rows()) * (double(n)+0.5) * double(k));
+            }
+        }
     }
     
     TimbreModel::TimbreModel(ConstantQTransformResult* transformResult) :

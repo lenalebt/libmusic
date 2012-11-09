@@ -276,7 +276,12 @@ namespace music
         /**
          * @brief Train this GMM to model the data given.
          * 
-         * @param data The data that should be modeled
+         * @param data The data that should be modeled. You need to give at
+         *      least as many data points to the algorithm as the dimension of the
+         *      data is, otherwise the algorithm fails (built-in assertion).
+         *      Ideally, you would give around <code>10^dimension</code>
+         *      data points to the algorithm. As you will normally not have that many data
+         *      points, the rule of thumb is "the more data, the better the model!".
          * @param gaussianCount The count of gaussian distributions that will be used to model the data
          * 
          */

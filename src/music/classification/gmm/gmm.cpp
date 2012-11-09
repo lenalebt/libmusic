@@ -174,6 +174,11 @@ namespace music
         gaussians = this->emAlg(std::vector<Gaussian<ScalarType>*>(), data, gaussianCount);
     }
     
+    /**
+     * @bug This function does not work properly when you give it just a few data vectors.
+     *      Seems to be a problem with linear dependent rows, as the covariance matricies are ill-conditioned
+     *      (condition > 1e8).
+     */
     template <typename ScalarType>
     std::vector<Gaussian<ScalarType>*> GaussianMixtureModelFullCov<ScalarType>::emAlg(const std::vector<Gaussian<ScalarType>*>& init, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, unsigned int gaussianCount, unsigned int maxIterations)
     {
@@ -187,6 +192,7 @@ namespace music
         assert(dimension > 0);
         unsigned int dataSize = data.size();
         assert(dataSize > 0);
+        assert(dataSize >= dimension);
         
         if (init.empty())
         {
@@ -383,6 +389,7 @@ namespace music
         assert(dimension>0);
         unsigned int dataSize = data.size();
         assert(dataSize>0);
+        assert(dataSize >= dimension);
         
         if (init.empty())
         {
@@ -445,10 +452,6 @@ namespace music
                 //taking the sqrt first helps with some accuracy issues
                 double factor = 1.0/( pow(2*M_PI, dimension/2.0) * diagCovs[g].template cast<double>().cwiseSqrt().prod() );
                 
-                DEBUG_VAR_OUT(factor, 0);
-                DEBUG_VAR_OUT(means[g].transpose(), 0);
-                DEBUG_VAR_OUT(diagCovs[g].transpose(), 0);
-                
                 //for every data point do...
                 for (unsigned int i=0; i < dataSize; i++)
                 {
@@ -458,7 +461,7 @@ namespace music
                 }
             }
             
-            DEBUG_VAR_OUT(p, 0);
+            //DEBUG_VAR_OUT(p, 0);
             
             double sum;
             for (unsigned int i=0; i<dataSize; i++)
