@@ -97,7 +97,7 @@ namespace music
                 DEBUG_OUT("adding gaussian distribution " << i << "...", 25);
                 Gaussian* gaussian = new GaussianFullCov(dimension);
                 
-                gaussian->setMean(data[rand() % dataSize]);
+                gaussian->setMean(data[std::rand() % dataSize]);
                 gaussian->setCovarianceMatrix(Eigen::MatrixXd::Identity(dimension, dimension));
                 gaussians.push_back(gaussian);
             }
@@ -187,6 +187,23 @@ namespace music
         return gaussians;
     }
     double GaussianMixtureModel::compareTo(const GaussianMixtureModel& other)
+    {
+        
+    }
+    
+    Eigen::VectorXd GaussianMixtureModel::rand()
+    {
+        double sumOfWeights=0.0;
+        double randomNumber = uniRNG.rand();
+        for (int i=0; i<gaussians.size(); i++)
+        {
+            sumOfWeights += gaussians[i]->getWeight();
+            if (sumOfWeights > randomNumber)
+                return gaussians[i]->rand();
+        }
+    }
+    GaussianMixtureModel::GaussianMixtureModel() :
+        uniRNG(0.0, 1.0)
     {
         
     }
