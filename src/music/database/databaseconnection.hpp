@@ -17,6 +17,9 @@ namespace music
      * Have a look at the implementations for details.
      * 
      * @todo implement
+     * @remarks The return code of the functions does not say anything about if an element was found or not.
+     *      It only tells you if an error occured (results in <code>false</code>), or
+     *      not (results in <code>true</code>).
      * 
      * @see SQLiteDatabaseConnection
      * @ingroup database
@@ -97,11 +100,68 @@ namespace music
          */
         virtual bool addRecordingFeatures(databaseentities::RecordingFeatures& features)=0;
         
+        /**
+         * @brief Reads a recording from the database by giving the id.
+         * 
+         * @param[in,out] recording Will read the id from this parameter. Will store the data in this parameter.
+         * @param readFeatures Determines if the features will be read from the database, or not. The features
+         *      will be stored inside <code>recording</code>.
+         * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
+         */
         virtual bool getRecordingByID(databaseentities::Recording& recording, bool readFeatures=false)=0;
         
+        /**
+         * @brief Reads recording features from the database by giving the id.
+         * 
+         * @param[in,out] recordingFeatures Will read the id from this parameter. Will store the data in this parameter.
+         * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
+         */
+        virtual bool getRecordingFeaturesByID(databaseentities::RecordingFeatures& recordingFeatures)=0;
+        
+        /**
+         * @brief Adds a new category to the database.
+         * 
+         * 
+         * @remarks The category name needs to be unique, it is not possible to add
+         *      a second category with the same name. If such a category already exists, the database
+         *      will not save a new one, and instead use the id of the already existing category.
+         * 
+         * @param[in,out] category The category that will be added to the database.
+         *      If the category does not exist, a new id will be generated and stored in this
+         *      parameter. If the category already exists, its id will be saved in
+         *      this parameter.
+         * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
+         */
         virtual bool addCategory(databaseentities::Category& category)=0;
+        
+        /**
+         * @brief Reads a category from the database by giving the id.
+         * 
+         * @param[in,out] category Will read the id from this parameter. Will store the data in this parameter.
+         * @param readDescription Determines if the description of the category (its model) will be read from
+         *      the database, or not. The features will be stored inside <code>recording</code>.
+         * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
+         */
         virtual bool getCategoryByID(databaseentities::Category& category, bool readDescription=false)=0;
+        /**
+         * @brief Adds a new category description to the database.
+         * 
+         * 
+         * @remarks The category description will be a new one, no matter if
+         *      the id of <code>category</code> already exists.
+         * 
+         * @param[in,out] categoryDescription The category description that will be added to the database.
+         *      A new id will be generated and stored in this parameter.
+         * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
+         */
         virtual bool addCategoryDescription(databaseentities::CategoryDescription& categoryDescription)=0;
+        
+        /**
+         * @brief Reads a category description from the database by giving the id.
+         * 
+         * @param[in,out] categoryDescription Will read the id from this parameter. Will store the data in this parameter.
+         * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
+         */
         virtual bool getCategoryDescriptionByID(databaseentities::CategoryDescription& categoryDescription)=0;
         //TODO: need update for category description.
     };

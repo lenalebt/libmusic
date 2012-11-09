@@ -16,6 +16,9 @@ namespace music
         _saveRecordingStatement     (NULL),
         _getRecordingByIDStatement  (NULL),
         
+        _saveRecordingFeaturesStatement    (NULL),
+        _getRecordingFeaturesByIDStatement (NULL),
+        
         _saveArtistStatement        (NULL),
         _getArtistByIDStatement     (NULL),
         _getArtistByNameStatement   (NULL),
@@ -50,6 +53,11 @@ namespace music
             sqlite3_finalize(_saveRecordingStatement);
         if (_getRecordingByIDStatement != NULL)
             sqlite3_finalize(_getRecordingByIDStatement);
+            
+        if (_saveRecordingFeaturesStatement != NULL)
+            sqlite3_finalize(_saveRecordingFeaturesStatement);
+        if (_getRecordingFeaturesByIDStatement != NULL)
+            sqlite3_finalize(_getRecordingFeaturesByIDStatement);
             
         if (_saveArtistStatement != NULL)
             sqlite3_finalize(_saveArtistStatement);
@@ -792,7 +800,7 @@ namespace music
         
         if (_getRecordingByIDStatement == NULL)
         {
-            rc = sqlite3_prepare_v2(_db, "SELECT title, tracknr, filename, genreName, albumName, artistName FROM recording NATURAL JOIN genre NATURAL JOIN artist NATURAL JOIN album WHERE recordingID=@recordingID;", -1, &_getRecordingByIDStatement, NULL);
+            rc = sqlite3_prepare_v2(_db, "SELECT title, tracknr, filename, genreName, albumName, artistName, featuresID FROM recording NATURAL JOIN genre NATURAL JOIN artist NATURAL JOIN album WHERE recordingID=@recordingID;", -1, &_getRecordingByIDStatement, NULL);
             if (rc != SQLITE_OK)
             {
                 ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
@@ -813,6 +821,22 @@ namespace music
                 recording.setGenre(      std::string(reinterpret_cast<const char*>(sqlite3_column_text(_getRecordingByIDStatement, 3))));
                 recording.setAlbum(      std::string(reinterpret_cast<const char*>(sqlite3_column_text(_getRecordingByIDStatement, 4))));
                 recording.setArtist(     std::string(reinterpret_cast<const char*>(sqlite3_column_text(_getRecordingByIDStatement, 5))));
+                if (readFeatures)
+                {
+                    //TODO
+                    if (recording.getRecordingFeatures() != NULL)
+                        delete recording.getRecordingFeatures();
+                    databaseentities::RecordingFeatures* rf = new databaseentities::RecordingFeatures();
+                    rf->setID(sqlite3_column_int64( _getRecordingByIDStatement, 6));
+                    getRecordingFeaturesByID(*rf);
+                    recording.setRecordingFeatures(rf);
+                }
+                else
+                {
+                    if (recording.getRecordingFeatures() != NULL)
+                        delete recording.getRecordingFeatures();
+                    recording.setRecordingFeatures(NULL);
+                }
             }
             else
             {
@@ -828,6 +852,60 @@ namespace music
         }
         
         rc = sqlite3_reset(_getRecordingByIDStatement);
+        if (rc != SQLITE_OK)
+        {
+            ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        return true;
+    }
+    
+    bool SQLiteDatabaseConnection::getRecordingFeaturesByID(databaseentities::RecordingFeatures& recordingFeatures)
+    {
+        databaseentities::id_datatype recordingFeaturesID = recordingFeatures.getID();
+        recordingFeatures.setID(-1);    //set ID to -1. If the element is not found, this is what the user will see later on.
+        
+        if (recordingFeaturesID == -1)  //will not find entry if id==-1
+            return true;
+        
+        int rc;
+        
+        if (_getRecordingFeaturesByIDStatement == NULL)
+        {
+            rc = sqlite3_prepare_v2(_db, "SELECT featuresID, length, tempo, dynamicrange FROM features WHERE featuresID=@featuresID;", -1, &_getRecordingFeaturesByIDStatement, NULL);
+            if (rc != SQLITE_OK)
+            {
+                ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        //bind parameters
+        sqlite3_bind_int64(_getRecordingFeaturesByIDStatement, 1, recordingFeaturesID);
+        
+        while ((rc = sqlite3_step(_getRecordingFeaturesByIDStatement)) != SQLITE_DONE)
+        {
+            if (rc == SQLITE_ROW)
+            {
+                recordingFeatures.setLength(      sqlite3_column_double(_getRecordingFeaturesByIDStatement, 1));
+                recordingFeatures.setTempo(       sqlite3_column_double(_getRecordingFeaturesByIDStatement, 2));
+                recordingFeatures.setDynamicRange(sqlite3_column_double(_getRecordingFeaturesByIDStatement, 3));
+            }
+            else
+            {
+                ERROR_OUT("Failed to read data from database. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        if (rc != SQLITE_DONE)
+        {
+            ERROR_OUT("Failed to execute statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        rc = sqlite3_reset(_getRecordingFeaturesByIDStatement);
         if (rc != SQLITE_OK)
         {
             ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
@@ -941,10 +1019,120 @@ namespace music
     
     bool SQLiteDatabaseConnection::getCategoryDescriptionByID(databaseentities::CategoryDescription& categoryDescription)
     {
-        return false;
+        databaseentities::id_datatype categoryDescriptionID = categoryDescription.getID();
+        categoryDescription.setID(-1);    //set ID to -1. If the element is not found, this is what the user will see later on.
+        
+        if (categoryDescriptionID == -1)  //will not find entry if id==-1
+            return true;
+        
+        int rc;
+        
+        if (_getCategoryDescriptionByIDStatement == NULL)
+        {
+            rc = sqlite3_prepare_v2(_db, "SELECT categoryDescriptionID, dummy FROM categoryDescription WHERE categoryDescriptionID=@categoryDescriptionID;", -1, &_getCategoryDescriptionByIDStatement, NULL);
+            if (rc != SQLITE_OK)
+            {
+                ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        //bind parameters
+        sqlite3_bind_int64(_getCategoryDescriptionByIDStatement, 1, categoryDescriptionID);
+        
+        while ((rc = sqlite3_step(_getCategoryDescriptionByIDStatement)) != SQLITE_DONE)
+        {
+            if (rc == SQLITE_ROW)
+            {
+                //categoryDescription.setDummy(std::string(reinterpret_cast<const char*>(sqlite3_column_text(_getCategoryDescriptionByIDStatement, 0))));
+                
+            }
+            else
+            {
+                ERROR_OUT("Failed to read data from database. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        if (rc != SQLITE_DONE)
+        {
+            ERROR_OUT("Failed to execute statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        rc = sqlite3_reset(_getCategoryDescriptionByIDStatement);
+        if (rc != SQLITE_OK)
+        {
+            ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        return true;
     }
     bool SQLiteDatabaseConnection::getCategoryByID(databaseentities::Category& category, bool readDescription)
     {
-        return false;
+        databaseentities::id_datatype categoryID = category.getID();
+        category.setID(-1);    //set ID to -1. If the element is not found, this is what the user will see later on.
+        
+        if (categoryID == -1)  //will not find entry if id==-1
+            return true;
+        
+        int rc;
+        
+        if (_getCategoryByIDStatement == NULL)
+        {
+            rc = sqlite3_prepare_v2(_db, "SELECT categoryID, categoryName, categoryDescriptionID FROM category WHERE categoryID=@categoryID;", -1, &_getCategoryByIDStatement, NULL);
+            if (rc != SQLITE_OK)
+            {
+                ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        //bind parameters
+        sqlite3_bind_int64(_getCategoryByIDStatement, 1, categoryID);
+        
+        while ((rc = sqlite3_step(_getCategoryByIDStatement)) != SQLITE_DONE)
+        {
+            if (rc == SQLITE_ROW)
+            {
+                category.setCategoryName(std::string(reinterpret_cast<const char*>(sqlite3_column_text(_getCategoryByIDStatement, 1))));
+                if (readDescription)
+                {
+                    databaseentities::CategoryDescription* catDesc = new databaseentities::CategoryDescription();
+                    catDesc->setID(sqlite3_column_int64(_getCategoryByIDStatement, 2));
+                    getCategoryDescriptionByID(*catDesc);
+                    category.setCategoryDescription(catDesc);
+                }
+                else
+                {
+                    if (category.getCategoryDescription() != NULL)
+                    {
+                        delete category.getCategoryDescription();
+                    }
+                    category.setCategoryDescription(NULL);
+                }
+            }
+            else
+            {
+                ERROR_OUT("Failed to read data from database. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        if (rc != SQLITE_DONE)
+        {
+            ERROR_OUT("Failed to execute statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        rc = sqlite3_reset(_getCategoryByIDStatement);
+        if (rc != SQLITE_OK)
+        {
+            ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        return true;
     }
 }

@@ -15,6 +15,10 @@ namespace music
      * files as backend and is not divided into client and server.
      * 
      * @todo implement
+     * @see DatabaseConnection
+     * @remarks The return code of the functions does not say anything about if an element was found or not.
+     *      It only tells you if an error occured (results in <code>false</code>), or
+     *      not (results in <code>true</code>).
      * 
      * @ingroup database
      * @author Lena Brueder
@@ -37,6 +41,7 @@ namespace music
         bool addRecordingFeatures(databaseentities::RecordingFeatures& features);
         
         bool getRecordingByID(databaseentities::Recording& recording, bool readFeatures=false);
+        bool getRecordingFeaturesByID(databaseentities::RecordingFeatures& recordingFeatures);
         
         bool addCategory(databaseentities::Category& category);
         bool getCategoryByID(databaseentities::Category& category, bool readDescription=false);
@@ -52,6 +57,9 @@ namespace music
         
         sqlite3_stmt* _saveRecordingStatement;
         sqlite3_stmt* _getRecordingByIDStatement;
+        
+        sqlite3_stmt* _saveRecordingFeaturesStatement;
+        sqlite3_stmt* _getRecordingFeaturesByIDStatement;
         
         sqlite3_stmt* _saveArtistStatement;
         sqlite3_stmt* _getArtistByIDStatement;
