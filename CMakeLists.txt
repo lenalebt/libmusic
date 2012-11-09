@@ -130,6 +130,7 @@ TARGET_LINK_LIBRARIES(music
 ENABLE_TESTING()
 ADD_TEST(basename                  "musictests" "basename")
 ADD_TEST(libmusicaccess            "musictests" "libmusicaccess")
+ADD_TEST(eigen                     "musictests" "eigen")
 
 ADD_EXECUTABLE(musictests
     ${music_TEST_SOURCES}

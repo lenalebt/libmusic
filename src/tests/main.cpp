@@ -24,6 +24,8 @@ int main(int argc, char *argv[])
         return tests::testBasename();
     else if (testname == "libmusicaccess")
         return tests::testLibMusicAccess();
+    else if (testname == "eigen")
+        return tests::testEigen();
     else
     {
         std::cout << "test \"" << testname << "\" is unknown." << std::endl;
