@@ -22,25 +22,9 @@ namespace music
      */
     class SQLiteDatabaseConnection : public DatabaseConnection
     {
-    private:
-        
-    protected:
-        bool _dbOpen;
-        sqlite3* _db;
-        
-        sqlite3_stmt* _getLastInsertRowIDStatement;
-        
-        /**
-         * @brief Creates the needed tables in the database file.
-         * 
-         * This function is to be called upon the creation of a new database.
-         * 
-         * @return if the operation failed.
-         */
-        bool createTables();
-        bool execCreateTableStatement(std::string statement);
-        long getLastInsertRowID();
     public:
+        typedef long id_datatype;
+        
         SQLiteDatabaseConnection();
         ~SQLiteDatabaseConnection();
         bool open(std::string dbConnectionString);
@@ -51,6 +35,59 @@ namespace music
         
         bool addSong(Song* song);
         bool addSongFeatures(SongFeatures* features);
+    private:
+        
+    protected:
+        bool _dbOpen;
+        sqlite3* _db;
+        
+        sqlite3_stmt* _getLastInsertRowIDStatement;
+        
+        sqlite3_stmt* _saveSongStatement;
+        sqlite3_stmt* _getSongStatement;
+        
+        sqlite3_stmt* _saveArtistStatement;
+        sqlite3_stmt* _getArtistByIDStatement;
+        sqlite3_stmt* _getArtistByNameStatement;
+        
+        sqlite3_stmt* _saveAlbumStatement;
+        sqlite3_stmt* _getAlbumByIDStatement;
+        sqlite3_stmt* _getAlbumByNameStatement;
+        
+        sqlite3_stmt* _saveGenreStatement;
+        sqlite3_stmt* _getGenreByIDStatement;
+        sqlite3_stmt* _getGenreByNameStatement;
+        
+        /**
+         * @brief Creates the needed tables in the database file.
+         * 
+         * This function is to be called upon the creation of a new database.
+         * 
+         * @return if the operation failed.
+         */
+        bool createTables();
+        bool execStatement(std::string statement);
+        id_datatype getLastInsertRowID();
+        
+        bool addOrGetGenre( id_datatype& id, std::string genreName);
+        bool addOrGetAlbum( id_datatype& id, std::string albumName);
+        bool addOrGetArtist(id_datatype& id, std::string artistName);
+        
+        /**
+         * @brief Reads the genre ID by name.
+         * @return the genre ID, or -1 if the read failed.
+         */
+        id_datatype getGenreIDByName(std::string genreName);
+        /**
+         * @brief Reads the album ID by name.
+         * @return the album ID, or -1 if the read failed.
+         */
+        id_datatype getAlbumIDByName(std::string albumName);
+        /**
+         * @brief Reads the artist ID by name.
+         * @return the artist ID, or -1 if the read failed.
+         */
+        id_datatype getArtistIDByName(std::string artistName);
     };
 }
 #endif //SQLITEDATABASECONNECTION_HPP
