@@ -23,12 +23,15 @@ namespace music
     
     std::string ChordHypothesis::getMaxHypothesisAsString()
     {
-        std::string chordname("");
+        /*std::string chordname("");
         if (hypothesis[hypothesis.size()-1].second/(hypothesis.size()/2) == 0)
             chordname += "major ";
         else if (hypothesis[hypothesis.size()-1].second/(hypothesis.size()/2) == 1)
             chordname += "minor ";
-        chordname += getNoteName(hypothesis[hypothesis.size()-1].second);
+        chordname += getNoteName(hypothesis[hypothesis.size()-1].second);*/
+        std::string chordname = getNoteName(hypothesis[hypothesis.size()-1].second);
+        if (hypothesis[hypothesis.size()-1].second/(hypothesis.size()/2) == 1)
+            std::transform(chordname.begin(), chordname.end(), chordname.begin(), ::tolower);
         return chordname;
     }
     std::string ChordHypothesis::getNoteName(int i)
