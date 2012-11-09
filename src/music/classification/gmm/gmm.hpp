@@ -437,8 +437,6 @@ namespace music
          *      to \f$\infty\f$ which means "imagine anything that does not fit, here it is".
          * @remarks There are some approaches: Earth Movers Distance, or by sampling.
          * 
-         * @todo Implement!
-         * 
          * @return A distance measure of the two gaussians.
          */
         ScalarType compareTo(const GaussianMixtureModel<ScalarType>& other, int sampleCount=200);
