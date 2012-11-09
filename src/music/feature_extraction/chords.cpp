@@ -66,7 +66,7 @@ namespace music
     ChordHypothesis* ChordEstimator::estimateChord(double fromTime, double toTime)
     {
         //return estimateChord3(fromTime, toTime);
-        return estimateChord2(fromTime, toTime);
+        return estimateChord1(fromTime, toTime);
     }
     ChordHypothesis* ChordEstimator::estimateChord3(double fromTime, double toTime)
     {
@@ -218,7 +218,7 @@ namespace music
         
         int binsPerOctave = transformResult->getBinsPerOctave();
         int octaveCount = transformResult->getOctaveCount();
-        ChordHypothesis* chord = new ChordHypothesis();
+        ChordHypothesis* chordHypothesis = new ChordHypothesis(binsPerOctave);
         
         /* TODO:
          * -rechne binsumme aus, sodass 12 bins bleiben (einer pro ton). nimm
@@ -234,7 +234,7 @@ namespace music
         Eigen::VectorXd chroma(binsPerOctave);
         for (int bin=0; bin < binsPerOctave; bin++)
         {
-            chroma[bin] = 0.0;
+            chordHypothesis->normalizedChroma[bin] = 0.0;
         }
         int maxElement = (toTime - fromTime) / timeResolution + fromTime / timeResolution;
         for (int i = fromTime / timeResolution; i < maxElement; i++)
@@ -246,9 +246,9 @@ namespace music
                 for (int octave=0; octave<octaveCount; octave++)
                 {
                     //val = std::abs(transformResult->getNoteValueNoInterpolation(i*timeResolution, octave, bin));
-                    binSum += std::abs(transformResult->getNoteValueNoInterpolation(i*timeResolution, octave, bin));
+                    binSum += std::abs(transformResult->getNoteValueMean(i*timeResolution, octave, bin, timeResolution));
                 }
-                chroma[bin] += binSum;
+                chordHypothesis->normalizedChroma[bin] += binSum;
             }
         }
         
@@ -259,48 +259,24 @@ namespace music
             //find largest value in magnitude
             for (int bin=0; bin < binsPerOctave; bin++)
             {
-                if (fabs(chroma[bin]) > maxVal)
-                    maxVal = fabs(chroma[bin]);
+                if (fabs(chordHypothesis->normalizedChroma[bin]) > maxVal)
+                    maxVal = fabs(chordHypothesis->normalizedChroma[bin]);
             }
-            double maxValReciprocal = 1.0 / maxVal;
-            for (int bin=0; bin < binsPerOctave; bin++)
+            if (maxVal != 0.0)
             {
-                //multiplication is faster than division
-                chroma[bin] *= maxValReciprocal;
-                noteList.push_back(std::pair<double, int>(chroma[bin], bin));
-                assert(chroma[bin] <= 1.0);
-            }
-        }
-        std::sort(noteList.begin(), noteList.end());
-        //chord->chord = chroma;
-        
-        bool* baseChord = new bool[binsPerOctave];
-        for (int i=0; i<binsPerOctave; i++)
-            baseChord[i] = false;
-        baseChord[noteList[binsPerOctave-1].second] = true;
-        baseChord[noteList[binsPerOctave-2].second] = true;
-        baseChord[noteList[binsPerOctave-3].second] = true;
-        if (noteList[binsPerOctave-4].first > (noteList[binsPerOctave-3].first/noteList[binsPerOctave-2].first)*noteList[binsPerOctave-3].first)
-            baseChord[noteList[binsPerOctave-4].second] = true;
-        
-        for (int i=0; i<binsPerOctave; i++)
-            std::cerr << baseChord[i] << " ";
-        std::cerr << std::endl;
-        
-        for (int i=0; i<binsPerOctave; i++)
-        {
-            if (baseChord[i] && baseChord[(i+4)%binsPerOctave] && baseChord[(i+7)%binsPerOctave])
-            {
-                std::cerr << "found chord: major " << chord->getNoteName(i) << std::endl;
-            }
-            if (baseChord[i] && baseChord[(i+3)%binsPerOctave] && baseChord[(i+7)%binsPerOctave])
-            {
-                std::cerr << "found chord: minor " << chord->getNoteName(i) << std::endl;
+                double maxValReciprocal = 1.0 / maxVal;
+                for (int bin=0; bin < binsPerOctave; bin++)
+                {
+                    //multiplication is faster than division
+                    chordHypothesis->normalizedChroma[bin] *= maxValReciprocal;
+                    assert(chordHypothesis->normalizedChroma[bin] <= 1.0);
+                }
             }
         }
         
-        delete baseChord;
-        return chord;
+        chordHypothesis->createHypothesis();
+        
+        return chordHypothesis;
     }
     
     void ChordHypothesis::createHypothesis()
