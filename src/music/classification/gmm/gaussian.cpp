@@ -42,10 +42,23 @@ namespace music
         Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> tmp = vector1 - vector2;
         if (pseudoInverse)
         {
+            DEBUG_OUT("pseudo", 10);
+            DEBUG_VAR_OUT(*pseudoInverse, 0);
+            DEBUG_VAR_OUT(tmp, 0);
+            DEBUG_VAR_OUT(getCovarianceMatrix(), 0);
+            DEBUG_VAR_OUT(getCovarianceMatrix().determinant(), 0);
+            DEBUG_VAR_OUT((*pseudoInverse) * tmp, 0);
+            DEBUG_VAR_OUT(tmp.transpose() * (*pseudoInverse), 0);
+            DEBUG_VAR_OUT(tmp.transpose() * (*pseudoInverse) * tmp, 0);
             return std::sqrt(tmp.transpose() * (*pseudoInverse) * tmp);
         }
         else
         {
+            DEBUG_OUT("nonpseudo", 10);
+            DEBUG_VAR_OUT(tmp, 0);
+            DEBUG_VAR_OUT(getCovarianceMatrix(), 0);
+            DEBUG_VAR_OUT(getCovarianceMatrix().determinant(), 0);
+            DEBUG_VAR_OUT(tmp.transpose() * llt.solve(tmp), 0);
             return std::sqrt(tmp.transpose() * llt.solve(tmp));
         }
     }
@@ -242,14 +255,14 @@ namespace music
         preFactor = weight * 1.0/(pow(2*M_PI, diagCov.size()/2.0) * determinant);
         assert(preFactor != 0.0);
         
-        if (determinant < std::numeric_limits<ScalarType>::epsilon()*std::numeric_limits<ScalarType>::epsilon()) //not invertible
+        if (determinant < std::numeric_limits<ScalarType>::epsilon()) //not invertible
         {   //calculate moore-penrose pseudoinverse if covariance matrix is not invertible
             Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> eigenvalues = diagCov;
             Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> invEigenvalues(eigenvalues.size());
             
             for (int i=0; i<eigenvalues.size(); i++)
             {
-                if (eigenvalues[i] > 200.0*eigenvalues.size() * std::numeric_limits<ScalarType>::epsilon())   //sum only nonzero eigenvalues. zero are values smaller than 200.0*dimension*machineepsilon
+                if (eigenvalues[i] > eigenvalues.size() * std::numeric_limits<ScalarType>::epsilon())   //sum only nonzero eigenvalues. zero are values smaller than dimension*machineepsilon
                 {
                     invEigenvalues[i] = 1.0/eigenvalues[i];
                 }
@@ -318,21 +331,25 @@ namespace music
         assert(determinant != 0.0);
         preFactor = weight * 1.0/(pow(2*M_PI, fullCov.rows()/2.0) * sqrt(determinant));
         
-        if (determinant < 1e-50)
+        if (determinant < std::numeric_limits<ScalarType>::epsilon())
         {   //calculate moore-penrose pseudoinverse if covariance matrix is not invertible
             DEBUG_OUT("calculate pseudoinverse", 10);
-            Eigen::RealSchur<Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> > rSchur(fullCov);
-            Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> eigenvalues = rSchur.matrixT().diagonal();
-            Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> invEigenvalues(eigenvalues.size());
+            Eigen::RealSchur<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> > rSchur(fullCov.template cast<double>());
+            Eigen::Matrix<double, Eigen::Dynamic, 1> eigenvalues = rSchur.matrixT().diagonal();
+            Eigen::Matrix<double, Eigen::Dynamic, 1> invEigenvalues(eigenvalues.size());
             
             for (int i=0; i<eigenvalues.size(); i++)
             {
-                if (eigenvalues[i] > 200.0*eigenvalues.size() * std::numeric_limits<ScalarType>::epsilon())   //sum only nonzero eigenvalues. zero are values smaller than 200.0*dimension*machineepsilon
+                if (eigenvalues[i] > eigenvalues.size() * std::numeric_limits<ScalarType>::epsilon())   //sum only nonzero eigenvalues. zero are values smaller than dimension*machineepsilon
                 {
+                    DEBUG_OUT("one", 10);
+                    DEBUG_VAR_OUT(eigenvalues[i], 0);
                     invEigenvalues[i] = 1.0/eigenvalues[i];
                 }
                 else
                 {
+                    DEBUG_OUT("two", 10);
+                    DEBUG_VAR_OUT(eigenvalues[i], 0);
                     invEigenvalues[i] = 0.0;
                 }
             }
@@ -340,8 +357,13 @@ namespace music
             if (pseudoInverse)
                 delete pseudoInverse;
             pseudoInverse = new Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>(
-                rSchur.matrixU() * invEigenvalues.asDiagonal() * rSchur.matrixU());
+                (rSchur.matrixU() * invEigenvalues.asDiagonal() * rSchur.matrixU().transpose()).template cast<ScalarType>()
+                );
+            DEBUG_VAR_OUT(eigenvalues, 0);
+            DEBUG_VAR_OUT(fullCov, 0);
             DEBUG_VAR_OUT(*pseudoInverse, 0);
+            DEBUG_VAR_OUT(fullCov * *pseudoInverse, 0);
+            DEBUG_VAR_OUT(*pseudoInverse * fullCov, 0);
         }
         else
         {
