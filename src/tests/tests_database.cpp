@@ -248,6 +248,13 @@ namespace tests
         CHECK(conn->getCategoryExampleScore(5, 1, score));
         CHECK_EQ(score, 0.3);
         
+        CHECK(conn->updateCategoryExampleScore(1, 2, 0.3));
+        CHECK(conn->updateCategoryExampleScore(1, 3, 0.3));
+        CHECK(conn->updateCategoryExampleScore(1, 4, 0.3));
+        CHECK(conn->updateCategoryExampleScore(1, 5, 0.3));
+        std::vector<std::pair<music::databaseentities::id_datatype, double> > recordingIDsAndScores;
+        CHECK(conn->getCategoryExampleRecordingIDs(recordingIDsAndScores, 1));
+        CHECK_EQ(recordingIDsAndScores.size(), 5u);
         
         CHECK(conn->beginTransaction());
         CHECK(conn->updateCategoryExampleScore(2, 1, 5.0));
@@ -364,7 +371,7 @@ namespace tests
         CHECK(conn->isDBOpen());
         
         
-        music::FilePreprocessor preprop;
+        music::FilePreprocessor preprop(conn);
         
         //TODO: try to add all files from the test directory to the database
         DIR* dir = NULL;        //POSIX standard calls
@@ -386,7 +393,7 @@ namespace tests
             if (endsWith(loweredFilename, ".mp3"))
             {
                 music::ProgressCallbackCaller* callback = new music::OutputStreamCallback(std::cout);
-                if (!preprop.preprocessFile(newPath + filename, recordingID, conn, callback))
+                if (!preprop.preprocessFile(newPath + filename, recordingID, callback))
                     ERROR_OUT("adding file \"" << filename << "\" failed. proceeding with next file...", 15)
             }
         }

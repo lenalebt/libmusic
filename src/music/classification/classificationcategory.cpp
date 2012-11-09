@@ -22,12 +22,12 @@ namespace music
         }
         
         if (callback)
-            callback->progress(0.5, "training model...");
+            callback->progress(0.5, "training timbre model...");
         
-        if (model)
-            delete model;
-        model = new GaussianMixtureModelDiagCov<kiss_fft_scalar>();
-        model->trainGMM(samples, gaussianCount);
+        if (timbreModel)
+            delete timbreModel;
+        timbreModel = new GaussianMixtureModelDiagCov<kiss_fft_scalar>();
+        timbreModel->trainGMM(samples, gaussianCount);
         
         if (callback)
             callback->progress(1.0, "finished!");
@@ -36,13 +36,13 @@ namespace music
     }
 
     ClassificationCategory::ClassificationCategory() :
-        model(NULL)
+        timbreModel(NULL)
     {
         
     }
     ClassificationCategory::~ClassificationCategory()
     {
-        if (model)
-            delete model;
+        if (timbreModel)
+            delete timbreModel;
     }
 }
