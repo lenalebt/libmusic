@@ -168,11 +168,16 @@ namespace music
         calculatePrefactor();
     }
     
+    /**
+     * @todo precompute good starting vectors
+     * @todo check result for being a local minimum
+     */
     template <typename ScalarType>
     void GaussianMixtureModel<ScalarType>::trainGMM(const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, int gaussianCount)
     {
         //TODO: precompute good starting vectors.
         gaussians = this->emAlg(std::vector<Gaussian<ScalarType>*>(), data, gaussianCount);
+        //TODO: check result for being a local minimum
     }
     
     /**

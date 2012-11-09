@@ -240,10 +240,11 @@ namespace music
         if (model)
             delete model;
     }
-    void TimbreModel::calculateModel(int modelSize, double timeSliceSize, unsigned int timbreVectorSize)
+    void TimbreModel::calculateModel(int modelSize, double timeSliceSize, unsigned int timbreVectorSize, ProgressCallbackCaller* callback)
     {
         assert(modelSize > 0);
         assert(timeSliceSize > 0.0);
+        assert(timbreVectorSize > 1);
         
         if (model)
         {
@@ -251,6 +252,9 @@ namespace music
             model = NULL;
         }
         model = new GaussianMixtureModelDiagCov<kiss_fft_scalar>();
+        
+        if (callback)
+            callback->progress(0.0, "initialized");
         
         //first get data vectors
         TimbreEstimator tEst(transformResult, timbreVectorSize);
@@ -261,9 +265,14 @@ namespace music
             time = i*timeSliceSize;
             data.push_back(tEst.estimateTimbre(time - timeSliceSize, time));
         }
+        if (callback)
+            callback->progress(0.5, "calculated timbre vectors");
         
         //then train the model
         model->trainGMM(data, modelSize);
+        
+        if (callback)
+            callback->progress(1.0, "finished");
     }
     GaussianMixtureModel<kiss_fft_scalar>* TimbreModel::getModel()
     {
