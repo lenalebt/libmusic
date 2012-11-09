@@ -18,6 +18,9 @@
  * learnModel() to learn a model, and afterwards call
  * classifyVector() on every vector you want to classify.
  * 
+ * @tparam ScalarType The type of the scalars in the vectors. Possible values:
+ *      <code>double</code> (Standard) and <code>float</code>.
+ * 
  * @remarks Scaling is done internally!
  * @ingroup classification
  * 
