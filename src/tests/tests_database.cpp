@@ -41,6 +41,7 @@ namespace tests
         CHECK(dir != NULL);
         
         DEBUG_OUT("searching for files in directory \"./testdata/\"...", 10);
+        conn->beginTransaction();
         while ((ent = readdir (dir)) != NULL)
         {
             std::string filename(ent->d_name);
@@ -50,8 +51,11 @@ namespace tests
             {
                 DEBUG_OUT("adding file to database: \"" << filename << "\"", 15);
                 music::Song* song = new music::Song(filename);
+                song->setGenre("unknown");
+                song->setAlbum("unknown");
+                song->setArtist("unknown");
                 
-                CHECK(conn->addSong(song));
+                CHECK(conn->addSong(*song));
                 
                 delete song;
             }
@@ -60,6 +64,7 @@ namespace tests
                 DEBUG_OUT("skipping file: \"" << filename << "\"", 25);
             }
         }
+        conn->endTransaction();
         closedir (dir);
 
         

@@ -10,6 +10,9 @@ namespace music
     SQLiteDatabaseConnection::SQLiteDatabaseConnection() :
         _dbOpen(false),
         _db(NULL),
+        
+        _getLastInsertRowIDStatement(NULL),
+        
         _saveSongStatement(NULL),
         _getSongStatement(NULL),
         
@@ -308,12 +311,13 @@ namespace music
         return retVal;
     }
     
-    bool SQLiteDatabaseConnection::addSong(Song* song)
+    bool SQLiteDatabaseConnection::addSong(Song& song)
     {
+        DEBUG_OUT("saving new song...", 30);
         int rc;
         if (_saveSongStatement == NULL)
         {
-            rc = sqlite3_prepare_v2(_db, "INSERT INTO song VALUES(@songID, @artistID, @title, @albumID, @tracknr, @filename, @featuresID);", -1, &_saveSongStatement, NULL);
+            rc = sqlite3_prepare_v2(_db, "INSERT INTO song VALUES(@songID, @artistID, @title, @albumID, @tracknr, @filename, @genreID, @featuresID);", -1, &_saveSongStatement, NULL);
             if (rc != SQLITE_OK)
             {
                 ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
@@ -325,35 +329,52 @@ namespace music
         id_datatype genreID=-1;
         id_datatype albumID=-1;
         id_datatype artistID=-1;
+        id_datatype featuresID=-1;
         
+        DEBUG_OUT("saving genre, album and artist...", 35);
         bool success;
-        success = addOrGetGenre(genreID, song->getGenre());
+        success = addOrGetGenre(genreID, song.getGenre());
         if (!success)
         {
             ERROR_OUT("could not save genre.", 10);
             return false;
         }
-        success = addOrGetAlbum(albumID, song->getAlbum());
+        success = addOrGetAlbum(albumID, song.getAlbum());
         if (!success)
         {
             ERROR_OUT("could not save album.", 10);
             return false;
         }
-        success = addOrGetGenre(artistID, song->getArtist());
+        success = addOrGetArtist(artistID, song.getArtist());
         if (!success)
         {
             ERROR_OUT("could not save artist.", 10);
             return false;
         }
+        DEBUG_OUT("genre, album and artist saved.", 40);
         
         //TODO: save features, if applicable
+        if (song.getSongFeatures() != NULL)
+        {
+            addSongFeatures(*(song.getSongFeatures()));
+            featuresID = song.getSongFeatures()->getID();
+        }
+        else
+        {
+            featuresID = -1;
+        }
         
-        //TODO: save rest of song
-        
-        #if 0
-        //bind parameters
-        sqlite3_bind_null(_saveSongStatement, 1);
-        sqlite3_bind_text(_saveSongStatement, 2, genreName.c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_null( _saveSongStatement, 1);
+        sqlite3_bind_int64(_saveSongStatement, 2, artistID);
+        sqlite3_bind_text( _saveSongStatement, 3, song.getTitle().c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_int64(_saveSongStatement, 4, albumID);
+        sqlite3_bind_int(  _saveSongStatement, 5, song.getTrackNumber());
+        sqlite3_bind_text( _saveSongStatement, 6, song.getFilename().c_str(), -1, SQLITE_TRANSIENT);
+        sqlite3_bind_int64(_saveSongStatement, 7, genreID);
+        if (featuresID == -1)
+            sqlite3_bind_null( _saveSongStatement, 8);
+        else
+            sqlite3_bind_int64(_saveSongStatement, 8, featuresID);
         
         rc = sqlite3_step(_saveSongStatement);
         if (rc != SQLITE_DONE)
@@ -369,14 +390,11 @@ namespace music
             return false;
         }
         
-        id = getLastInsertRowID();
+        song.setID(getLastInsertRowID());
         return true;
-        #endif
-        
-        return false;
     }
     
-    bool SQLiteDatabaseConnection::addSongFeatures(SongFeatures* song)
+    bool SQLiteDatabaseConnection::addSongFeatures(SongFeatures& song)
     {
         return false;
     }
@@ -514,9 +532,9 @@ namespace music
         }
         else
         {   //did not find entry. create a new one!
-            if (_saveAlbumStatement == NULL)
+            if (_saveArtistStatement == NULL)
             {
-                rc = sqlite3_prepare_v2(_db, "INSERT INTO artist VALUES(@artistID, @artistName);", -1, &_saveAlbumStatement, NULL);
+                rc = sqlite3_prepare_v2(_db, "INSERT INTO artist VALUES(@artistID, @artistName);", -1, &_saveArtistStatement, NULL);
                 if (rc != SQLITE_OK)
                 {
                     ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
@@ -525,17 +543,17 @@ namespace music
             }
             
             //bind parameters
-            sqlite3_bind_null(_saveAlbumStatement, 1);
-            sqlite3_bind_text(_saveAlbumStatement, 2, artistName.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_null(_saveArtistStatement, 1);
+            sqlite3_bind_text(_saveArtistStatement, 2, artistName.c_str(), -1, SQLITE_TRANSIENT);
             
-            rc = sqlite3_step(_saveAlbumStatement);
+            rc = sqlite3_step(_saveArtistStatement);
             if (rc != SQLITE_DONE)
             {
                 ERROR_OUT("Failed to execute statement. Resultcode: " << rc, 10);
                 return false;
             }
             
-            rc = sqlite3_reset(_saveAlbumStatement);
+            rc = sqlite3_reset(_saveArtistStatement);
             if (rc != SQLITE_OK)
             {
                 ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
@@ -573,7 +591,7 @@ namespace music
         {
             if (rc == SQLITE_ROW)
             {
-                genreID = sqlite3_column_int64(_getGenreByNameStatement, 1);
+                genreID = sqlite3_column_int64(_getGenreByNameStatement, 0);
             }
             else
             {
@@ -620,7 +638,7 @@ namespace music
         {
             if (rc == SQLITE_ROW)
             {
-                albumID = sqlite3_column_int64(_getAlbumByNameStatement, 1);
+                albumID = sqlite3_column_int64(_getAlbumByNameStatement, 0);
             }
             else
             {
@@ -651,8 +669,7 @@ namespace music
         
         if (_getArtistByNameStatement == NULL)
         {
-            //TODO: rc = sqlite3_prepare_v2(_db, "SELECT genreID, genreName FROM genre WHERE genreID=@genreID;", -1, &_getGenreByIDStatement, NULL);
-            rc = sqlite3_prepare_v2(_db, "SELECT genreID, genreName FROM genre WHERE genreName=@genreName;", -1, &_getArtistByNameStatement, NULL);
+            rc = sqlite3_prepare_v2(_db, "SELECT artistID, artistName FROM artist WHERE artistName=@artistName;", -1, &_getArtistByNameStatement, NULL);
             if (rc != SQLITE_OK)
             {
                 ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
@@ -668,7 +685,7 @@ namespace music
         {
             if (rc == SQLITE_ROW)
             {
-                artistID = sqlite3_column_int64(_getArtistByNameStatement, 1);
+                artistID = sqlite3_column_int64(_getArtistByNameStatement, 0);
             }
             else
             {
