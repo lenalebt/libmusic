@@ -27,6 +27,11 @@ using namespace colors;
 
 namespace tests
 {
+    void operator<<(std::queue<std::string>& queue, const std::string& str)
+    {
+        queue.push(str);
+    }
+    
     int testLibMusicAccess()
     {
         musicaccess::SoundFile file;
@@ -732,7 +737,150 @@ namespace tests
     
     int testEstimateChords()
     {
-        DEBUG_OUT("testing statistics per time slice (max, min, mean, variance, sum).", 10);
+        DEBUG_OUT("chord estimation", 10);
+        
+        music::ConstantQTransform* cqt = NULL;
+        musicaccess::IIRFilter* lowpassFilter = NULL;
+        
+        lowpassFilter = musicaccess::IIRFilter::createLowpassFilter(0.25);
+        CHECK_OP(lowpassFilter, !=, NULL);
+        
+        double q=2.0;
+        int bins=12;
+        
+        DEBUG_OUT("creating constant q transform kernel...", 15);
+        cqt = music::ConstantQTransform::createTransform(lowpassFilter, bins, 25, 11025, 22050, q, 0.0, 0.0005, 0.25);
+        
+        std::queue<std::string> files;
+        std::queue<std::string> chords;
+        
+        files <<  "./testdata/major-c-guitar.mp3";
+        chords << "major C";
+        files <<  "./testdata/major-c-keyboard.mp3";
+        chords << "major C";
+        files <<  "./testdata/major-c#-keyboard.mp3";
+        chords << "major C#";
+        files <<  "./testdata/major-d-guitar.mp3";
+        chords << "major D";
+        files <<  "./testdata/major-d-keyboard.mp3";
+        chords << "major D";
+        files <<  "./testdata/major-d#-keyboard.mp3";
+        chords << "major D#";
+        files <<  "./testdata/major-e-guitar.mp3";
+        chords << "major E";
+        files <<  "./testdata/major-e-keyboard.mp3";
+        chords << "major E";
+        files <<  "./testdata/major-f-guitar.mp3";
+        chords << "major F";
+        files <<  "./testdata/major-f-keyboard.mp3";
+        chords << "major F";
+        files <<  "./testdata/major-f#-keyboard.mp3";
+        chords << "major F#";
+        files <<  "./testdata/major-g-guitar.mp3";
+        chords << "major G";
+        files <<  "./testdata/major-g-keyboard.mp3";
+        chords << "major G";
+        files <<  "./testdata/major-g#-keyboard.mp3";
+        chords << "major G#";
+        files <<  "./testdata/major-a-guitar.mp3";
+        chords << "major A";
+        files <<  "./testdata/major-a-keyboard.mp3";
+        chords << "major A";
+        files <<  "./testdata/major-a#-keyboard.mp3";
+        chords << "major A#";
+        files <<  "./testdata/major-b-keyboard.mp3";
+        chords << "major B";
+        
+        files <<  "./testdata/minor-c-guitar.mp3";
+        chords << "minor C";
+        files <<  "./testdata/minor-c-keyboard.mp3";
+        chords << "minor C";
+        files <<  "./testdata/minor-c#-keyboard.mp3";
+        chords << "minor C#";
+        files <<  "./testdata/minor-d-guitar.mp3";
+        chords << "minor D";
+        files <<  "./testdata/minor-d-keyboard.mp3";
+        chords << "minor D";
+        files <<  "./testdata/minor-d#-keyboard.mp3";
+        chords << "minor D#";
+        files <<  "./testdata/minor-e-guitar.mp3";
+        chords << "minor E";
+        files <<  "./testdata/minor-e-keyboard.mp3";
+        chords << "minor E";
+        files <<  "./testdata/minor-f-guitar.mp3";
+        chords << "minor F";
+        files <<  "./testdata/minor-f-keyboard.mp3";
+        chords << "minor F";
+        files <<  "./testdata/minor-f#-keyboard.mp3";
+        chords << "minor F#";
+        files <<  "./testdata/minor-g-guitar.mp3";
+        chords << "minor G";
+        files <<  "./testdata/minor-g#-keyboard.mp3";
+        chords << "minor G#";
+        files <<  "./testdata/minor-a-guitar.mp3";
+        chords << "minor A";
+        files <<  "./testdata/minor-a-keyboard.mp3";
+        chords << "minor A";
+        files <<  "./testdata/minor-a#-keyboard.mp3";
+        chords << "minor A#";
+        files <<  "./testdata/minor-b-guitar.mp3";
+        chords << "minor B";
+        files <<  "./testdata/minor-b-keyboard.mp3";
+        chords << "minor B";
+
+        while (!files.empty())
+        {
+            std::string filename = files.front();
+            DEBUG_OUT("using file \"" << filename << "\"", 10);
+            files.pop();
+            std::string chord = chords.front();
+            DEBUG_OUT("should be chord \"" << chord << "\"", 10);
+            chords.pop();
+            
+            musicaccess::SoundFile file;
+            CHECK(!file.isFileOpen());
+            CHECK(file.open(filename, true));
+            CHECK(file.isFileOpen());
+            
+            float* buffer = NULL;
+            buffer = new float[file.getSampleCount()];
+            CHECK(buffer != NULL);
+            
+            int sampleCount = file.readSamples(buffer, file.getSampleCount());
+            //estimated size might not be accurate!
+            CHECK_OP(sampleCount, >=, 0.9*file.getSampleCount());
+            CHECK_OP(sampleCount, <=, 1.1*file.getSampleCount());
+            
+            musicaccess::Resampler22kHzMono resampler;
+            //int sampleCount = file.getSampleCount();
+            DEBUG_OUT("resampling input file...", 15);
+            resampler.resample(file.getSampleRate(), &buffer, sampleCount, file.getChannelCount());
+            
+            CHECK_OP(sampleCount, <, file.getSampleCount());
+            
+            DEBUG_OUT("applying constant q transform...", 15);
+            music::ConstantQTransformResult* transformResult = cqt->apply(buffer, sampleCount);
+            CHECK(transformResult != NULL);
+            
+            //std::ofstream chordstr("chords.dat");
+            
+            music::ChordEstimator chordEstimator(transformResult, 0.05);
+            /*for (double time=0.0; time<transformResult->getOriginalDuration(); time += 0.5)
+            {*/
+                music::ChordHypothesis* chordHypothesis = chordEstimator.estimateChord(1.0, 1.5);
+                
+                CHECK_EQ(chord, chordHypothesis->getMaxHypothesisAsString());
+                
+                //DEBUG_OUT(ConsoleColors::yellow() << "chord at time " << 1.0 << ":" << std::endl << ConsoleColors::defaultText() << *chord, 10);
+                //chordstr << *chord << ConsoleColors::defaultText() << std::endl << std::flush;
+            //}
+        }
+        return EXIT_SUCCESS;
+    }
+    
+    int testEstimateTimbre()
+    {
+        DEBUG_OUT("testing timbre features.", 10);
         
         music::ConstantQTransform* cqt = NULL;
         musicaccess::IIRFilter* lowpassFilter = NULL;
@@ -782,10 +930,6 @@ namespace tests
             DEBUG_OUT(ConsoleColors::yellow() << "chord at time " << time << ":" << std::endl << ConsoleColors::defaultText() << *chord, 10);
             chordstr << *chord << ConsoleColors::defaultText() << std::endl << std::flush;
         }
-        
-        
-        
-        
         
         return EXIT_SUCCESS;
     }

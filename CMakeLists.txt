@@ -64,6 +64,7 @@ SET(
     src/music/feature_extraction/bpm.cpp
     src/music/feature_extraction/chords.cpp
     src/music/feature_extraction/timbre.cpp
+    src/music/feature_extraction/dynamic_range.cpp
     src/music/feature_extraction/feature_extraction_helper.cpp
     
     #console colors
@@ -88,6 +89,7 @@ SET(
     src/music/feature_extraction/bpm.hpp
     src/music/feature_extraction/chords.hpp
     src/music/feature_extraction/timbre.hpp
+    src/music/feature_extraction/dynamic_range.hpp
     src/music/feature_extraction/feature_extraction_helper.hpp
     
     #console colors
@@ -180,6 +182,7 @@ ADD_TEST(constantq                 "musictests" "constantq")
 ADD_TEST(fft                       "musictests" "fft")
 ADD_TEST(estimatebpm               "musictests" "estimatebpm")
 ADD_TEST(estimatechords            "musictests" "estimatechords")
+ADD_TEST(estimatetimbre            "musictests" "estimatetimbre")
 ADD_TEST(perbinstatistics          "musictests" "perbinstatistics")
 ADD_TEST(pertimeslicestatistics    "musictests" "pertimeslicestatistics")
 
