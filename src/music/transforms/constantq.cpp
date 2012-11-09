@@ -303,6 +303,8 @@ namespace music
         
         transformResult->octaveMatrix = new Eigen::Matrix<std::complex<kiss_fft_scalar>, Eigen::Dynamic, Eigen::Dynamic >*[octaveCount];
         transformResult->drop = new int[octaveCount];
+        assert(transformResult->octaveMatrix != NULL);
+        assert(transformResult->drop != NULL);
         
         transformResult->originalZeroPadding = zeroPadding;
         
@@ -346,7 +348,7 @@ namespace music
                 //adjust fftData, as it only holds half of the data. the rest has to be computed.
                 //complex conjugate, etc...
                 int midPoint = fftLen/2;
-                for (int i=1; i<fftLen/2; i++)
+                for (int i=1; i<midPoint; i++)
                 {
                     fftData[midPoint + i] = conj(fftData[midPoint - i]);
                 }
@@ -356,22 +358,27 @@ namespace music
                 Eigen::Map<Eigen::Matrix<std::complex<kiss_fft_scalar>, Eigen::Dynamic, 1> > fftDataMap(fftData, fftLen);
                 
                 //Calculate the transform: apply fKernel to fftData.
-                resultMatrix = *fKernel * fftDataMap;
+                resultMatrix.noalias() = *fKernel * fftDataMap;
                 //we get a matrix with (octaveCount*atomNr) x (1) elements.
                 
                 //reorder the result matrix, save data
+                int winNrAtomNr = windowNumber * atomNr;
+                int binAtomNr;
                 for (int bin=0; bin<binsPerOctave; bin++)
                 {
+                    binAtomNr = bin*atomNr;
                     for (int i = 0; i < atomNr; i++)
                     {
-                        (*octaveResult)(bin, windowNumber*atomNr + i) = resultMatrix(bin*atomNr + i, 0);
+                        (*octaveResult)(bin, winNrAtomNr + i) = resultMatrix(binAtomNr + i, 0);
                     }
                 }
                 windowNumber++;
             }
             
             transformResult->octaveMatrix[octave] = octaveResult;
+            musicaccess::DownsamplingIIRFilter lowpassfilter_downsampling(lowpassFilter);
             
+            DEBUG_OUT("apply low-pass filter", 30);
             if (octave)
             {   //not the last octave...
                 //copy data to new array for filtering, if necessary
@@ -383,20 +390,12 @@ namespace music
                     memcpy(data, buffer, sampleCount * sizeof(float));
                 }
                 
-                //TODO: idea: implement new filter variant which only calculates every second value.
-                //should speed it up 2x, and has better memory usage (can directly allocate half the
-                //memory size).
-                
-                lowpassFilter->apply(data, sampleCount);
-                
-                //change samplerate
                 float* newData = NULL;
-                newData = new float[sampleCount/2];
+                newData = new float[sampleCount/2+1];
                 assert(newData != NULL);
-                for (int i=0; i<sampleCount/2; i++)
-                {
-                    newData[i] = data[2*i];
-                }
+                
+                //this IIR filter does downsampling and filtering in one step (about 10% faster than doing it in 2 steps)
+                lowpassfilter_downsampling.applyDownsampling(data, sampleCount, newData);
                 delete[] data;
                 data = newData;
                 sampleCount /= 2;
