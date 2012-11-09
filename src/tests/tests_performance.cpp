@@ -67,11 +67,12 @@ namespace performance_tests
         {
             data.clear();
             
-            DEBUG_OUT("Processing file: \"" << folder + files[i] << "\"", 7);
+            DEBUG_OUT("Processing file: \"" << folder + files[i] << "\", " << std::fixed << std::setprecision(1) << double(100*i)/files.size() << std::setprecision(0) << "% (" << i << " of " << files.size() << ")", 7);
             if ((basefiles.size()) > 1 && (!contains(files[i], basefiles[j])))
             {
+                DEBUG_OUT("processing model for instrument...", 10);
                 music::TimbreModel iModel(NULL);
-                iModel.calculateModel(instrumentTimbre, 20, 0.01, 16, &osc);
+                iModel.calculateModel(instrumentTimbre, 30, 0.01, 16, &osc);
                 gmmBase.push_back(iModel.getModel()->clone());
                 instrumentTimbre.clear();
                 j++;
@@ -111,7 +112,7 @@ namespace performance_tests
             
             //calculate model
             assert(data.empty());
-            if (!tModel.calculateModel(data, 20, 0.01, 16, &osc))
+            if (!tModel.calculateModel(data, 15, 0.01, 16, &osc))
             {
                 ERROR_OUT("some error happened while building the model, skipping this file...", 0);
                 files.erase(files.begin() + i);
@@ -127,7 +128,7 @@ namespace performance_tests
                     instrumentTimbre.push_back(*it);
             }
             music::GaussianMixtureModel<kiss_fft_scalar>* model = tModel.getModel();
-            DEBUG_OUT(model->toJSONString(), 10);
+            DEBUG_OUT(model->toJSONString(), 20);
             gmmFile.push_back(model->clone());
             
             //write timbre vectors to a file...
@@ -154,14 +155,18 @@ namespace performance_tests
         
         DEBUG_OUT("calculate model similarity matricies...", 5);
         Eigen::MatrixXd similarity(gmmFile.size(), gmmFile.size());
-        for (unsigned int i = 0; i < gmmFile.size(); i++)
-        {
-            for (unsigned int j = 0; j < gmmFile.size(); j++)
+        similarity.setZero();
+        if (gmmBase.size() == 0)
+        {   //we don't want to see these values if we want to compare instruments...
+            for (unsigned int i = 0; i < gmmFile.size(); i++)
             {
-                similarity(i, j) = gmmFile[i]->compareTo(*gmmFile[j])/* + gmmFile[j]->compareTo(*gmmFile[i])*/;
-                std::cout << "x ";
+                for (unsigned int j = 0; j < gmmFile.size(); j++)
+                {
+                    similarity(i, j) = gmmFile[i]->compareTo(*gmmFile[j])/* + gmmFile[j]->compareTo(*gmmFile[i])*/;
+                    std::cout << "x ";
+                }
+                std::cout << std::endl;
             }
-            std::cout << std::endl;
         }
         DEBUG_OUT("calculate instrument similarity matricies...", 5);
         Eigen::MatrixXd instrumentSimilarity(gmmBase.size(), gmmBase.size());

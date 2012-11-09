@@ -382,7 +382,7 @@ namespace music
                 converged=true;
         }
         
-        //get results with all-zero covariance matricies right (quick&dirty)
+        //get results with all-zero covariance matricies "right" (quick&dirty)
         for (unsigned int g=0; g<gaussianCount; g++)
         {
             if ((fullCovs[g].diagonal().array() < SMALLEST_VARIANCE_VALUE).any())
@@ -400,7 +400,6 @@ namespace music
             }
         }
         
-        
         if (converged)
         {
             DEBUG_OUT("EM converged after " << iteration << " iterations.", 20);
@@ -409,6 +408,9 @@ namespace music
         {
             DEBUG_OUT("EM stopped after " << iteration << " iterations.", 20);
         }
+        
+        //calculate AIC, AICc, BIC
+        this->calculateInformationCriteria(gaussianCount * (dimension + double(dimension*dimension+dimension)/(2.0)), dataSize, loglike);
         
         gaussians.clear();
         ScalarType sumOfWeights = 0.0;
@@ -487,7 +489,7 @@ namespace music
         Eigen::Matrix<double, Eigen::Dynamic, 1> weights = Eigen::Matrix<double, Eigen::Dynamic, 1>::Constant(gaussianCount, 1.0/double(gaussianCount));
         Eigen::Matrix<double, Eigen::Dynamic, 1> oldWeights = weights;
         Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic> p(dataSize, gaussianCount);
-        float loglike=0.0, oldLoglike=0.0;
+        double loglike=0.0, oldLoglike=0.0;
         
         unsigned int iteration = 0;
         bool converged = false;
@@ -598,7 +600,7 @@ namespace music
                 converged=true;
         }
         
-        //get results with all-zero covariance matricies right (quick&dirty)
+        //get results with all-zero covariance matricies "right" (quick&dirty)
         for (unsigned int g=0; g<gaussianCount; g++)
         {
             //if there is a coefficient that is smaller than SMALLEST_VARIANCE_VALUE in
@@ -621,6 +623,9 @@ namespace music
             DEBUG_OUT("EM stopped after " << iteration << " iterations.", 20);
         }
         
+        //calculate AIC, AICc, BIC
+        this->calculateInformationCriteria(gaussianCount * 2*dimension, dataSize, loglike);
+        
         gaussians.clear();
         ScalarType sumOfWeights = 0.0;
         normalizationFactor = 0.0;
@@ -639,6 +644,25 @@ namespace music
         uniRNG = UniformRNG<ScalarType>(0.0, sumOfWeights);
         
         return gaussians;
+    }
+    
+    template <typename ScalarType>
+    void GaussianMixtureModel<ScalarType>::calculateInformationCriteria(int k, int n, double loglike)
+    {
+        double N=n;
+        double K=k;
+        this->loglike = loglike;
+        this->aic = 2*K - 2*loglike;
+        this->aicc = aic + (2*K*(K+1))/(N-K-1);
+        this->bic = K*log(n) - 2*loglike;
+        
+        DEBUG_OUT("model information: information criteria", 50);
+        DEBUG_VAR_OUT(k,        5);
+        DEBUG_VAR_OUT(n,        5);
+        DEBUG_VAR_OUT(loglike,  5);
+        DEBUG_VAR_OUT(aic,      5);
+        DEBUG_VAR_OUT(aicc,     5);
+        DEBUG_VAR_OUT(bic,      5);
     }
     
     template <typename ScalarType>
@@ -761,14 +785,16 @@ namespace music
     }
     template <typename ScalarType>
     GaussianMixtureModel<ScalarType>::GaussianMixtureModel() :
-        gaussians(), uniRNG(0.0, 1.0), normalizationFactor(1.0)
+        gaussians(), uniRNG(0.0, 1.0), normalizationFactor(1.0),
+        aic(0.0), aicc(0.0), bic(0.0), loglike(0.0)
     {
         
     }
     
     template <typename ScalarType>
     GaussianMixtureModel<ScalarType>::GaussianMixtureModel(const GaussianMixtureModel<ScalarType>& other) :
-        gaussians(), uniRNG(0.0, 1.0), normalizationFactor(other.normalizationFactor)
+        gaussians(), uniRNG(0.0, 1.0), normalizationFactor(other.normalizationFactor),
+        aic(other.aic), aicc(other.aicc), bic(other.bic), loglike(other.loglike)
     {
         for (unsigned int i=0; i<other.gaussians.size(); i++)
         {
@@ -867,7 +893,7 @@ namespace music
             Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> gVariance = gaussians[g]->getCovarianceMatrix();
             if (isDiagonal(gVariance))
             {
-                DEBUG_OUT("save as diagonal covariance matrix", 10);
+                DEBUG_OUT("save as diagonal covariance matrix", 30);
                 for (int i=0; i<gVariance.rows(); i++)
                 {
                     variance.append(Json::Value(gVariance(i, i)));
@@ -875,7 +901,7 @@ namespace music
             }
             else
             {
-                DEBUG_OUT("save as full covariance matrix", 10);
+                DEBUG_OUT("save as full covariance matrix", 30);
                 for (int i=0; i<gVariance.rows(); i++)
                 {
                     for (int j=i; j<gVariance.cols(); j++)

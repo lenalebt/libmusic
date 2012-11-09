@@ -141,8 +141,56 @@ namespace music
         if (timbreVectors.size() < timbreVectorSize)
             return false;
         
-        //then train the model
+        //then train the model.
+        if (callback)
+            callback->progress(0.5,  "calculating model 1");
         model->trainGMM(timbreVectors, modelSize);
+        GaussianMixtureModel<kiss_fft_scalar>* tmpModel1 = model->clone();
+        if (callback)
+            callback->progress(0.65, "calculating model 2");
+        model->trainGMM(timbreVectors, modelSize);
+        GaussianMixtureModel<kiss_fft_scalar>* tmpModel2 = model->clone();
+        if (callback)
+            callback->progress(0.8,  "calculating model 3");
+        model->trainGMM(timbreVectors, modelSize);
+        GaussianMixtureModel<kiss_fft_scalar>* tmpModel3 = model->clone();
+        delete model;
+        
+        if (callback)
+            callback->progress(0.95, "choose best model");
+        
+        //choose best-of-three
+        if (tmpModel1->getModelLogLikelihood() > tmpModel2->getModelLogLikelihood())
+        {
+            if (tmpModel1->getModelLogLikelihood() > tmpModel3->getModelLogLikelihood())
+            {
+                model = tmpModel1;
+                delete tmpModel2;
+                delete tmpModel3;
+            }
+            else
+            {
+                model = tmpModel3;
+                delete tmpModel1;
+                delete tmpModel2;
+            }
+        }
+        else
+        {
+            if (tmpModel2->getModelLogLikelihood() > tmpModel3->getModelLogLikelihood())
+            {
+                model = tmpModel2;
+                delete tmpModel1;
+                delete tmpModel3;
+            }
+            else
+            {
+                model = tmpModel3;
+                delete tmpModel1;
+                delete tmpModel2;
+            }
+        }
+        
         
         if (callback)
             callback->progress(1.0, "finished");
