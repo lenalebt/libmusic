@@ -106,8 +106,10 @@ namespace tests
         music::GaussianMixtureModel gmm;
         srand(time(NULL));
         
-        int dimension = 2;
-        int dataCount = 1000;
+        //create data. don't have a generator for multivariate gaussian values, just taking equally distributed data (uncorrelated)
+        //set these values to change how much data will be generated, and how many dimensions you have
+        int dimension = 8;
+        int dataCount = 100;
         
         Eigen::VectorXd dataVector(dimension);
         std::vector<Eigen::VectorXd> data;
@@ -125,36 +127,43 @@ namespace tests
         DEBUG_OUT("mu2 = " << mu2, 0);
         
         //distribution 1
-        DEBUG_OUT(dataCount / 2 << " for distribution 1...", 0);
+        DEBUG_OUT(dataCount / 4 << " for distribution 1...", 0);
         Eigen::VectorXd meanVec = Eigen::VectorXd::Zero(dimension);
-        for (int i=0; i<dataCount/2; i++)
+        Eigen::VectorXd varVec = Eigen::VectorXd::Zero(dimension);
+        for (int i=0; i<dataCount/4; i++)
         {
             for (int j=0; j<dimension; j++)
                 dataVector[j] = -0.5 + double(rand() % 1000) / 1000.0;
-            meanVec = meanVec + dataVector;
+            meanVec = meanVec + dataVector + mu1;
+            varVec = varVec + (dataVector).array().pow(2.0).matrix();
             data.push_back(dataVector + mu1);
         }
-        DEBUG_OUT("mean of distribution 1 = " << meanVec / (dataCount/2) + mu1, 0);
+        DEBUG_OUT("mean of distribution 1 = " << meanVec / (dataCount/4), 0);
+        DEBUG_OUT("estimated variance of distribution 1 = " << varVec / (dataCount/4), 0);
         
         meanVec = Eigen::VectorXd::Zero(dimension);
+        varVec = Eigen::VectorXd::Zero(dimension);
         //distribution 2
-        DEBUG_OUT(dataCount / 2 << " for distribution 2...", 0);
-        for (int i=dataCount/2; i<dataCount; i++)
+        DEBUG_OUT(3*dataCount / 4 << " for distribution 2...", 0);
+        for (int i=dataCount/4; i<dataCount; i++)
         {
             for (int j=0; j<dimension; j++)
                 dataVector[j] = -1.0 + double(rand() % 2000) / 1000.0;
-            meanVec = meanVec + dataVector;
+            meanVec = meanVec + dataVector + mu2;
+            varVec = varVec + (dataVector).array().pow(2.0).matrix();
             data.push_back(dataVector + mu2);
         }
-        DEBUG_OUT("mean of distribution 2 = " << meanVec / (dataCount/2) + mu2, 0);
+        DEBUG_OUT("mean of distribution 2 = " << meanVec / (3*dataCount/4), 0);
+        DEBUG_OUT("estimated variance of distribution 2 = " << varVec / (3*dataCount/4), 0);
         
+        //train GMM with data
         DEBUG_OUT("training gmm...", 0);
-        gmm.trainGMM(data, 2);
+        gmm.trainGMM(data, 5);
         DEBUG_OUT("training done.", 0);
         
-        //TODO: create data
-        //TODO: train data
-        //TODO: test data
+        //test if the GMM converged the right way, or not. test data.
+        
+        
         
         //TODO: test is not ready yet.
         return EXIT_FAILURE;

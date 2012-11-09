@@ -62,8 +62,12 @@ namespace music
             weights[i] = gs[i].second;
         }
         
-        DEBUG_OUT("gaussian 1: " << gaussians[0]->getMean(), 0);
-        DEBUG_OUT("gaussian 2: " << gaussians[1]->getMean(), 0);
+        DEBUG_OUT("gaussian 1 mean: " << gaussians[0]->getMean(), 0);
+        DEBUG_OUT("gaussian 1 sigma: " << gaussians[0]->getCovarianceMatrix(), 0);
+        DEBUG_OUT("gaussian 2 mean: " << gaussians[1]->getMean(), 0);
+        DEBUG_OUT("gaussian 2 sigma: " << gaussians[1]->getCovarianceMatrix(), 0);
+        DEBUG_OUT("gaussian 3 mean: " << gaussians[2]->getMean(), 0);
+        DEBUG_OUT("gaussian 3 sigma: " << gaussians[2]->getCovarianceMatrix(), 0);
     }
     
     std::vector<std::pair<Gaussian*, double> > GaussianMixtureModel::emAlg(std::vector<Gaussian*> init, std::vector<Eigen::VectorXd> data, int gaussianCount, unsigned int maxIterations)
@@ -89,7 +93,8 @@ namespace music
         }
         
         //set initial weights all equal to 1/gaussianCount
-        Eigen::VectorXd weights = Eigen::VectorXd::Constant(dimension, 1.0/double(gaussianCount));
+        Eigen::VectorXd weights = Eigen::VectorXd::Constant(gaussianCount, 1.0/double(gaussianCount));
+        Eigen::VectorXd oldWeights = weights;
         Eigen::ArrayXXd p(dataSize, gaussianCount);
         
         
@@ -99,6 +104,7 @@ namespace music
         while ((iteration < maxIterations) && (!converged))
         {
             iteration++;
+            oldWeights = weights;
             
             //E-step BEGIN
             DEBUG_OUT("E-step BEGIN", 30);
@@ -128,7 +134,8 @@ namespace music
             {
                 //calculate probabilities for a cluster
                 prob(g) = p.col(g).mean();
-                //TODO: calculate mu
+                
+                //calculate mu
                 Eigen::VectorXd mu(dimension);
                 mu.setZero();
                 for (unsigned int i=0; i<dataSize; i++)
@@ -138,7 +145,7 @@ namespace music
                 }
                 mu = mu / (dataSize * prob(g));
                 
-                //TODO: calculate sigma
+                //calculate sigma
                 Eigen::MatrixXd sigma(dimension, dimension);
                 sigma.setZero();
                 for (unsigned int i=0; i< dataSize; i++)
@@ -153,6 +160,11 @@ namespace music
             }
             DEBUG_OUT("M-step END", 30);
             //M-step END
+            weights = prob;
+            DEBUG_OUT("check for convergence... weights: " << weights << ", relative change of weights:" << (oldWeights - weights).norm() / oldWeights.norm(), 50);
+            
+            if ((oldWeights - weights).norm() / oldWeights.norm() < 10e-10)
+                converged = true;
         }
         DEBUG_OUT("EM converged or terminated after " << iteration << " iterations...", 20);
         
@@ -164,5 +176,9 @@ namespace music
         }
         return retVec;
         //TODO: return step
+    }
+    double GaussianMixtureModel::compareTo(const GaussianMixtureModel& other)
+    {
+        
     }
 }
