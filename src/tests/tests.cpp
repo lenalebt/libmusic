@@ -12,6 +12,7 @@
 
 #include <list>
 #include <limits>
+#include <fstream>
 
 namespace tests
 {
@@ -230,7 +231,7 @@ namespace tests
         lowpassFilter = musicaccess::IIRFilter::createLowpassFilter(0.25);
         CHECK_OP(lowpassFilter, !=, NULL);
         
-        std::cerr << "creating constant q transform kernel..." << std::endl;
+        DEBUG_OUT("creating constant q transform kernel...", 10);
         cqt = music::ConstantQTransform::createTransform(lowpassFilter, 12, 25, 11025, 22050, 1.0, 0.0, 0.0005, 0.25);
         CHECK_OP(cqt, !=, NULL);
         CHECK_OP(cqt->window<float>(20, 10), !=, 0.0);
@@ -238,6 +239,7 @@ namespace tests
         CHECK_EQ(cqt->log2(16), 4);
         CHECK_EQ(cqt->log2(32), 5);
         CHECK_EQ(cqt->log2(256), 8);
+        
         
         CHECK_EQ(cqt->getBinsPerOctave(), 12);
         CHECK_EQ(cqt->getFMax(), 10548.081821211835631);
@@ -280,7 +282,7 @@ namespace tests
         
         musicaccess::Resampler22kHzMono resampler;
         int sampleCount = file.getSampleCount();
-        std::cerr << "resampling input file..." << std::endl;
+        DEBUG_OUT("resampling input file...", 10);
         resampler.resample(file.getSampleRate(), &buffer, sampleCount, file.getChannelCount());
         
         CHECK_OP(sampleCount, <, file.getSampleCount());
@@ -294,10 +296,26 @@ namespace tests
             }
         }
         
-        std::cerr << "applying constant q transform..." << std::endl;
+        DEBUG_OUT("applying constant q transform...", 10);
         music::ConstantQTransformResult* transformResult = cqt->apply(buffer, sampleCount);
         CHECK(transformResult != NULL);
         
+        CHECK_EQ(transformResult->getOriginalDuration(), 16.149433106575962);
+        
+        DEBUG_OUT("saving absolute values of the cqt transform result to file \"octaves.dat\"", 10);
+        std::ofstream outstr("octaves.dat");
+        for (int octave=transformResult->getOctaveCount()-1; octave>=0; octave--)
+        {
+            for (int bin=transformResult->getBinsPerOctave()-1; bin >= 0; bin--)
+            {
+                for (int i=0; i < 100*transformResult->getOriginalDuration(); i++)
+                {
+                    double time = 0.01 * i;
+                    outstr << abs(transformResult->getNoteValueNoInterpolation(time, octave, bin)) << " ";
+                }
+                outstr << std::endl;
+            }
+        }
         
         delete transformResult;
         //delete[] buffer;
