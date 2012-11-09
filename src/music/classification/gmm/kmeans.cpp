@@ -2,6 +2,7 @@
 
 #include "debug.hpp"
 #include <limits>
+#include "randomnumbers.hpp"
 
 namespace music
 {
@@ -16,6 +17,7 @@ namespace music
     bool KMeans<T>::trainKMeans(const std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> >& data, unsigned int meanCount, unsigned int maxIterations, const std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> >& init)
     {
         assert(data.size() > 0u);
+        assert(meanCount > 0u);
         DEBUG_OUT("initialize k-means algorithm...", 20);
         
         means.clear();
@@ -26,9 +28,7 @@ namespace music
         //if no or wrong initialization is given: take random values out of the data
         if (init.empty() || (init.size() != meanCount))
         {
-            //TODO: take random values
             DEBUG_OUT("no init vectors given. using random values...", 25);
-            //init with random data points and identity matricies as covariance matrix
             for (unsigned int i=0; i<meanCount; i++)
             {
                 means.push_back(data[std::rand() % dataSize]);
@@ -53,9 +53,6 @@ namespace music
         {
             iteration++;
             
-            //will be set to "false" if convergence is not reached
-            //converged = true;
-            
             DEBUG_OUT("setting assignments...", 25);
             assignmentChanges = 0;
             for (unsigned int i=0; i<dataSize; i++)
@@ -64,9 +61,12 @@ namespace music
                 distance = minDistance = std::numeric_limits<double>::max();
                 for (unsigned int j=0; j<means.size(); j++)
                 {
-                    //since we don't need the distance, but only the /smallest/ distance, we can omit the sqrt operation.
-                    //distance = (means[j] - data[i]).norm();
-                    distance = (means[j] - data[i]).array().square().sum();
+                    // since we don't need the distance, but only the
+                    // /smallest/ distance, we can omit the sqrt operation.
+                    // it is not proven to be faster this way, so I will have
+                    // both instructions here - you can choose. both work.
+                    distance = (means[j] - data[i]).norm();
+                    //distance = (means[j] - data[i]).array().square().sum();
                     if (distance < minDistance)
                     {
                         minDistance = distance;
@@ -75,13 +75,11 @@ namespace music
                 }
                 assignments[i] = assignment;
                 
-                //if "false" at one element, will be set to false in the end. if not: no change, convergence.
-                //TODO: this criterion does not help when oscillating.
-                //converged = converged && (oldAssignments[i] == assignment);
+                //count changes. if no or low change rate, stop.
                 assignmentChanges += (oldAssignments[i] == assignment) ? 0 : 1;
             }
-            if (double(assignmentChanges) / double(dataSize) < 0.002)
-                converged = true;
+            //faster when no jumps are involved. set to converged if <0.2% changed.
+            converged = (double(assignmentChanges) / double(dataSize) < 0.002);
             DEBUG_VAR_OUT(assignmentChanges, 0);
             
             DEBUG_OUT("recalculating means...", 25);
@@ -127,9 +125,65 @@ namespace music
     }
     
     template<typename T>
-    void KMeans<T>::getInitGuess(const std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> >& data, std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> >& initGuess)
+    void KMeans<T>::getInitGuess(const std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> >& data, std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> >& initGuess, unsigned int meanCount)
     {
+        assert(meanCount > 0u);
+        assert(data.size() > 0u);
+        //first clear the initGuess vector. might not be empty.
+        initGuess.clear();
         
+        UniformRNG<double> rng;
+        
+        unsigned int dataSize = data.size();
+        //insert first point.
+        initGuess.push_back(data[std::rand() % dataSize]);
+        
+        Eigen::VectorXf distances(dataSize);
+        
+        float distance, minDistance;
+        int minDistanceElement;
+        double draw;
+        
+        //create meanCount guesses. first value has been taken.
+        for (unsigned int g=1; g<meanCount; g++)
+        {
+            //calculate distances to nearest cluster mean guess
+            for (unsigned int i=0; i<dataSize; i++)
+            {
+                distance = minDistance = std::numeric_limits<float>::max();
+                for (unsigned int j=0; j<initGuess.size(); j++)
+                {
+                    // since we don't need the distance, but only the
+                    // /smallest/ distance, we can omit the sqrt operation.
+                    // it is not proven to be faster this way, so I will have
+                    // both instructions here - you can choose. both work.
+                    distance = (initGuess[j] - data[i]).norm();
+                    //distance = (initGuess[j] - data[i]).array().square().sum();
+                    if (distance < minDistance)
+                    {
+                        minDistance = distance;
+                    }
+                }
+                distances[i] = minDistance;
+            }
+            //draw random value in [0, maxDistance];
+            draw = rng.rand() * distances.maxCoeff();
+            //find the element that best fits to the drawn value (distance).
+            minDistance = std::numeric_limits<float>::max();
+            for (unsigned int i=0; i<dataSize; i++)
+            {
+                distance = fabs(distances[i] - draw);
+                if (distance < minDistance)
+                {
+                    minDistance = distance;
+                    minDistanceElement = i;
+                }
+            }
+            //take that element.
+            initGuess.push_back(data[minDistanceElement]);
+        }
+        
+        assert(initGuess.size() == meanCount);
     }
     
     template class KMeans<double>;

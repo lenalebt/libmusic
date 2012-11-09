@@ -313,6 +313,17 @@ namespace tests
         CHECK( ((means1[0] - mu1).norm() / mu1.norm() < 10e-1) || ((means1[0] - mu2).norm() / mu2.norm() < 10e-1));
         CHECK( ((means1[1] - mu1).norm() / mu1.norm() < 10e-1) || ((means1[1] - mu2).norm() / mu2.norm() < 10e-1));
         
+        DEBUG_OUT("running k-means with generated data and 2 means, better initial guesses...", 0);
+        std::vector<Eigen::VectorXd> init;
+        kmeans.getInitGuess(data, init, 2);
+        CHECK(kmeans.trainKMeans(data, 2, 100));
+        std::vector<Eigen::VectorXd> means1x = kmeans.getMeans();
+        DEBUG_VAR_OUT(means1x[0], 0);
+        DEBUG_VAR_OUT(means1x[1], 0);
+        
+        CHECK( ((means1x[0] - mu1).norm() / mu1.norm() < 10e-1) || ((means1x[0] - mu2).norm() / mu2.norm() < 10e-1));
+        CHECK( ((means1x[1] - mu1).norm() / mu1.norm() < 10e-1) || ((means1x[1] - mu2).norm() / mu2.norm() < 10e-1));
+        
         DEBUG_OUT("running k-means with generated data and 5 means...", 0);
         CHECK(kmeans.trainKMeans(data, 5, 100));
         std::vector<Eigen::VectorXd> means2 = kmeans.getMeans();
@@ -363,7 +374,7 @@ namespace tests
         CHECK( ((means3[13] - mu1).norm() / mu1.norm() < 10e-1) || ((means3[13] - mu2).norm() / mu2.norm() < 10e-1));
         CHECK( ((means3[14] - mu1).norm() / mu1.norm() < 10e-1) || ((means3[14] - mu2).norm() / mu2.norm() < 10e-1));
         
-        return EXIT_FAILURE;
+        return EXIT_SUCCESS;
     }
     int testRNG()
     {
