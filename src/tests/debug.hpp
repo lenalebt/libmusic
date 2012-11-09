@@ -21,16 +21,14 @@
 #endif
 
 #ifndef NDEBUG
-    #ifndef DEBUG_LEVEL
-        #define DEBUG_LEVEL 255
-    #endif
+    
 #else
     #ifndef DEBUG_LEVEL
         #define DEBUG_LEVEL 0
     #endif
 #endif
 
-#ifndef NDEBUG
+#ifdef DEBUG_LEVEL
     #if defined __FILE__ && defined __LINE__
         #define DEBUG_OUT_NOENDL_LEVEL(str,level)   if (DEBUG_LEVEL >= level)   \
                                                     {                           \

@@ -69,9 +69,16 @@ namespace music
         
         float minBinMidiNote;
         int originalSampleCount;
+        int sampleCount;
         int originalSamplingFrequency;
         int originalZeroPadding;
         double originalDuration;
+        double duration;
+        
+        double timeFactor;
+        
+        double timeBefore;
+        double timeAfter;
         
         int binsPerOctave;
         int fftLen;

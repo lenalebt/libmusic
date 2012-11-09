@@ -418,15 +418,17 @@ namespace tests
         music::ConstantQTransformResult* transformResult = cqt->apply(buffer, sampleCount);
         CHECK(transformResult != NULL);
         
+        DEBUG_OUT("original length of music piece was " << transformResult->getOriginalDuration(), 15);
+        
         DEBUG_OUT("saving absolute values of the cqt transform result to file \"octaves.dat\"", 10);
         std::ofstream outstr("octaves.dat");
         for (int octave=transformResult->getOctaveCount()-1; octave>=0; octave--)
         {
             for (int bin=transformResult->getBinsPerOctave()-1; bin >= 0; bin--)
             {
-                for (int i=0; i < 1000*transformResult->getOriginalDuration(); i++)
+                for (int i=0; i < 100*transformResult->getOriginalDuration(); i++)
                 {
-                    double time = 0.001 * i;
+                    double time = 0.01 * i;
                     outstr << abs(transformResult->getNoteValueNoInterpolation(time, octave, bin)) << " ";
                 }
                 outstr << std::endl;
@@ -459,6 +461,7 @@ namespace tests
         std::queue<std::string> files;
         std::queue<double> minBPMs;
         std::queue<double> maxBPMs;
+        /*
         files.push("testdata/metronom-80.mp3");    //80bpm
         minBPMs.push(75);
         maxBPMs.push(85);
@@ -480,6 +483,7 @@ namespace tests
         files.push("testdata/drums-80-4_4-16th_hihat.mp3");    //80bpm
         minBPMs.push(75);
         maxBPMs.push(85);
+        * */
 
         files.push("testdata/test.mp3");    //92bpm
         minBPMs.push(90);
