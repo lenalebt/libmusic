@@ -79,7 +79,7 @@ namespace music
          * @see GaussianMixtureModel
          * @see TimbreEstimator
          */
-        FilePreprocessor(DatabaseConnection* conn, unsigned int timbreModelSize = 20, unsigned int timbreDimension = 20, double timeSliceSize = 0.01);
+        FilePreprocessor(DatabaseConnection* conn, unsigned int timbreModelSize = 20, unsigned int timbreDimension = 20, double timbreTimeSliceSize = 0.01);
         ~FilePreprocessor();
         /**
          * @brief Extracts the features from the file and adds them to the database.
