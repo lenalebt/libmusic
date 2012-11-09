@@ -961,7 +961,7 @@ namespace music
                 varianceIsFull = true;
             }
             
-            if (g==0)
+            if (gmm == NULL)
             {
                 if (varianceIsFull)
                 {

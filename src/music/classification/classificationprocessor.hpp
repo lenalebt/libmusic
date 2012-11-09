@@ -14,6 +14,7 @@ namespace music
      * 
      * 
      * @ingroup classification
+     * @ingroup database
      * @remarks This class is the classification equivalent for FilePreprocessor
      * @todo documentation
      * @todo implement
@@ -25,6 +26,7 @@ namespace music
     {
     private:
         DatabaseConnection* conn;
+        unsigned int songGroupTimbreModelGaussianCount;
     public:
         ClassificationProcessor(DatabaseConnection* conn);
         

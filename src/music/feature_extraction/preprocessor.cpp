@@ -11,9 +11,14 @@
 
 namespace music
 {
-    FilePreprocessor::FilePreprocessor(DatabaseConnection* conn) :
-        lowpassFilter(NULL), cqt(NULL), conn(conn)
+    FilePreprocessor::FilePreprocessor(DatabaseConnection* conn, unsigned int timbreModelSize, unsigned int timbreDimension, double timeSliceSize) :
+        lowpassFilter(NULL), cqt(NULL), conn(conn),
+        timbreDimension(timbreDimension),
+        timbreModelSize(timbreModelSize),
+        timeSliceSize(timeSliceSize)
     {
+        assert(conn != NULL);
+        
         lowpassFilter = musicaccess::IIRFilter::createLowpassFilter(0.25);
         
         cqt = ConstantQTransform::createTransform(lowpassFilter, 12, 25, 11025, 22050, 2.0, 0.0, 0.0005, 0.25);
@@ -30,8 +35,7 @@ namespace music
     {
         try
         {
-            //start transaction, will be able to rollback.
-            conn->beginTransaction();
+            //DB transaction will be started later on, don't need it now
             
             float stepCount = 17.0;
             bool success;
@@ -128,7 +132,7 @@ namespace music
                 delete recording;
                 delete transformResult;
                 delete[] buffer;
-                conn->rollbackTransaction();
+                //conn->rollbackTransaction();  //don't need to rollback, did not access the database
                 return false;
             }
             features->setTempo(bpmEst.getBPMMean());
@@ -140,9 +144,11 @@ namespace music
             //TODO: calculate features.
             music::TimbreModel timbreModel(transformResult);
             //build model from 30 gaussians, 10ms slices, 20-dimensional vectors
-            timbreModel.calculateModel(30, 0.01, 20);
+            timbreModel.calculateModel(timbreModelSize, timeSliceSize, timbreDimension);
             features->setTimbreModel(timbreModel.getModel()->toJSONString());
             
+            //start transaction, will be able to rollback.
+            conn->beginTransaction();
             
             //this adds the recording, as well as its features.
             success = conn->addRecording(*recording);

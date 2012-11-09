@@ -91,7 +91,7 @@ namespace music
          * 
          * @return if calculating the timbre vectors was successful, or not.
          */
-        bool calculateTimbreVectors(std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> >& timbreVectors, double timeSliceSize=0.02, unsigned int timbreVectorSize=12);
+        bool calculateTimbreVectors(std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> >& timbreVectors, double timeSliceSize=0.01, unsigned int timbreVectorSize=12);
         
         /**
          * @brief Calculates the model.
@@ -106,7 +106,7 @@ namespace music
          * 
          * @return if calculating the model was successful, or not.
          */
-        bool calculateModel(int modelSize=10, double timeSliceSize=0.02, unsigned int timbreVectorSize=12, ProgressCallbackCaller* callback = NULL);
+        bool calculateModel(int modelSize=10, double timeSliceSize=0.01, unsigned int timbreVectorSize=12, ProgressCallbackCaller* callback = NULL);
         
         /**
          * @brief Calculates the model and preserves the calculated timbre vectors.
