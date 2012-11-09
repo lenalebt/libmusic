@@ -6,13 +6,40 @@
 
 namespace music
 {
-    template <typename ScalarType=double>
+    /**
+     * @brief This class implements the k-means algorithm.
+     * 
+     * To start the algorithm, call trainKMeans() with some data. The algorithm
+     * performs best if you know the correct number of clusters present
+     * in the data.
+     * 
+     * It is possible to provide the algorithm with some guesses of initial
+     * vectors, but you don't have to provide them. If you don't, random
+     * data vectors will be chosen. You may also try to find better guesses
+     * by feeding the output of getInitGuess() into trainKMeans(). Doing so
+     * leads to the k-means++-algorithm.
+     * 
+     * @tparam ScalarType Sets the type of the scalars of the vectors used.
+     *      Popular choices may be <code>float</code> and <code>double</code>,
+     *      <code>double</code> is selected as a standard value.
+     * @tparam AssignmentType Sets the datatype of the internal assignments,
+     *      which is used to keep track of the cluster membership of the
+     *      data vectors. <code>unsigned char</code> is good for <=256 clusters,
+     *      and is selected as standard datatype. If you need more clusters,
+     *      change that datatype to an appropriate type.
+     * @ingroup classification
+     * 
+     * @author Lena Brueder
+     * @date 2012-09-06
+     */
+    template <typename ScalarType=double, typename AssignmentType=unsigned char>
     class KMeans
     {
     private:
         
     protected:
         std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> > means;
+        std::vector<AssignmentType> assignments;
     public:
         KMeans();
         /**
@@ -28,6 +55,11 @@ namespace music
          * @param data The data the algorithm will be run on.
          * @param meanCount The number of clusters, or means.
          * @param maxIterations The maximum number of iterations of the algorithm.
+         * @param keepAssignments If the assignments of the data vectors should
+         *      be saved when the algorithm finishes, or not. Saves some memory
+         *      and a little computation time if selected to not keep them
+         *      (time&memory for one copy of <code>data.size()</code> elements
+         *      of type <code>unsigned char</code>).
          * @param init Some initial guesses of the cluster centers. Must have
          *      the same number of members as <code>meanCount</code>, otherwise
          *      the guesses will be thrown away.
@@ -35,12 +67,16 @@ namespace music
          * @return If the algorithm finished by fulfilling the convergence criterion,
          *      or stopped by reaching the maximum number of iterations.
          */
-        bool trainKMeans(const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, unsigned int meanCount=10, unsigned int maxIterations=500, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& init=std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >());
+        bool trainKMeans(const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, unsigned int meanCount=10, unsigned int maxIterations=500, bool keepAssignments = false, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& init=std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >());
         
         /**
          * @brief Calculates good initial guesses for the algorithm.
          * 
          * Using these initializations will lead to the k-means++ algorithm.
+         * 
+         * The initial guesses are calculated such that the space of
+         * input data will be represented in a better way than just
+         * taking random data.
          * 
          * @param data The data vectors used to find the initial clusters.
          * @param[out] initGuess The initial guesses will be given back in this vector.
@@ -50,10 +86,26 @@ namespace music
         
         /**
          * @brief Return the means found by the algorithm.
-         * @remarks Will return an empty list if the algorithm has not been run beforehand.
+         * @remarks Will return an empty list if the algorithm has not
+         *      been run beforehand.
+         * @remarks Returns a const-reference to an internal vector. If you
+         *      need a copy, do that for yourself. Keep in mind that this
+         *      const-reference changes when you re-run the algorithm!
          * @return the means found by the algorithm.
          */
-        std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> > getMeans() const       {return means;}
+        const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& getMeans() const      {return means;}
+        
+        /**
+         * @brief Return the means found by the algorithm.
+         * @remarks Will return an empty list if the algorithm has not been
+         *      run beforehand, or <code>keepAssignments</code> was
+         *      <code>false</code>.
+         * @remarks Returns a const-reference to an internal vector. If you
+         *      need a copy, do that for yourself. Keep in mind that this
+         *      const-reference changes when you re-run the algorithm!
+         * @return the means found by the algorithm.
+         */
+        const std::vector<AssignmentType>& getAssignments() const                               {return assignments;}
     };
 }
 
