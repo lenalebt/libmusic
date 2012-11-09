@@ -478,9 +478,10 @@ namespace music
             DEBUG_OUT("tried to acces octave " << octave << ", we only have " << octaveCount << " octaves!", 10);
         }
         
-        int pos = octaveMatrix[octave]->cols();
+        int pos = octaveMatrix[octaveCount-1]->cols();
+        pos >>= octaveCount - octave - 1;
         pos *= (time/originalDuration);
-        pos += drop[octave];
+        pos += drop[octave] + 1;
         
         if (pos >= octaveMatrix[octave]->cols())
         {
