@@ -826,6 +826,7 @@ namespace music
     
     bool SQLiteDatabaseConnection::getRecordingByID(databaseentities::Recording& recording, bool readFeatures)
     {
+        DEBUG_OUT("will read recording now...", 35);
         databaseentities::id_datatype recordingID = recording.getID();
         recording.setID(-1);    //set ID to -1. If the element is not found, this is what the user will see later on.
         
@@ -851,6 +852,7 @@ namespace music
         {
             if (rc == SQLITE_ROW)
             {
+                recording.setID(recordingID);
                 recording.setTitle(      std::string(reinterpret_cast<const char*>(sqlite3_column_text(_getRecordingByIDStatement, 0))));
                 recording.setTrackNumber(sqlite3_column_int( _getRecordingByIDStatement, 1));
                 recording.setFilename(   std::string(reinterpret_cast<const char*>(sqlite3_column_text(_getRecordingByIDStatement, 2))));
@@ -859,7 +861,6 @@ namespace music
                 recording.setArtist(     std::string(reinterpret_cast<const char*>(sqlite3_column_text(_getRecordingByIDStatement, 5))));
                 if (readFeatures)
                 {
-                    //TODO
                     if (recording.getRecordingFeatures() != NULL)
                         delete recording.getRecordingFeatures();
                     databaseentities::RecordingFeatures* rf = new databaseentities::RecordingFeatures();
@@ -899,6 +900,7 @@ namespace music
     
     bool SQLiteDatabaseConnection::getRecordingFeaturesByID(databaseentities::RecordingFeatures& recordingFeatures)
     {
+        DEBUG_OUT("will read recording features now...", 40);
         databaseentities::id_datatype recordingFeaturesID = recordingFeatures.getID();
         recordingFeatures.setID(-1);    //set ID to -1. If the element is not found, this is what the user will see later on.
         
@@ -909,7 +911,7 @@ namespace music
         
         if (_getRecordingFeaturesByIDStatement == NULL)
         {
-            rc = sqlite3_prepare_v2(_db, "SELECT featuresID, length, tempo, dynamicrange FROM features WHERE featuresID=@featuresID;", -1, &_getRecordingFeaturesByIDStatement, NULL);
+            rc = sqlite3_prepare_v2(_db, "SELECT length, tempo, dynamicrange FROM features WHERE featuresID=@featuresID;", -1, &_getRecordingFeaturesByIDStatement, NULL);
             if (rc != SQLITE_OK)
             {
                 ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
@@ -924,9 +926,10 @@ namespace music
         {
             if (rc == SQLITE_ROW)
             {
-                recordingFeatures.setLength(      sqlite3_column_double(_getRecordingFeaturesByIDStatement, 1));
-                recordingFeatures.setTempo(       sqlite3_column_double(_getRecordingFeaturesByIDStatement, 2));
-                recordingFeatures.setDynamicRange(sqlite3_column_double(_getRecordingFeaturesByIDStatement, 3));
+                recordingFeatures.setID(recordingFeaturesID);
+                recordingFeatures.setLength(      sqlite3_column_double(_getRecordingFeaturesByIDStatement, 0));
+                recordingFeatures.setTempo(       sqlite3_column_double(_getRecordingFeaturesByIDStatement, 1));
+                recordingFeatures.setDynamicRange(sqlite3_column_double(_getRecordingFeaturesByIDStatement, 2));
             }
             else
             {
@@ -1055,6 +1058,7 @@ namespace music
     
     bool SQLiteDatabaseConnection::getCategoryDescriptionByID(databaseentities::CategoryDescription& categoryDescription)
     {
+        DEBUG_OUT("will read description of category now...", 40);
         databaseentities::id_datatype categoryDescriptionID = categoryDescription.getID();
         categoryDescription.setID(-1);    //set ID to -1. If the element is not found, this is what the user will see later on.
         
@@ -1107,6 +1111,7 @@ namespace music
     }
     bool SQLiteDatabaseConnection::getCategoryByID(databaseentities::Category& category, bool readDescription)
     {
+        DEBUG_OUT("will read category now...", 35);
         databaseentities::id_datatype categoryID = category.getID();
         category.setID(-1);    //set ID to -1. If the element is not found, this is what the user will see later on.
         
@@ -1117,7 +1122,7 @@ namespace music
         
         if (_getCategoryByIDStatement == NULL)
         {
-            rc = sqlite3_prepare_v2(_db, "SELECT categoryID, categoryName, categoryDescriptionID FROM category WHERE categoryID=@categoryID;", -1, &_getCategoryByIDStatement, NULL);
+            rc = sqlite3_prepare_v2(_db, "SELECT categoryName, categoryDescriptionID FROM category WHERE categoryID=@categoryID;", -1, &_getCategoryByIDStatement, NULL);
             if (rc != SQLITE_OK)
             {
                 ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
@@ -1132,11 +1137,12 @@ namespace music
         {
             if (rc == SQLITE_ROW)
             {
-                category.setCategoryName(std::string(reinterpret_cast<const char*>(sqlite3_column_text(_getCategoryByIDStatement, 1))));
+                category.setID(categoryID);
+                category.setCategoryName(std::string(reinterpret_cast<const char*>(sqlite3_column_text(_getCategoryByIDStatement, 0))));
                 if (readDescription)
                 {
                     databaseentities::CategoryDescription* catDesc = new databaseentities::CategoryDescription();
-                    catDesc->setID(sqlite3_column_int64(_getCategoryByIDStatement, 2));
+                    catDesc->setID(sqlite3_column_int64(_getCategoryByIDStatement, 1));
                     getCategoryDescriptionByID(*catDesc);
                     category.setCategoryDescription(catDesc);
                 }
