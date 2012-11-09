@@ -110,7 +110,7 @@ namespace music
             int lastAddedPosition = -10000;
             for (int i=0; i<autoCorr.size(); i++)
             {
-                if ((i-lastAddedPosition) > 0.1/timeSliceLength)
+                if ((i-lastAddedPosition) > 0.2/timeSliceLength)
                 {
                     if (autoCorr[i] > barrierVal)
                         maxCorrPos.push_back(lastAddedPosition=i);
@@ -150,13 +150,14 @@ namespace music
         }
         this->bpmVariance /= diffPosVector.size();
     }
+    
     void BPMEstimator::estimateBPM2(ConstantQTransformResult* transformResult)
     {
         DEBUG_OUT("estimating tempo of song...", 10);
         
         DEBUG_OUT("sum all bins per time slice...", 15);
         //taking 5ms slices, summing values
-        double timeSliceLength = 1.0/100.0;
+        double timeSliceLength = 1.0/200.0;
         
         PerTimeSliceStatistics timeSliceStatistics(transformResult, timeSliceLength);
         timeSliceStatistics.calculateSum(/*0.0, transformResult->getOriginalDuration()*/);
@@ -164,22 +165,6 @@ namespace music
         assert(timeSliceStatistics.getSumVector() != NULL);
         
         int maxDuration = timeSliceStatistics.getSumVector()->size();
-        /*int maxDuration = transformResult->getOriginalDuration()*(1.0/timeSliceLength);
-        DEBUG_OUT("maxDuration: " << maxDuration, 25);
-        Eigen::VectorXf sumVec(maxDuration);
-        for (int i=0; i < maxDuration; i++)
-        {
-            double sum=0.0;
-            for (int octave=0; octave<transformResult->getOctaveCount(); octave++)
-            {
-                //sum only higher octaves?
-                for (int bin=0; bin<transformResult->getBinsPerOctave(); bin++)
-                {
-                    sum += std::abs(transformResult->getNoteValueNoInterpolation(i*timeSliceLength, octave, bin));
-                }
-            }
-            sumVec[i] = sum;
-        }*/
         
         #if DEBUG_LEVEL>=25
             std::ofstream outstr2("sumVec.dat");
@@ -256,14 +241,38 @@ namespace music
             DEBUG_OUT("build barrier breaker list...", 20);
             double barrierVal = mean + standardDerivation;
             int lastAddedPosition = -10000;
+            double tmp[4] = {0.0, 0.0, 0.0, 0.0};
             for (int i=0; i<autoCorr.size(); i++)
             {
-                if ((i-lastAddedPosition) > 0.1/timeSliceLength)
+                if ((i-lastAddedPosition) > 0.2/timeSliceLength)
                 {
                     if (autoCorr[i] > barrierVal)
+                    {
+                        for (int j=1; (j<0.2/timeSliceLength) && (autoCorr.size() < i+j); j++)
+                        {
+                            if (autoCorr[i+j] < barrierVal)
+                            {
+                                i+=j/2;
+                                break;
+                            }
+                        }
                         maxCorrPos.push_back(lastAddedPosition=i);
+                        
+                        int num = maxCorrPos.size();
+                        tmp[0] += autoCorr[i];
+                        if (num % 2)
+                            tmp[1] += autoCorr[i];
+                        if (num % 3)
+                            tmp[2] += autoCorr[i];
+                        if (num % 4)
+                            tmp[3] += autoCorr[i];
+                    }
                 }
             }
+            DEBUG_OUT("tmp[" << 0 << "]=" << tmp[0] << "...", 20);
+            DEBUG_OUT("tmp[" << 1 << "]=" << tmp[1] << "...", 20);
+            DEBUG_OUT("tmp[" << 2 << "]=" << tmp[2] << "...", 20);
+            DEBUG_OUT("tmp[" << 3 << "]=" << tmp[3] << "...", 20);
         }
         
         DEBUG_OUT("calculating beat lengths...", 15);
@@ -298,4 +307,5 @@ namespace music
         }
         this->bpmVariance /= diffPosVector.size();
     }
+    
 }

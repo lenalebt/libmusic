@@ -464,7 +464,6 @@ namespace tests
         std::queue<double> minBPMs;
         std::queue<double> maxBPMs;
         
-        
         files.push("testdata/metronom-80.mp3");    //80bpm
         minBPMs.push(75);
         maxBPMs.push(85);
@@ -486,7 +485,7 @@ namespace tests
         files.push("testdata/drums-80-4_4-16th_hihat.mp3");    //80bpm
         minBPMs.push(75);
         maxBPMs.push(85);
-
+        
         files.push("testdata/test.mp3");    //92bpm
         minBPMs.push(90);
         maxBPMs.push(96);
@@ -540,18 +539,26 @@ namespace tests
             music::BPMEstimator bpmEst;
             bpmEst.estimateBPM(transformResult);
             
+            DEBUG_OUT("measured by hand, the beat should be between " << minBPM << " and " << maxBPM << " bpm.", 10);
+            
             double bpmVariance = bpmEst.getBPMVariance();
             DEBUG_OUT("BPM variance is " << bpmVariance << ", standard derivation: " << sqrt(bpmVariance), 10);
             
             double bpmMean = bpmEst.getBPMMean();
             DEBUG_OUT("BPM mean is " << bpmMean, 10);
-            CHECK_OP(bpmMean, >, minBPM);
-            CHECK_OP(bpmMean, <, maxBPM);
             
             double bpmMedian = bpmEst.getBPMMedian();
             DEBUG_OUT("BPM median is " << bpmMedian, 10);
-            CHECK_OP(bpmMedian, >, minBPM);
-            CHECK_OP(bpmMedian, <, maxBPM);
+            
+            CHECK(((bpmMean > minBPM) && (bpmMean < maxBPM)) ||
+                ((bpmMean > 2*minBPM) && (bpmMean < 2*maxBPM)) ||
+                ((bpmMean > 3*minBPM) && (bpmMean < 3*maxBPM)) ||
+                ((bpmMean > 4*minBPM) && (bpmMean < 4*maxBPM)));
+            
+            CHECK(((bpmMedian > minBPM) && (bpmMedian < maxBPM)) ||
+                ((bpmMedian > 2*minBPM) && (bpmMedian < 2*maxBPM)) ||
+                ((bpmMedian > 3*minBPM) && (bpmMedian < 3*maxBPM)) ||
+                ((bpmMedian > 4*minBPM) && (bpmMedian < 4*maxBPM)));
             
             
             delete transformResult;
