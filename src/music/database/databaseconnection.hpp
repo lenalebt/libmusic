@@ -47,11 +47,13 @@ namespace music
         virtual bool open(std::string dbConnectionString)=0;
         /**
          * @brief Closes the database connection.
+	 * @see open()
          * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
          */
         virtual bool close()=0;
         /**
          * @brief Returns, if the database is opened - or not.
+	 * @see close()
          * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
          */
         virtual bool isDBOpen()=0;

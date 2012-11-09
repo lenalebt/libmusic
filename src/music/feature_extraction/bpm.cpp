@@ -14,9 +14,9 @@ namespace music
     }
     
     template <typename ScalarType>
-    void BPMEstimator<ScalarType>::estimateBPM(ConstantQTransformResult* transformResult)
+    bool BPMEstimator<ScalarType>::estimateBPM(ConstantQTransformResult* transformResult)
     {
-        estimateBPM1(transformResult);
+        return estimateBPM1(transformResult);
         //estimateBPM5(transformResult);
     }
     
@@ -258,7 +258,7 @@ namespace music
     }
     
     template <typename ScalarType>
-    void BPMEstimator<ScalarType>::estimateBPM1(ConstantQTransformResult* transformResult)
+    bool BPMEstimator<ScalarType>::estimateBPM1(ConstantQTransformResult* transformResult)
     {
         DEBUG_OUT("estimating tempo of song...", 10);
         
@@ -375,14 +375,14 @@ namespace music
                 {
                     if ((risePos < 0) && (autoCorr[i] > barrierVal) && (autoCorr[i] - autoCorr[i-1] > 0))   //rise
                     {
-                        std::cerr << "rise " << std::endl;
+                        DEBUG_OUT("rise " << std::endl, 40);
                         risePos = i;
                     }
                     else if ((risePos >= 0) && (autoCorr[i] < barrierVal) && (autoCorr[i+1] - autoCorr[i] < 0))   //fall
                     {
-                        std::cerr << "fall " << std::endl;
+                        DEBUG_OUT("fall " << std::endl, 40);
                         maxCorrPos.push_back(lastAddedPosition = risePos+(float(i-risePos)/2.0));
-                        std::cerr << lastAddedPosition << std::endl;
+                        DEBUG_OUT(lastAddedPosition << std::endl, 40);
                         risePos=-1;
                     }
                 }
@@ -408,6 +408,9 @@ namespace music
             //sorting vector to get the median
             std::sort(diffPosVector.begin(), diffPosVector.end());
         }
+        
+        if (diffPosVector.size() == 0)
+            return false;
         
         while (this->bpmMean > 250) //try to get rid of too fast guesses
             this->bpmMean /= 2.0;
@@ -442,6 +445,8 @@ namespace music
             }
         }
         this->bpmMean = 60.0/(newMean / newDiffPosVector.size()*timeSliceLength);
+        
+        return true;
     }
     
     template <typename ScalarType>

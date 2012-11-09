@@ -13,30 +13,7 @@ namespace music
         typedef long id_datatype;
         
         /**
-         * @brief Objects of this class are database value objects for the timbre feature.
-         * 
-         * 
-         * 
-         * @remarks Use this object to store data in a database.
-         * @todo interface is not stable yet
-         * 
-         * @ingroup database
-         * @author Lena Brueder
-         * @date 2012-07-17
-         */
-        class TimbreFeature
-        {
-        private:
-            
-        protected:
-            //starttime, enttime, timbre vector
-            std::list<triple<double, double, Eigen::VectorXd> > timbreList;
-        public:
-            
-        };
-        
-        /**
-         * @brief Objects of this class are database value objects for the timbre feature.
+         * @brief Objects of this class are database value objects for the chord feature.
          * 
          * 
          * 

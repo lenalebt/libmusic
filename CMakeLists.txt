@@ -352,7 +352,7 @@ SET(CPACK_SOURCE_IGNORE_FILES
 INCLUDE(CPack)
 
 INSTALL (TARGETS music
-    DESTINATION bin
+    LIBRARY DESTINATION lib
     )
 FILE(GLOB music_global_headers "${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp")
 INSTALL (FILES ${music_global_headers}
