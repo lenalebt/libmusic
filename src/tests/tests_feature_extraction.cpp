@@ -351,6 +351,22 @@ namespace tests
         
         std::queue<std::string> files;
         
+        
+        
+        files <<  "./bless_the_child.mp3";
+        files <<  "./end_of_hope.mp3";
+        files <<  "./bochum.mp3";
+        files <<  "./come.mp3";
+        files <<  "./dmoll1.mp3";
+        files <<  "./fdur1.mp3";
+        files <<  "./gdur1.mp3";
+        files <<  "./goodbye.mp3";
+        files <<  "./knocking.mp3";
+        files <<  "./schrei.mp3";
+        files <<  "./slaying.mp3";
+        files <<  "./teen_spirit.mp3";
+        files <<  "./unintended.mp3";
+        
         files <<  "./testdata/mixture-all.mp3";
         files <<  "./testdata/mixture-all_but_bass.mp3";
         files <<  "./testdata/mixture-all_but_drums.mp3";

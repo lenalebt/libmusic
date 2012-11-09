@@ -43,7 +43,7 @@ namespace music
         
         bool calculateChromaVectors(std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> >& chromaVectors, double timeSliceLength=0.01, bool makeTransposeInvariant = true);
         
-        bool calculateModel(unsigned int modelSize=10, double timeSliceLength=0.01, bool makeTransposeInvariant = true, ProgressCallbackCaller* callback = NULL);
+        bool calculateModel(unsigned int modelSize=10, double timeSliceLength=0.05, bool makeTransposeInvariant = true, ProgressCallbackCaller* callback = NULL);
         
         //bool calculateModel(std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> >& chromaVectors, int modelSize=10, double timeSliceLength=0.02, unsigned int timbreVectorSize=12, ProgressCallbackCaller* callback = NULL);
         

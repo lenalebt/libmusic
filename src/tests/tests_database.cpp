@@ -177,16 +177,25 @@ namespace tests
         CHECK_EQ(category->getCategoryName(), std::string("rock_ music"));
         
         category->setCategoryName("rock music");
-        category->getCategoryDescription()->setTimbreModel("blabla1");
-        category->getCategoryDescription()->setClassifierDescription("blabla2");
+        category->getCategoryDescription()->setPositiveTimbreModel("blabla1");
+        category->getCategoryDescription()->setPositiveChromaModel("blabla2");
+        category->getCategoryDescription()->setNegativeTimbreModel("blabla3");
+        category->getCategoryDescription()->setNegativeChromaModel("blabla4");
+        category->getCategoryDescription()->setClassifierDescription("blabla5");
         CHECK(conn->updateCategory(*category, true));
         category->setCategoryName("rock music_");
-        category->getCategoryDescription()->setTimbreModel("blabla1_");
-        category->getCategoryDescription()->setClassifierDescription("blabla2_");
+        category->getCategoryDescription()->setPositiveTimbreModel("blabla1_");
+        category->getCategoryDescription()->setPositiveChromaModel("blabla2_");
+        category->getCategoryDescription()->setNegativeTimbreModel("blabla3_");
+        category->getCategoryDescription()->setNegativeChromaModel("blabla4_");
+        category->getCategoryDescription()->setClassifierDescription("blabla5_");
         CHECK(conn->getCategoryByID(*category, true));
         CHECK_EQ(category->getCategoryName(), std::string("rock music"));
-        CHECK_EQ(category->getCategoryDescription()->getTimbreModel(), std::string("blabla1"));
-        CHECK_EQ(category->getCategoryDescription()->getClassifierDescription(), std::string("blabla2"));
+        CHECK_EQ(category->getCategoryDescription()->getPositiveTimbreModel(), std::string("blabla1"));
+        CHECK_EQ(category->getCategoryDescription()->getPositiveChromaModel(), std::string("blabla2"));
+        CHECK_EQ(category->getCategoryDescription()->getNegativeTimbreModel(), std::string("blabla3"));
+        CHECK_EQ(category->getCategoryDescription()->getNegativeChromaModel(), std::string("blabla4"));
+        CHECK_EQ(category->getCategoryDescription()->getClassifierDescription(), std::string("blabla5"));
         
         category->setCategoryName("classical music");
         CHECK(conn->addCategory(*category));

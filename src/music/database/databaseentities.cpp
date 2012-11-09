@@ -48,8 +48,10 @@ namespace music
         
         CategoryDescription::CategoryDescription() :
             id(-1),
-            timbreModel(""),
-            chromaModel(""),
+            positiveTimbreModel(""),
+            positiveChromaModel(""),
+            negativeTimbreModel(""),
+            negativeChromaModel(""),
             classifierDescription("")
         {
             
