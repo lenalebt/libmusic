@@ -263,7 +263,7 @@ namespace music
             "FOREIGN KEY(categoryDescriptionID) REFERENCES categoryDescription(categoryDescriptionID)"
             ");");
         ctstatements.push_back("CREATE TABLE IF NOT EXISTS categoryDescription(categoryDescriptionID INTEGER PRIMARY KEY, timbreModel TEXT, "
-            "chordsModel TEXT, "
+            "chromaModel TEXT, "
             "classifierDescription TEXT"
             ");");
         

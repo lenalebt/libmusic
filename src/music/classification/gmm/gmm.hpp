@@ -355,7 +355,7 @@ namespace music
          * 
          * @return A list of the gaussian distributions that build the model.
          */
-        virtual std::vector<Gaussian<ScalarType>* > emAlg(const std::vector<Gaussian<ScalarType>*>& init, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, unsigned int gaussianCount = 10, unsigned int maxIterations=50)=0;
+        virtual std::vector<Gaussian<ScalarType>* > emAlg(const std::vector<Gaussian<ScalarType>*>& init, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, unsigned int gaussianCount = 10, unsigned int maxIterations=50, double initVariance = 100.0, double minVariance = 0.1)=0;
     public:
         /**
          * @brief Creates a new empty Gaussian Mixture Model.
@@ -379,9 +379,12 @@ namespace music
          *      data points to the algorithm. As you will normally not have that many data
          *      points, the rule of thumb is "the more data, the better the model!".
          * @param gaussianCount The count of gaussian distributions that will be used to model the data
+         * @param initVariance The initial variance (diagonal) of the covariance matricies.
+         * @param minVariance The minimum variance (diagonal) of the covariance matricies. If the variance gets smaller
+         *      than this value, it will be set to this value.
          * 
          */
-        void trainGMM(const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, int gaussianCount=10);
+        void trainGMM(const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, int gaussianCount=10, double initVariance = 100.0, double minVariance = 0.1);
         
         /**
          * @brief Returns the Akaike Information Criterion of the model.
@@ -576,7 +579,7 @@ namespace music
             using GaussianMixtureModel<ScalarType>::normalRNG;
             using GaussianMixtureModel<ScalarType>::normalizationFactor;
             
-            std::vector<Gaussian<ScalarType>* > emAlg(const std::vector<Gaussian<ScalarType>*>& init, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, unsigned int gaussianCount = 10, unsigned int maxIterations=50);
+            std::vector<Gaussian<ScalarType>* > emAlg(const std::vector<Gaussian<ScalarType>*>& init, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, unsigned int gaussianCount = 10, unsigned int maxIterations=50, double initVariance = 100.0, double minVariance = 0.1);
         public:
             GaussianMixtureModel<ScalarType>* clone();
             GaussianMixtureModelFullCov(const GaussianMixtureModelFullCov<ScalarType>& other);
@@ -607,7 +610,7 @@ namespace music
             using GaussianMixtureModel<ScalarType>::normalRNG;
             using GaussianMixtureModel<ScalarType>::normalizationFactor;
             
-            std::vector<Gaussian<ScalarType>* > emAlg(const std::vector<Gaussian<ScalarType>*>& init, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, unsigned int gaussianCount = 10, unsigned int maxIterations=50);
+            std::vector<Gaussian<ScalarType>* > emAlg(const std::vector<Gaussian<ScalarType>*>& init, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, unsigned int gaussianCount = 10, unsigned int maxIterations=50, double initVariance = 100.0, double minVariance = 0.1);
         public:
             GaussianMixtureModel<ScalarType>* clone();
             GaussianMixtureModelDiagCov(const GaussianMixtureModelDiagCov<ScalarType>& other);

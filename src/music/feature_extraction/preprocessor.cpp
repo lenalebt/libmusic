@@ -11,11 +11,14 @@
 
 namespace music
 {
-    FilePreprocessor::FilePreprocessor(DatabaseConnection* conn, unsigned int timbreModelSize, unsigned int timbreDimension, double timbreTimeSliceSize) :
+    FilePreprocessor::FilePreprocessor(DatabaseConnection* conn, unsigned int timbreModelSize, unsigned int timbreDimension, double timbreTimeSliceSize, unsigned int chromaModelSize, double chromaTimeSliceSize, bool chromaMakeTransposeInvariant) :
         lowpassFilter(NULL), cqt(NULL), conn(conn),
         timbreModelSize(timbreModelSize),
         timbreDimension(timbreDimension),
-        timbreTimeSliceSize(timbreTimeSliceSize)
+        timbreTimeSliceSize(timbreTimeSliceSize),
+        chromaTimeSliceSize(chromaTimeSliceSize),
+        chromaModelSize(chromaModelSize),
+        chromaMakeTransposeInvariant(chromaMakeTransposeInvariant)
     {
         assert(conn != NULL);
         
@@ -39,7 +42,7 @@ namespace music
             //the transaction is deferred, thus the lock will be acquired at the time the connection is used
             conn->beginTransaction();
             
-            float stepCount = 17.0;
+            float stepCount = 23.0;
             bool success;
             
             if (callback != NULL)
@@ -143,11 +146,22 @@ namespace music
             if (callback != NULL)
                 callback->progress(10.0/stepCount, "calculating timbre model...");
             
-            //TODO: calculate features.
             music::TimbreModel timbreModel(transformResult);
             //build model from 30 gaussians, 10ms slices, 20-dimensional vectors
             timbreModel.calculateModel(timbreModelSize, timbreTimeSliceSize, timbreDimension);
             features->setTimbreModel(timbreModel.getModel()->toJSONString());
+            
+            if (callback != NULL)
+                callback->progress(16.0/stepCount, "calculating chroma model...");
+            
+            //TODO: calculate features.
+            music::ChromaModel chromaModel(transformResult);
+            //build model from 30 gaussians, 10ms slices, 20-dimensional vectors
+            chromaModel.calculateModel(chromaModelSize, chromaTimeSliceSize, chromaMakeTransposeInvariant);
+            features->setChromaModel(chromaModel.getModel()->toJSONString());
+            
+            if (callback != NULL)
+                callback->progress(22.0/stepCount, "saving recording to db...");
             
             //this adds the recording, as well as its features.
             success = conn->addRecording(*recording);

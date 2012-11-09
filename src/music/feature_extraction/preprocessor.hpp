@@ -66,6 +66,9 @@ namespace music
         unsigned int timbreModelSize;
         unsigned int timbreDimension;
         double timbreTimeSliceSize;
+        double chromaTimeSliceSize;
+        unsigned int chromaModelSize;
+        bool chromaMakeTransposeInvariant;
     public:
         /**
          * @brief Constructs a new FilePreprocessor object.
@@ -79,7 +82,7 @@ namespace music
          * @see GaussianMixtureModel
          * @see TimbreEstimator
          */
-        FilePreprocessor(DatabaseConnection* conn, unsigned int timbreModelSize = 20, unsigned int timbreDimension = 20, double timbreTimeSliceSize = 0.01);
+        FilePreprocessor(DatabaseConnection* conn, unsigned int timbreModelSize = 20, unsigned int timbreDimension = 20, double timbreTimeSliceSize = 0.01, unsigned int chromaModelSize = 8, double chromaTimeSliceSize = 0.05, bool chromaMakeTransposeInvariant = true);
         ~FilePreprocessor();
         /**
          * @brief Extracts the features from the file and adds them to the database.
@@ -104,6 +107,54 @@ namespace music
          */
         bool preprocessFile(std::string filename, databaseentities::id_datatype& recordingID, ProgressCallbackCaller* callback = NULL);
         
+        
+        /**
+         * @brief Sets if the chroma vectors will be made transposition invariant.
+         * 
+         * Transposition invariant chroma vectors do not depend on the
+         * musical key of the recording. Typically, you would set this to
+         * <code>true</code>.
+         */
+        void setChromaMakeTransposeInvariant(bool value)  {this->chromaMakeTransposeInvariant = value;}
+        
+        /**
+         * @brief Returns, if the chroma vectors will be made transposition invariant.
+         * 
+         * Transposition invariant chroma vectors do not depend on the
+         * musical key of the recording.
+         * 
+         * @return if the chroma vectors will be made transposition invariant.
+         */
+        bool isChromaMakeTransposeInvariant()             {return this->chromaMakeTransposeInvariant;}
+        
+        /**
+         * @brief Sets the time slice size for chroma extraction.
+         * 
+         * Typical values are in the range of <code>0.02 - 0.3</code>.
+         */
+        void setChromaTimeSliceSize(double timeSliceSize) {this->chromaTimeSliceSize = timeSliceSize;}
+        /**
+         * @brief Returns the time slice size for chroma extraction.
+         * @return the time slice size for chroma extraction.
+         */
+        double getChromaTimeSliceSize()                   {return chromaTimeSliceSize;}
+        
+        /**
+         * @brief Sets the model size for the chroma vector model.
+         * 
+         * Typical values are in the range of <code>8-20</code>.
+         * You may set larger values, but you risk overfitting.
+         * You should at least choose a number that reflects the
+         * number of chords you expect in the recording.
+         */
+        void setChromaModelSize(unsigned int modelSize)   {this->chromaModelSize = modelSize;}
+        /**
+         * @brief Returns the model size for the chroma vector model.
+         * @return the model size for the chroma vector model.
+         */
+        unsigned int getChromaModelSize()                 {return chromaModelSize;}
+        
+        
         /**
          * @brief Sets the time slice size for timbre extraction.
          * 
@@ -114,7 +165,7 @@ namespace music
          * @brief Returns the time slice size for timbre extraction.
          * @return the time slice size for timbre extraction.
          */
-        unsigned int getTimbreTimeSliceSize()             {return timbreTimeSliceSize;}
+        double getTimbreTimeSliceSize()                   {return timbreTimeSliceSize;}
         
         /**
          * @brief Sets the dimension of the timbre vectors.

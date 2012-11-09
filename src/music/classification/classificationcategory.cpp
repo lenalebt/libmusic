@@ -2,7 +2,7 @@
 
 namespace music
 {
-    bool ClassificationCategory::calculateTimbreModel(std::vector<GaussianMixtureModel<kiss_fft_scalar>*> components, unsigned int gaussianCount, unsigned int samplesPerGMM, ProgressCallbackCaller* callback)
+    bool ClassificationCategory::calculateModel(GaussianMixtureModel<kiss_fft_scalar>*& model, std::vector<GaussianMixtureModel<kiss_fft_scalar>*> components, unsigned int gaussianCount, unsigned int samplesPerGMM, ProgressCallbackCaller* callback, double initVariance, double minVariance)
     {
         if (callback)
             callback->progress(0.0, "init...");
@@ -28,17 +28,27 @@ namespace music
         }
         
         if (callback)
-            callback->progress(0.5, "training timbre model...");
+            callback->progress(0.5, "training model...");
         
-        if (timbreModel)
-            delete timbreModel;
-        timbreModel = new GaussianMixtureModelDiagCov<kiss_fft_scalar>();
-        timbreModel->trainGMM(samples, gaussianCount);
+        if (model)
+            delete model;
+        model = new GaussianMixtureModelDiagCov<kiss_fft_scalar>();
+        model->trainGMM(samples, gaussianCount, initVariance, minVariance);
         
         if (callback)
             callback->progress(1.0, "finished!");
         
         return true;
+    }
+    
+    bool ClassificationCategory::calculateTimbreModel(std::vector<GaussianMixtureModel<kiss_fft_scalar>*> components, unsigned int gaussianCount, unsigned int samplesPerGMM, ProgressCallbackCaller* callback)
+    {
+        return calculateModel(timbreModel, components, gaussianCount, samplesPerGMM, callback);
+    }
+    
+    bool ClassificationCategory::calculateChromaModel(std::vector<GaussianMixtureModel<kiss_fft_scalar>*> components, unsigned int gaussianCount, unsigned int samplesPerGMM, ProgressCallbackCaller* callback)
+    {
+        return calculateModel(chromaModel, components, gaussianCount, samplesPerGMM, callback, 0.1, 0.001);
     }
 
     ClassificationCategory::ClassificationCategory() :

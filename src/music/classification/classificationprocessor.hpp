@@ -27,9 +27,11 @@ namespace music
     private:
         DatabaseConnection* conn;
         unsigned int categoryTimbreModelSize;
-        unsigned int categoryPerSongSampleCount;
+        unsigned int categoryTimbrePerSongSampleCount;
+        unsigned int categoryChromaModelSize;
+        unsigned int categoryChromaPerSongSampleCount;
     public:
-        ClassificationProcessor(DatabaseConnection* conn, unsigned int categoryTimbreModelSize = 60, unsigned int categoryPerSongSampleCount = 20000);
+        ClassificationProcessor(DatabaseConnection* conn, unsigned int categoryTimbreModelSize = 60, unsigned int categoryTimbrePerSongSampleCount = 20000, unsigned int categoryChromaModelSize = 8, unsigned int categoryChromaPerSongSampleCount = 2000);
         
         
         /**

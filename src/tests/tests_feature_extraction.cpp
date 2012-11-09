@@ -335,7 +335,7 @@ namespace tests
     int testEstimateChroma()
     {
         #if 1
-        DEBUG_OUT("chord estimation", 10);
+        DEBUG_OUT("chroma estimation", 10);
         
         music::ConstantQTransform* cqt = NULL;
         musicaccess::IIRFilter* lowpassFilter = NULL;
@@ -403,25 +403,14 @@ namespace tests
             //std::ofstream chordstr("chords.dat");
             
             music::ChromaEstimator chromaEstimator(transformResult);
-            /*for (double time=0.0; time<transformResult->getOriginalDuration(); time += 0.5)
-            {*/
-                //music::ChordHypothesis* chordHypothesis = chordEstimator.estimateChord(1.0, 1.5);
-                
-                //CHECK_EQ(chord, chordHypothesis->getMaxHypothesisAsString());
-                std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > chroma;
-                int mode;
-                chromaEstimator.estimateChroma(chroma, mode);
-                
-                /*
-                for (std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> >::const_iterator it = chroma.begin(); it != chroma.end(); ++it)
-                {
-                    DEBUG_OUT(it->transpose(), 10);
-                }
-                * */
-                
-                //DEBUG_OUT(ConsoleColors::yellow() << "chord at time " << 1.0 << ":" << std::endl << ConsoleColors::defaultText() << *chord, 10);
-                //chordstr << *chord << ConsoleColors::defaultText() << std::endl << std::flush;
-            //}
+            std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > chroma;
+            int mode;
+            chromaEstimator.estimateChroma(chroma, mode);
+            
+            music::ChromaModel chromaModel(transformResult);
+            chromaModel.calculateModel();
+            
+            DEBUG_VAR_OUT(chromaModel.getModel()->toJSONString(), 0);
         }
         
         

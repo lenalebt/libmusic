@@ -7,8 +7,6 @@
 
 namespace music
 {
-    #define SMALLEST_VARIANCE_VALUE 0.1
-    
     template <typename ScalarType>
     Gaussian<ScalarType>::Gaussian(unsigned int dimension, NormalRNG<ScalarType>* rng) :
         weight(1.0), mean(dimension), preFactor(), rng(rng), externalRNG(rng!=NULL)
@@ -194,13 +192,13 @@ namespace music
      * @todo check result for being a local minimum
      */
     template <typename ScalarType>
-    void GaussianMixtureModel<ScalarType>::trainGMM(const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, int gaussianCount)
+    void GaussianMixtureModel<ScalarType>::trainGMM(const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, int gaussianCount, double initVariance, double minVariance)
     {
         //TODO: precompute good starting vectors.
         for (unsigned int i=0; i<gaussians.size(); i++)
             delete gaussians[i];
         gaussians.clear();
-        gaussians = this->emAlg(std::vector<Gaussian<ScalarType>*>(), data, gaussianCount, 10);
+        gaussians = this->emAlg(std::vector<Gaussian<ScalarType>*>(), data, gaussianCount, 10, initVariance, minVariance);
         //TODO: check result for being a local minimum
     }
     
@@ -210,7 +208,7 @@ namespace music
      *      (condition > 1e8).
      */
     template <typename ScalarType>
-    std::vector<Gaussian<ScalarType>*> GaussianMixtureModelFullCov<ScalarType>::emAlg(const std::vector<Gaussian<ScalarType>*>& init, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, unsigned int gaussianCount, unsigned int maxIterations)
+    std::vector<Gaussian<ScalarType>*> GaussianMixtureModelFullCov<ScalarType>::emAlg(const std::vector<Gaussian<ScalarType>*>& init, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, unsigned int gaussianCount, unsigned int maxIterations, double initVariance, double minVariance)
     {
         //if init is empty, choose some data points as initialization.
         //k-means or something else should be done by somebody else beforehand.
@@ -243,7 +241,7 @@ namespace music
             for (std::set<unsigned int>::iterator it = initElements.begin(); it != initElements.end(); it++)
             {
                 means.push_back(data[*it]);
-                fullCovs.push_back(100.0 * Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>::Identity(dimension, dimension));
+                fullCovs.push_back(initVariance * Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>::Identity(dimension, dimension));
             }
         }
         else
@@ -281,16 +279,16 @@ namespace music
             //for every gaussian do...
             for (unsigned int g=0; g<gaussianCount; g++)
             {
-                if ((fullCovs[g].diagonal().array() < SMALLEST_VARIANCE_VALUE).any())
+                if ((fullCovs[g].diagonal().array() < minVariance).any())
                 {
-                    //if there is a coefficient that is smaller than SMALLEST_VARIANCE_VALUE in
-                    // magnitude, set it to SMALLEST_VARIANCE_VALUE. This helps with bad results
+                    //if there is a coefficient that is smaller than minVariance in
+                    // magnitude, set it to minVariance. This helps with bad results
                     Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> diag = fullCovs[g].diagonal();
                     for (int i=0; i<diag.size(); i++)
                     {
-                        if (fabs(diag[i]) < SMALLEST_VARIANCE_VALUE)
+                        if (fabs(diag[i]) < minVariance)
                         {
-                            fullCovs[g](i, i) = SMALLEST_VARIANCE_VALUE;
+                            fullCovs[g](i, i) = minVariance;
                         }
                     }
                 }
@@ -388,16 +386,16 @@ namespace music
         //get results with all-zero covariance matricies "right" (quick&dirty)
         for (unsigned int g=0; g<gaussianCount; g++)
         {
-            if ((fullCovs[g].diagonal().array() < SMALLEST_VARIANCE_VALUE).any())
+            if ((fullCovs[g].diagonal().array() < minVariance).any())
             {
-                //if there is a coefficient that is smaller than SMALLEST_VARIANCE_VALUE in
-                // magnitude, set it to SMALLEST_VARIANCE_VALUE. This helps with bad results
+                //if there is a coefficient that is smaller than minVariance in
+                // magnitude, set it to minVariance. This helps with bad results
                 Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> diag = fullCovs[g].diagonal();
                 for (int i=0; i<diag.size(); i++)
                 {
-                    if (fabs(diag[i]) < SMALLEST_VARIANCE_VALUE)
+                    if (fabs(diag[i]) < minVariance)
                     {
-                        fullCovs[g](i, i) = SMALLEST_VARIANCE_VALUE;
+                        fullCovs[g](i, i) = minVariance;
                     }
                 }
             }
@@ -436,7 +434,7 @@ namespace music
     }
     
     template <typename ScalarType>
-    std::vector<Gaussian<ScalarType>*> GaussianMixtureModelDiagCov<ScalarType>::emAlg(const std::vector<Gaussian<ScalarType>*>& init, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, unsigned int gaussianCount, unsigned int maxIterations)
+    std::vector<Gaussian<ScalarType>*> GaussianMixtureModelDiagCov<ScalarType>::emAlg(const std::vector<Gaussian<ScalarType>*>& init, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, unsigned int gaussianCount, unsigned int maxIterations, double initVariance, double minVariance)
     {
         //if init is empty, choose some data points as initialization.
         //k-means or something else should be done by somebody else beforehand.
@@ -471,7 +469,7 @@ namespace music
             for (std::set<unsigned int>::iterator it = initElements.begin(); it != initElements.end(); it++)
             {
                 means.push_back(data[*it]);
-                diagCovs.push_back(Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>::Constant(dimension, 1, 100.0));
+                diagCovs.push_back(Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>::Constant(dimension, 1, initVariance));
             }
         }
         else
@@ -509,13 +507,13 @@ namespace music
             //for every gaussian do...
             for (unsigned int g=0; g<gaussianCount; g++)
             {
-                //if there is a coefficient that is smaller than SMALLEST_VARIANCE_VALUE in
-                // magnitude, set it to SMALLEST_VARIANCE_VALUE. This helps with bad results
+                //if there is a coefficient that is smaller than minVariance in
+                // magnitude, set it to minVariance. This helps with bad results
                 for (int i=0; i<diagCovs[g].size(); i++)
                 {
-                    if (fabs(diagCovs[g][i]) < SMALLEST_VARIANCE_VALUE)
+                    if (fabs(diagCovs[g][i]) < minVariance)
                     {
-                        diagCovs[g][i] = SMALLEST_VARIANCE_VALUE;
+                        diagCovs[g][i] = minVariance;
                     }
                 }
                 //Eigen::LDLT<Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> > ldlt(diagCovs[g].asDiagonal());
@@ -606,13 +604,13 @@ namespace music
         //get results with all-zero covariance matricies "right" (quick&dirty)
         for (unsigned int g=0; g<gaussianCount; g++)
         {
-            //if there is a coefficient that is smaller than SMALLEST_VARIANCE_VALUE in
-            // magnitude, set it to SMALLEST_VARIANCE_VALUE. This helps with bad results
+            //if there is a coefficient that is smaller than minVariance in
+            // magnitude, set it to minVariance. This helps with bad results
             for (int i=0; i<diagCovs[g].size(); i++)
             {
-                if (fabs(diagCovs[g][i]) < SMALLEST_VARIANCE_VALUE)
+                if (fabs(diagCovs[g][i]) < minVariance)
                 {
-                    diagCovs[g][i] = SMALLEST_VARIANCE_VALUE;
+                    diagCovs[g][i] = minVariance;
                 }
             }
         }
