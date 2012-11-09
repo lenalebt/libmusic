@@ -63,6 +63,7 @@ SET(
     #feature extraction
     src/music/feature_extraction/bpm.cpp
     src/music/feature_extraction/chords.cpp
+    src/music/feature_extraction/timbre.cpp
     src/music/feature_extraction/feature_extraction_helper.cpp
     
     #kissfft source files
@@ -83,6 +84,7 @@ SET(
     #feature extraction
     src/music/feature_extraction/bpm.hpp
     src/music/feature_extraction/chords.hpp
+    src/music/feature_extraction/timbre.hpp
     src/music/feature_extraction/feature_extraction_helper.hpp
     
     #kissfft headers
