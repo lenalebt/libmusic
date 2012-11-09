@@ -310,6 +310,8 @@ namespace music
         
         int emptyHops = firstCenter / atomHop;
         
+        //musicaccess::DownsamplingIIRFilter lowpassfilter_downsampling(lowpassFilter);
+        
         //apply cqt once per octave
         for (int octave=octaveCount-1; octave >= 0; octave--)
         {
@@ -376,7 +378,6 @@ namespace music
             }
             
             transformResult->octaveMatrix[octave] = octaveResult;
-            musicaccess::DownsamplingIIRFilter lowpassfilter_downsampling(lowpassFilter);
             
             DEBUG_OUT("apply low-pass filter", 30);
             if (octave)
@@ -390,12 +391,31 @@ namespace music
                     memcpy(data, buffer, sampleCount * sizeof(float));
                 }
                 
+                #if 0
+                //the following parts contains errors, most probably in the downsampling-filter
                 float* newData = NULL;
                 newData = new float[sampleCount/2+1];
                 assert(newData != NULL);
                 
                 //this IIR filter does downsampling and filtering in one step (about 10% faster than doing it in 2 steps)
                 lowpassfilter_downsampling.applyDownsampling(data, sampleCount, newData);
+                #else
+                //TODO: idea: implement new filter variant which only calculates every second value.
+                //should speed it up 2x, and has better memory usage (can directly allocate half the
+                //memory size).
+                
+                lowpassFilter->apply(data, sampleCount);
+                
+                //change samplerate
+                float* newData = NULL;
+                newData = new float[sampleCount/2];
+                assert(newData != NULL);
+                for (int i=0; i<sampleCount/2; i++)
+                {
+                    newData[i] = data[2*i];
+                }
+                #endif
+                
                 delete[] data;
                 data = newData;
                 sampleCount /= 2;

@@ -351,6 +351,52 @@ namespace tests
         CHECK_EQ(outmem[6], 0.0);
         CHECK_EQ(outmem[7], -0.211164242902789);
         
+        
+        mem[0] = 1.0;
+        mem[1] = 2.0;
+        mem[2] = 3.0;
+        mem[3] = 4.0;
+        mem[4] = 5.0;
+        mem[5] = 6.0;
+        mem[6] = 7.0;
+        mem[7] = 8.0;
+        
+        for(int i=0; i<8; i++)
+        {
+            std::cerr << mem[i] << " ";
+            outmem[i] = 0;
+        }
+        std::cerr << std::endl;
+        
+        dct.doDCT2(mem, 8, outmem);
+        
+        for(int i=0; i<8; i++)
+        {
+            std::cerr << outmem[i] << " ";
+        }
+        std::cerr << std::endl;
+        
+        DEBUG_OUT("right answer:", 10);
+        for (int k=0; k<8; k++)
+        {
+            double sum=0.0;
+            for (int n=0; n<8; n++)
+            {
+                sum += mem[n] * cos(M_PI/8.0 * (double(n)+0.5) * double(k));
+            }
+            std::cerr << sum << " ";
+        }
+        std::cerr << std::endl;
+        
+        CHECK_EQ(outmem[0], 36);
+        CHECK_EQ(outmem[1], -18.2216411837961);
+        CHECK_EQ(outmem[2], 0.0);
+        CHECK_EQ(outmem[3], -1.90481782616725);
+        CHECK_EQ(outmem[4], 0.0);
+        CHECK_EQ(outmem[5], -0.568239222367166);
+        CHECK_EQ(outmem[6], 0.0);
+        CHECK_EQ(outmem[7], -0.14340782498102);
+        
         delete[] mem;
         delete[] outmem;
         
@@ -467,7 +513,7 @@ namespace tests
         DEBUG_OUT("original length of music piece was " << double(sampleCount) / 22050.0, 15);
         //CHECK_EQ(transformResult->getOriginalDuration(), 16.149433106575962);
         
-        #if DEBUG_LEVEL > 30
+        #if DEBUG_LEVEL > 10
         DEBUG_OUT("saving absolute values of the cqt transform result to file \"octaves.dat\"", 10);
         std::ofstream outstr("octaves.dat");
         for (int octave=transformResult->getOctaveCount()-1; octave>=0; octave--)
@@ -498,7 +544,7 @@ namespace tests
             }
         }
         #else
-        DEBUG_OUT("would save data to a file here if DEBUG_LEVEL were larger than 30 (is " << DEBUG_LEVEL << ").", 0);
+        DEBUG_OUT("would save data to a file here if DEBUG_LEVEL was larger than 10 (is " << DEBUG_LEVEL << ").", 0);
         #endif
         
         delete transformResult;
@@ -567,8 +613,8 @@ namespace tests
         
         DEBUG_OUT("original length of music piece was " << transformResult->getOriginalDuration(), 15);
         
-        DEBUG_OUT("saving absolute values of the cqt transform result to file \"octaves.dat\"", 10);
-        std::ofstream outstr("octaves.dat");
+        DEBUG_OUT("saving absolute values of the cqt transform result to file \"cqt-" << tests::basename(filename, true) << ".dat\"", 10);
+        std::ofstream outstr((std::string("cqt-") + tests::basename(filename, true) + ".dat").c_str());
         for (int octave=transformResult->getOctaveCount()-1; octave>=0; octave--)
         {
             for (int bin=transformResult->getBinsPerOctave()-1; bin >= 0; bin--)
@@ -576,7 +622,7 @@ namespace tests
                 for (int i=0; i < 100*transformResult->getOriginalDuration(); i++)
                 {
                     double time = 0.01 * i;
-                    outstr << abs(transformResult->getNoteValueNoInterpolation(time, octave, bin)) << " ";
+                    outstr << abs(transformResult->getNoteValueMean(time, octave, bin)) << " ";
                 }
                 outstr << std::endl;
             }
