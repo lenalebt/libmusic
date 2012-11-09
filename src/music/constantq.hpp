@@ -65,8 +65,6 @@ namespace music
         //array of matricies. we have one matrix for every octave.
         //the matricies are dense, with one row being an octave bin.
         Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >** octaveMatrix;
-        int* lBlock;
-        int* rBlock;
         
         float minBinMidiNote;
         int originalSampleCount;
