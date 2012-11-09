@@ -31,7 +31,7 @@ namespace music
         //first normalize our sum vector.
         double maxVal = -std::numeric_limits<double>::max();
         double val;
-        for (int i=0; i<doNotCountLastSeconds; i++)
+        for (int i=0; i<lastSumVecElement; i++)
         {
             val = fabs(sumVec[i]);
             if (maxVal < sumVec[i])
@@ -41,7 +41,7 @@ namespace music
         {
             //multiplication is faster than division
             double maxValReziprocal = 1.0/maxVal;
-            for (int i=0; i<doNotCountLastSeconds; i++)
+            for (int i=0; i<lastSumVecElement; i++)
             {
                 sumVec[i] *= maxValReziprocal;
             }
@@ -53,7 +53,7 @@ namespace music
         loudnessRMSVariance = 0.0;
         
         //then calculate mean and root mean square
-        for (int i=0; i<doNotCountLastSeconds; i++)
+        for (int i=0; i<lastSumVecElement; i++)
         {
             loudnessMean += sumVec[i];
             loudnessRMS += sumVec[i] * sumVec[i];
@@ -64,7 +64,7 @@ namespace music
         
         //then calculate variance
         double rmsVal;
-        for (int i=0; i<doNotCountLastSeconds; i++)
+        for (int i=0; i<lastSumVecElement; i++)
         {
             val = sumVec[i] - loudnessMean;
             rmsVal = sumVec[i] - loudnessRMS;
