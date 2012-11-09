@@ -79,6 +79,7 @@ SET(
     src/tools/console_colors.cpp
     src/tools/stringhelper.cpp
     src/tools/tuple.cpp
+    src/tools/randomnumbers.cpp
     
     #uihelper
     src/music/uihelper/progress_callback.cpp
@@ -120,6 +121,7 @@ SET(
     src/tools/console_colors.hpp
     src/tools/stringhelper.hpp
     src/tools/tuple.hpp
+    src/tools/randomnumbers.hpp
     
     #uihelper
     src/music/uihelper/progress_callback.hpp

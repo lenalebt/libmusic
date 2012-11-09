@@ -5,6 +5,7 @@
 
 /**
  * @brief The color namespace contains all classes and functions related to color output on the console
+ * @ingroup tools
  */
 namespace colors
 {
@@ -12,6 +13,7 @@ namespace colors
      * @brief This class is for colors on the console.
      * 
      * @todo Documentation
+     * @ingroup tools
      * 
      * @author Lena Brueder
      * @date 2012-07-16

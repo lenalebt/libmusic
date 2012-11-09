@@ -10,6 +10,7 @@
  * @brief Tests, if a string ends with another string.
  * @return <code>true</code>, if <code>str</code> ends with <code>ending</code>. <code>false</code>
  *      otherwise.
+ * @ingroup tools
  */
 inline bool endsWith(const std::string& str, const std::string& ending)
 {
@@ -25,6 +26,7 @@ inline bool endsWith(const std::string& str, const std::string& ending)
 
 /**
  * @brief Converts a string to lower case.
+ * @ingroup tools
  */
 inline void tolower(std::string& string)
 {
@@ -33,6 +35,7 @@ inline void tolower(std::string& string)
 
 /**
  * @brief Converts a string to upper case.
+ * @ingroup tools
  */
 inline void toupper(std::string& string)
 {
@@ -47,6 +50,7 @@ inline bool contains(const std::string& string, const std::string& searchFor)
 /**
  * @brief Concatenates a std::string with an integer number as string.
  * @return The concatenated string with the number.
+ * @ingroup tools
  */
 inline std::string operator+(const std::string& str, int number)
 {
