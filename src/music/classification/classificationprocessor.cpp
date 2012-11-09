@@ -12,6 +12,9 @@ namespace music
     
     bool ClassificationProcessor::recalculateCategory(databaseentities::Category& category, bool recalculateCategoryMembershipScores_, ProgressCallbackCaller* callback)
     {
+        //all accesses will be in one transaction
+        conn->beginTransaction();
+        
         ClassificationCategory cat;
         
         if (callback)
@@ -59,7 +62,10 @@ namespace music
                 category.getCategoryDescription()->setTimbreModel(cat.getTimbreModel()->toJSONString());
             }
             else
+            {
+                conn->rollbackTransaction();
                 return false;
+            }
         }
         else
         {
@@ -77,7 +83,10 @@ namespace music
                 callback->progress(0.5, "recalculate membership scores");
             //TODO: ID des callbacks stimmt evtl so nicht. neu anpassen, dafür funktionen von progresscallbackcaller ändern?
             if (!recalculateCategoryMembershipScores(category, callback))
+            {
+                conn->rollbackTransaction();
                 return false;
+            }
         }
         
         //delete timbreModels
@@ -94,7 +103,7 @@ namespace music
         if (callback)
             callback->progress(1.0, "finished");
         
-        return false;
+        return true;
     }
     
     bool ClassificationProcessor::recalculateCategoryMembershipScores(const databaseentities::Category& category, ProgressCallbackCaller* callback)

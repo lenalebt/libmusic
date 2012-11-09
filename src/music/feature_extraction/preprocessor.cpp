@@ -35,7 +35,9 @@ namespace music
     {
         try
         {
-            //DB transaction will be started later on, don't need it now
+            //start transaction, will be able to rollback.
+            //the transaction is deferred, thus the lock will be acquired at the time the connection is used
+            conn->beginTransaction();
             
             float stepCount = 17.0;
             bool success;
@@ -132,7 +134,7 @@ namespace music
                 delete recording;
                 delete transformResult;
                 delete[] buffer;
-                //conn->rollbackTransaction();  //don't need to rollback, did not access the database
+                conn->rollbackTransaction();
                 return false;
             }
             features->setTempo(bpmEst.getBPMMean());
@@ -146,9 +148,6 @@ namespace music
             //build model from 30 gaussians, 10ms slices, 20-dimensional vectors
             timbreModel.calculateModel(timbreModelSize, timbreTimeSliceSize, timbreDimension);
             features->setTimbreModel(timbreModel.getModel()->toJSONString());
-            
-            //start transaction, will be able to rollback.
-            conn->beginTransaction();
             
             //this adds the recording, as well as its features.
             success = conn->addRecording(*recording);
