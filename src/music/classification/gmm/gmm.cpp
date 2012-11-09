@@ -237,7 +237,14 @@ namespace music
             if ((oldWeights - weights).norm() / oldWeights.norm() < 10e-10)
                 converged = true;
         }
-        DEBUG_OUT("EM converged or terminated after " << iteration << " iterations...", 20);
+        if (converged)
+        {
+            DEBUG_OUT("EM converged after " << iteration << " iterations.", 20);
+        }
+        else
+        {
+            DEBUG_OUT("EM stopped after " << iteration << " iterations.", 20);
+        }
         
         double sumOfWeights = 0.0;
         normalizationFactor = 0.0;

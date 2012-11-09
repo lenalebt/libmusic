@@ -250,9 +250,65 @@ namespace tests
     }
     int testKMeans()
     {
-        ERROR_OUT("Test not ready yet!", 0);
-        
+        DEBUG_OUT("running test for k-means...", 0);
         music::KMeans kmeans;
+        srand(time(NULL));
+        
+        //create data. don't have a generator for multivariate gaussian values, just taking equally distributed data (uncorrelated)
+        //set these values to change how much data will be generated, and how many dimensions you have
+        int dimension = 8;
+        int dataCount = 10000;
+        
+        Eigen::VectorXd dataVector(dimension);
+        std::vector<Eigen::VectorXd> data;
+        
+        DEBUG_OUT("adding " << dataCount << " data vectors...", 0);
+        //calc mu1 and mu2...
+        Eigen::VectorXd mu1(dimension);
+        Eigen::VectorXd mu2(dimension);
+        for (int j=0; j<dimension; j++)
+        {
+            mu1[j] = -0.5 + double(rand() % 1000) / 1000.0;
+            mu2[j] = 3.0 - 0.5 + double(rand() % 1000) / 1000.0;
+        }
+        DEBUG_OUT("mu1 = " << mu1, 0);
+        DEBUG_OUT("mu2 = " << mu2, 0);
+        
+        //distribution 1
+        DEBUG_OUT(dataCount / 4 << " for distribution 1...", 0);
+        Eigen::VectorXd meanVec = Eigen::VectorXd::Zero(dimension);
+        Eigen::VectorXd varVec = Eigen::VectorXd::Zero(dimension);
+        for (int i=0; i<dataCount/4; i++)
+        {
+            for (int j=0; j<dimension; j++)
+                dataVector[j] = -0.5 + double(rand() % 1000) / 1000.0;
+            meanVec = meanVec + dataVector + mu1;
+            varVec = varVec + (dataVector).array().pow(2.0).matrix();
+            data.push_back(dataVector + mu1);
+        }
+        DEBUG_OUT("mean of distribution 1 = " << meanVec / (dataCount/4), 0);
+        DEBUG_OUT("estimated variance of distribution 1 = " << varVec / (dataCount/4), 0);
+        
+        meanVec = Eigen::VectorXd::Zero(dimension);
+        varVec = Eigen::VectorXd::Zero(dimension);
+        //distribution 2
+        DEBUG_OUT(3*dataCount / 4 << " for distribution 2...", 0);
+        for (int i=dataCount/4; i<dataCount; i++)
+        {
+            for (int j=0; j<dimension; j++)
+                dataVector[j] = -1.0 + double(rand() % 2000) / 1000.0;
+            meanVec = meanVec + dataVector + mu2;
+            varVec = varVec + (dataVector).array().pow(2.0).matrix();
+            data.push_back(dataVector + mu2);
+        }
+        DEBUG_OUT("mean of distribution 2 = " << meanVec / (3*dataCount/4), 0);
+        DEBUG_OUT("estimated variance of distribution 2 = " << varVec / (3*dataCount/4), 0);
+        
+        DEBUG_OUT("running k-means with generated data and 2 means...", 0);
+        kmeans.trainKMeans(data, 2, 3);
+        std::vector<Eigen::VectorXd> means1 = kmeans.getMeans();
+        DEBUG_VAR_OUT(means1[0], 0);
+        DEBUG_VAR_OUT(means1[1], 0);
         
         return EXIT_FAILURE;
     }
