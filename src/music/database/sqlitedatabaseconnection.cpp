@@ -1391,7 +1391,7 @@ namespace music
         return true;
     }
     
-    bool SQLiteDatabaseConnection::getCategoryExampleRecordingIDs(std::vector<std::pair<databaseentities::id_datatype, double> >& recordingIDsAndScores, databaseentities::id_datatype categoryID, int limit)
+    bool SQLiteDatabaseConnection::getCategoryExampleRecordingIDs(std::vector<std::pair<databaseentities::id_datatype, double> >& recordingIDsAndScores, databaseentities::id_datatype categoryID, double minScore, double maxScore, int limit)
     {
         DEBUG_OUT("will read recordingIDs and their scores by category ID and score now (examples)...", 35);
         
@@ -1400,7 +1400,7 @@ namespace music
         
         if (_getRecordingIDsByCategoryExampleScoresStatement == NULL)
         {
-            rc = sqlite3_prepare_v2(_db, "SELECT recordingID, score FROM categoryExample WHERE categoryID=@categoryID LIMIT @limit;", -1, &_getRecordingIDsByCategoryExampleScoresStatement, NULL);
+            rc = sqlite3_prepare_v2(_db, "SELECT recordingID, score FROM categoryExample WHERE categoryID=@categoryID AND score>=@minScore AND score<=@maxScore LIMIT @limit;", -1, &_getRecordingIDsByCategoryExampleScoresStatement, NULL);
             if (rc != SQLITE_OK)
             {
                 ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
@@ -1410,7 +1410,9 @@ namespace music
         
         //bind parameters
         sqlite3_bind_int64(_getRecordingIDsByCategoryExampleScoresStatement, 1, categoryID);
-        sqlite3_bind_int(_getRecordingIDsByCategoryExampleScoresStatement, 2, limit);
+        sqlite3_bind_double(_getRecordingIDsByCategoryExampleScoresStatement, 2, minScore);
+        sqlite3_bind_double(_getRecordingIDsByCategoryExampleScoresStatement, 3, maxScore);
+        sqlite3_bind_int(_getRecordingIDsByCategoryExampleScoresStatement, 4, limit);
         
         while ((rc = sqlite3_step(_getRecordingIDsByCategoryExampleScoresStatement)) != SQLITE_DONE)
         {

@@ -355,7 +355,7 @@ namespace music
         
         
         
-        return (emptyPosClassifierModel ? 0.0 : posClassifier->classifyVector(posVec))
-            + (emptyNegClassifierModel ? 0.0 : negClassifier->classifyVector(negVec));
+        return (emptyPosClassifierModel ? 0.0 : 1.0/(1.0+posClassifier->classifyVector(posVec)))
+            - (emptyNegClassifierModel ? 0.0 : 1.0/(1.0+negClassifier->classifyVector(negVec)));
     }
 }
