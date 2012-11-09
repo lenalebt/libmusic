@@ -1405,7 +1405,7 @@ namespace music
         int rc;
         if (_updateCategoryByIDStatement == NULL)
         {
-            rc = sqlite3_prepare_v2(_db, "UPDATE category SET categoryName=@categoryName, WHERE categoryID=@categoryID;", -1, &_updateCategoryByIDStatement, NULL);
+            rc = sqlite3_prepare_v2(_db, "UPDATE category SET categoryName=@categoryName WHERE categoryID=@categoryID;", -1, &_updateCategoryByIDStatement, NULL);
             if (rc != SQLITE_OK)
             {
                 ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
