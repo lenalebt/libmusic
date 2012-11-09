@@ -130,17 +130,29 @@ namespace music
         int elementCount = transformResult->getOriginalDuration() / timeResolution;
         sumVector = new Eigen::VectorXd(elementCount);
         
-        for (int i=0; i < elementCount; i++)
+        if (meanVector == NULL)
         {
-            double sum=0.0;
-            for (int octave=0; octave<octaveCount; octave++)
+            for (int i=0; i < elementCount; i++)
             {
-                for (int bin=0; bin<binsPerOctave; bin++)
+                double sum=0.0;
+                for (int octave=0; octave<octaveCount; octave++)
                 {
-                    sum += std::abs(transformResult->getNoteValueNoInterpolation(i*timeResolution, octave, bin));
+                    for (int bin=0; bin<binsPerOctave; bin++)
+                    {
+                        sum += std::abs(transformResult->getNoteValueNoInterpolation(i*timeResolution, octave, bin));
+                    }
                 }
+                (*sumVector)[i] = sum;
             }
-            (*sumVector)[i] = sum;
+        }
+        else
+        {
+            /* 
+             * If we already calculated the mean Vector, we can get the sum vector
+             * without summing again, so this should be faster. It might
+             * not be that accurate, but it should not be a problem here.
+             */
+            (*sumVector) = (*meanVector) * (binsPerOctave * octaveCount);
         }
     }
     void PerTimeSliceStatistics::calculateMeanMinMaxSum(bool calculateSum)
