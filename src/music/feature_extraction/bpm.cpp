@@ -242,7 +242,7 @@ namespace music
         for (std::vector<float>::iterator it = diffPosVector.begin(); it != diffPosVector.end(); it++)
         {
             double val = 60.0/(double(*it)*timeSliceLength) - bpmMean;
-            DEBUG_OUT(val << "; " << stdDeriv << std::endl, 40);
+            DEBUG_OUT(val << "; " << stdDeriv, 40);
             if (fabs(val) > stdDeriv + 5)
             {
                 DEBUG_OUT("cancel out " << *it, 20);
@@ -375,14 +375,14 @@ namespace music
                 {
                     if ((risePos < 0) && (autoCorr[i] > barrierVal) && (autoCorr[i] - autoCorr[i-1] > 0))   //rise
                     {
-                        DEBUG_OUT("rise " << std::endl, 40);
+                        DEBUG_OUT("rise ", 40);
                         risePos = i;
                     }
                     else if ((risePos >= 0) && (autoCorr[i] < barrierVal) && (autoCorr[i+1] - autoCorr[i] < 0))   //fall
                     {
-                        DEBUG_OUT("fall " << std::endl, 40);
+                        DEBUG_OUT("fall ", 40);
                         maxCorrPos.push_back(lastAddedPosition = risePos+(float(i-risePos)/2.0));
-                        DEBUG_OUT(lastAddedPosition << std::endl, 40);
+                        DEBUG_OUT(lastAddedPosition, 40);
                         risePos=-1;
                     }
                 }
@@ -433,7 +433,7 @@ namespace music
         for (std::vector<float>::iterator it = diffPosVector.begin(); it != diffPosVector.end(); it++)
         {
             double val = 60.0/(double(*it)*timeSliceLength) - bpmMean;
-            DEBUG_OUT(val << "; " << stdDeriv << std::endl, 40);
+            DEBUG_OUT(val << "; " << stdDeriv, 40);
             if (fabs(val) > stdDeriv + 5)
             {
                 DEBUG_OUT("cancel out " << *it, 20);
