@@ -1,22 +1,32 @@
-Installing the library
-======================
+Install
+=======
 
-If you want to install the library in a normal, 
-non-cross-compile-environment, just go to the "build/" directory and 
-type
+Prequisites
+===========
 
-cmake ..
+To install the library, you need to install some other libraries and tools:
+
+doxygen, if you want to build the documentation. This package is optional.
+cmake, which is the build system and needed to compile the software.
+libmusicaccess, which should be bundled or found at the same place you found libmusic.
+eigen >= 3.0, this library is used for matrix and vector operations.
+sqlite3, which is the database backend.
+Installing on a normal *nix system
+
+If you want to install the library in a normal, non-cross-compile-environment, just go to the "build/" directory and type
+
+cmake -DCMAKE_BUILD_TYPE=Release ..
 make -j5
 make install
-
-The last step might require root privileges. If you want to build 
-the docs, type
+The last step might require root privileges. If you want to build the docs and have doxygen installed, type
 
 make doc
+in the very same directory. You will find the docs in the api-doc/ directory. There are two formats available, for the more common HTML version open the file api-doc/html/index.html. The LaTeX version needs to be compiled, which is possible via
 
-in the very same directory. You will find the docs in the api-doc/ 
-directory. There are two formats available, for the more common HTML 
-version open the file api-doc/html/index.html .
+cd api-doc/latex/
+pdflatex refman.tex
+pdflatex refman.tex
+if you have LaTeX installed. Running LaTeX twice is necessary to get cross-references and some citations right. If you don't care about them, a single run is sufficient. You may now open the file refman.pdf with a PDF reader of your choice..
 
 Installing for Cross-Compilation
 ================================
