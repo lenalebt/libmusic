@@ -228,6 +228,8 @@ namespace music
      * to build the model (usually the EM algorithm).
      * 
      * @ingroup classification
+     * @see GaussianMixtureModelDiagCov
+     * @see GaussianMixtureModelFullCov
      * 
      * @author Lena Brueder
      * @date 2012-08-27
@@ -395,6 +397,20 @@ namespace music
     /*template <typename ScalarType> class GaussianMixtureModel<ScalarType, GaussianFullCov<ScalarType> >;
     template <typename ScalarType> class GaussianMixtureModel<ScalarType, GaussianDiagCov<ScalarType> >;*/
     
+    /**
+     * @brief A GaussianMixtureModel which uses full covariance matricies.
+     * 
+     * This class performs slower calculations than GaussianMixtureModelDiagCov,
+     * but the results are more accurate than they are with the other class.
+     * 
+     * @see GaussianMixtureModel
+     * @see GaussianMixtureModelDiagCov
+     * @see GaussianFullCov
+     * @ingroup classification
+     * 
+     * @author Lena Brueder
+     * @date 2012-09-10
+     */
     template <typename ScalarType>
     class GaussianMixtureModelFullCov : public GaussianMixtureModel<ScalarType>
     {
@@ -406,6 +422,21 @@ namespace music
             std::vector<Gaussian<ScalarType>* > emAlg(const std::vector<Gaussian<ScalarType>*>& init, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, int gaussianCount = 10, unsigned int maxIterations=50);
             
     };
+    
+    /**
+     * @brief A GaussianMixtureModel which uses diagonal covariance matricies.
+     * 
+     * This class performs faster calculations than GaussianMixtureModelFullCov,
+     * but the results are not as accurate as they are with the other class.
+     * 
+     * @see GaussianMixtureModel
+     * @see GaussianMixtureModelFullCov
+     * @see GaussianDiagCov
+     * @ingroup classification
+     * 
+     * @author Lena Brueder
+     * @date 2012-09-10
+     */
     template <typename ScalarType>
     class GaussianMixtureModelDiagCov : public GaussianMixtureModel<ScalarType>
     {
