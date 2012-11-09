@@ -88,6 +88,16 @@ int main(int argc, char *argv[])
         }
         return tests::applyConstantQ(argv[2], argv[3], argv[4]);
     }
+    else if (testname == "applytimbre")
+    {
+        if (argc < 3)
+        {
+            std::cout << "this test needs extra parameters:" << std::endl;
+            std::cout << "call \"" << argv[0] << " applytimbre filename\"" << std::endl;
+            return EXIT_FAILURE;
+        }
+        return tests::applyTimbreEstimation(argv[2]);
+    }
     else
     {
         std::cout << "test \"" << testname << "\" is unknown." << std::endl;

@@ -205,6 +205,77 @@ namespace tests
     
     int testGMM()
     {
+        int dimension=8;
+        int dataCount=30000;
+        
+        music::GaussianMixtureModelDiagCov<double> gmm;
+        music::KMeans<double> kmeans;
+        music::GaussianDiagCov<double> gdc1(dimension);
+        music::GaussianDiagCov<double> gdc2(dimension);
+        music::GaussianDiagCov<double> gdc3(dimension);
+        
+        //generate data
+        Eigen::VectorXd mu1(dimension);
+        Eigen::VectorXd mu2(dimension);
+        Eigen::VectorXd mu3(dimension);
+        
+        mu1 << 500, -500, 200, 150,  100, 50, 1, 20;
+        mu2 << 100,  100, 900, 190,  -60, 90, 8, 10;
+        mu3 << 800,-1000,-300,  50, -100,-50, 5, 30;
+        
+        Eigen::VectorXd cov1(dimension);
+        Eigen::VectorXd cov2(dimension);
+        Eigen::VectorXd cov3(dimension);
+        
+        cov1 << 500,   2000, 200, 150,  100, 50, 1, 20;
+        cov2 << 1000,  1000, 900, 190,   60, 90, 8, 10;
+        cov3 << 10000, 1000, 300,  50,  100, 50, 5, 30;
+        
+        gdc1.setMean(mu1);
+        gdc1.setCovarianceMatrix(cov1.asDiagonal());
+        gdc2.setMean(mu2);
+        gdc2.setCovarianceMatrix(cov2.asDiagonal());
+        gdc3.setMean(mu3);
+        gdc3.setCovarianceMatrix(cov3.asDiagonal());
+        
+        
+        std::vector<Eigen::VectorXd> data;
+        for (int i=0; i<dataCount/3; i++)
+        {
+            data.push_back(gdc1.rand());
+            data.push_back(gdc2.rand());
+            data.push_back(gdc3.rand());
+        }
+        
+        
+        /*
+        for (typename std::vector<Eigen::VectorXd>::iterator it = data.begin(); it != data.end(); it++)
+        {
+            DEBUG_VAR_OUT((*it).transpose(), 0);
+        }*/
+        
+        /*
+        kmeans.trainKMeans(data, 10);
+        std::vector<Eigen::VectorXd> means = kmeans.getMeans();
+        for (typename std::vector<Eigen::VectorXd>::iterator it = means.begin(); it != means.end(); it++)
+        {
+            DEBUG_VAR_OUT((*it).transpose(), 0);
+        }
+        */
+        
+        
+        gmm.trainGMM(data,10);
+        std::vector<music::Gaussian<double>*> gaussians = gmm.getGaussians();
+        for (typename std::vector<music::Gaussian<double>*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
+        {
+            DEBUG_OUT("gaussian mean: " << (*it)->getMean(), 0);
+            DEBUG_OUT("gaussian sigma: " << (*it)->getCovarianceMatrix(), 0);
+        }
+        
+        
+        return EXIT_FAILURE;
+        
+        #if 0
         DEBUG_OUT("running test for gaussian mixture models...", 0);
         music::GaussianMixtureModelFullCov<double> fullgmmd;
         music::GaussianMixtureModelFullCov<double> fullgmmd2;
@@ -338,6 +409,7 @@ namespace tests
         DEBUG_OUT("test finished.", 10);
         
         return retVal;
+        #endif
     }
     int testKMeans()
     {

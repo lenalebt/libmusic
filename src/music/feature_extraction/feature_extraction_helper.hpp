@@ -18,6 +18,7 @@ namespace music
      * values at once. this may lead to some waste of memory, but is faster if
      * you need some information at once.
      * 
+     * @see PerTimeSliceStatistics
      * @author Lena Brueder
      * @ingroup feature_extraction
      * @date 2012-07-02
@@ -97,6 +98,8 @@ namespace music
      * values at once. this may lead to some waste of memory, but is faster if
      * you need some information at once.
      * 
+     * @ingroup feature_extraction
+     * @see PerBinStatistics
      * @author Lena Brueder
      * @date 2012-07-02
      */
@@ -133,11 +136,12 @@ namespace music
          */
         void calculateMeanMinMaxSum(bool calculateSum = false);
         /**
-         * @brief Calculates the variance
+         * @brief Calculates the variance.
          * 
+         * @remarks Will calculate mean, if needed. If you need the sum, too, it
+         *      is faster to first call calculateMeanMinMaxSum() and then call
+         *      calculateVariance().
          * 
-         * 
-         * @return 
          */
         void calculateVariance();
         
@@ -146,8 +150,11 @@ namespace music
          * 
          * @remarks Do not delete the pointer returned by this function.
          *      The class will delete the pointer upon destruction.
+         * @attention You need to first calculate the values you need, see linked functions.
          * 
-         * @return the mean vector with the means per time slice
+         * @see calculateMeanMinMaxSum
+         * 
+         * @return the mean vector with the means per time slice, or <code>NULL</code> if it has not yet been calculated
          */
         const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>* getMeanVector() const            {return meanVector;}
         /**
@@ -155,8 +162,11 @@ namespace music
          * 
          * @remarks Do not delete the pointer returned by this function.
          *      The class will delete the pointer upon destruction.
+         * @attention You need to first calculate the values you need, see linked functions.
          * 
-         * @return the max vector with the maximum values per time slice.
+         * @see calculateMeanMinMaxSum
+         * 
+         * @return the max vector with the maximum values per time slice, or <code>NULL</code> if it has not yet been calculated
          */
         const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>* getMaxVector() const             {return maxVector;}
         /**
@@ -164,8 +174,11 @@ namespace music
          * 
          * @remarks Do not delete the pointer returned by this function.
          *      The class will delete the pointer upon destruction.
+         * @attention You need to first calculate the values you need, see linked functions.
          * 
-         * @return the min vector with the minimums per time slice
+         * @see calculateMeanMinMaxSum
+         * 
+         * @return the min vector with the minimums per time slice, or <code>NULL</code> if it has not yet been calculated
          */
         const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>* getMinVector() const             {return minVector;}
         /**
@@ -173,8 +186,11 @@ namespace music
          * 
          * @remarks Do not delete the pointer returned by this function.
          *      The class will delete the pointer upon destruction.
+         * @attention You need to first calculate the values you need, see linked functions.
          * 
-         * @return the variance vector with the variances per time slice
+         * @see calculateVariance
+         * 
+         * @return the variance vector with the variances per time slice, or <code>NULL</code> if it has not yet been calculated
          */
         const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>* getVarianceVector() const        {return varianceVector;}
         /**
@@ -182,8 +198,12 @@ namespace music
          * 
          * @remarks Do not delete the pointer returned by this function.
          *      The class will delete the pointer upon destruction.
+         * @attention You need to first calculate the values you need, see linked functions.
          * 
-         * @return the sum vector with the sums per time slice
+         * @see calculateSum
+         * @see calculateMeanMinMaxSum
+         * 
+         * @return the sum vector with the sums per time slice, or <code>NULL</code> if it has not yet been calculated
          */
         const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>* getSumVector() const             {return sumVector;}
     };

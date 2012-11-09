@@ -363,7 +363,7 @@ namespace tests
         lowpassFilter = musicaccess::IIRFilter::createLowpassFilter(0.25);
         CHECK_OP(lowpassFilter, !=, NULL);
         
-        double q=1.0;
+        double q=2.0;
         int bins=12;
         
         DEBUG_OUT("creating constant q transform kernel...", 10);
