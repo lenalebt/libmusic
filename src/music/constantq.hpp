@@ -121,6 +121,8 @@ namespace music
         double getBinMin(int octave, int bin) const;
         double getBinMean(int octave, int bin) const;
         
+        const Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >* getOctaveMatrix(int octave) const;
+        
         friend class ConstantQTransform;
     };
     

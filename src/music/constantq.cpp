@@ -556,4 +556,12 @@ namespace music
         mean /= octaveBins->cols();
         return mean;
     }
+    
+    const Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >* ConstantQTransformResult::getOctaveMatrix(int octave) const
+    {
+        assert (octave < octaveCount);
+        assert (octave >= 0);
+        
+        return this->octaveMatrix[octave];
+    }
 }

@@ -63,6 +63,7 @@ SET(
     #feature extraction
     src/music/feature_extraction/bpm.cpp
     src/music/feature_extraction/chords.cpp
+    src/music/feature_extraction/feature_extraction_helper.cpp
     
     #kissfft source files
     src/kissfft/kiss_fft.c
@@ -82,6 +83,7 @@ SET(
     #feature extraction
     src/music/feature_extraction/bpm.hpp
     src/music/feature_extraction/chords.hpp
+    src/music/feature_extraction/feature_extraction_helper.hpp
     
     #kissfft headers
     src/kissfft/kiss_fft.h
@@ -168,6 +170,7 @@ ADD_TEST(eigen                     "musictests" "eigen")
 ADD_TEST(constantq                 "musictests" "constantq")
 ADD_TEST(fft                       "musictests" "fft")
 ADD_TEST(estimatebpm               "musictests" "estimatebpm")
+ADD_TEST(perbinstatistics          "musictests" "perbinstatistics")
 
 ADD_EXECUTABLE(musictests
     ${music_TEST_SOURCES}
