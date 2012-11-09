@@ -204,8 +204,8 @@ namespace music
         assert(this->lowpassFilter != NULL);
         assert(this->fKernel != NULL);
         
-        //how many zeros should be padded?
-        int zeroPadding = fftLen / 2;
+        //how many zeros should be padded to the lowest octave?
+        int zeroPadding = fftLen/2;
         
         FFT fft;
         //temporary fft data
@@ -231,20 +231,25 @@ namespace music
         transformResult->octaveMatrix = new Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >*[octaveCount];
         
         transformResult->originalDuration = double(sampleCount)/this->fs;
+        transformResult->originalZeroPadding = zeroPadding;
         
         //apply cqt once per octave
         for (int octave=octaveCount-1; octave >= 0; octave--)
         {
-            //int overlap = fftLen - fftHop;        //needed in the matlab implementation, not needed here
+            int overlap = fftLen - fftHop;        //needed in the matlab implementation, not needed here
             int fftlength=0;
             
+            //int lZeros = (zeroPadding << octave) - ((zeroPadding << octave)/fftHop)*fftHop; //zeros padded on the left (for this octave)
+            int lZeros = zeroPadding; //zeros padded on the left (for this octave)
+            int rZeros = fftLen - (lZeros + sampleCount)%fftHop; //zeros padded on the right (for this octave)
+            
             octaveResult = NULL;
-            octaveResult = new Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >(binsPerOctave, ((sampleCount+2*zeroPadding)/fftHop + 1) * atomNr);
+            octaveResult = new Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >(binsPerOctave, ((sampleCount+lZeros)/fftHop +1) * atomNr);
             assert(octaveResult != NULL);
             
             int windowNumber=0;
             //shift our window a bit. window has overlap.
-            for (int position=-zeroPadding; position < sampleCount + zeroPadding ;position+=fftHop)
+            for (int position=-lZeros; position < sampleCount; position+=fftHop)
             {
                 if (position<0)
                 {   //zero-padding necessary, front
@@ -348,12 +353,14 @@ namespace music
         transformResult->originalSamplingFrequency = this->fs;
         transformResult->originalSampleCount = sampleCount;
         transformResult->binsPerOctave = this->binsPerOctave;
-        transformResult->octaveCount = octaveCount;
+        transformResult->octaveCount = this->octaveCount;
+        transformResult->fftLen = fftLen;
+        transformResult->atomNr = atomNr;
         
         delete[] fftData;
         delete[] fftSourceDataZeroPadMemory;
         
-        #if DEBUG_LEVEL > 10
+        #if DEBUG_LEVEL > 100
             DEBUG_OUT("saving data to files...", 10);
             for (int k=0; k<octaveCount; k++)
             {
@@ -386,10 +393,28 @@ namespace music
         if (time <= 0.0f)
             return std::complex<float>(0.0f, 0.0f);
         
-        int pos = (octaveMatrix[octave]->cols()+1) * (time/originalDuration);
+        if (octave >= octaveCount)
+        {
+            DEBUG_OUT("tried to acces octave " << octave << ", we only have " << octaveCount << " octaves!", 10);
+        }
+        
+        int pos = octaveMatrix[octave]->cols() - atomNr*1.5;
+        //pos -= (1<<octave);
+        pos *= (time/originalDuration);
+        pos += atomNr/2;   //first block was zero block
+        //pos -= atomNr;   //first block was zero block
+        //pos -= atomNr;   //last block was zero block
+        
         
         if (pos >= octaveMatrix[octave]->cols())
+        {
+            DEBUG_OUT("too large pos: " << pos, 25);
             return std::complex<float>(0.0f, 0.0f);
+        } else if (pos < 0)
+        {
+            DEBUG_OUT("too small pos: " << pos, 25);
+            return std::complex<float>(0.0f, 0.0f);
+        }
         
         return (*octaveMatrix[octave])(bin, pos);
     }
