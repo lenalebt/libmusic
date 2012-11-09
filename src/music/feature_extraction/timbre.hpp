@@ -90,7 +90,9 @@ namespace music
          * This function will start to calculate the timbre vectors and build the model.
          * 
          * @param[in,out] timbreVectors A vector which will contain the timbre vectors. If it is empty,
-         *      the timbre vectors will be recalculated. If it is not empty, these vectors will be used.
+         *      the timbre vectors will be recalculated. If it is not empty, these vectors will be used;
+         *      in that case the parameters <code>timeSlizeSize</code> and
+         *      <code>timbreVectorSize</code> will be ignored.
          *      <code>dimension</code> and the dimension of the data vectors need to agree.
          * @param modelSize The size of the model, e.g. the number of normal distribution
          *      used to model the timbre vectors.
