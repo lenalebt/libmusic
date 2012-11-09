@@ -171,6 +171,20 @@ namespace music
          * @return A pointer to a copy of the object.
          */
         virtual Gaussian<ScalarType>* clone()=0;
+        
+        /**
+         * @brief Calculates the Mahalanobis distance of the given vectors
+         * 
+         * @param vector1 The first vector
+         * @param vector2 The second vector. If omitted, the mean of the
+         *      gaussian will be taken, so one is able to calculate
+         *      "the distance from the gaussian".
+         * 
+         * @return the Mahalanobis distance of the given vectors
+         */
+        virtual double calculateDistance(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& vector1, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& vector2);
+        virtual double calculateDistance(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& vector1);
+        //                                        {return calculateDistance(vector1, mean);}
     };
     
     /**

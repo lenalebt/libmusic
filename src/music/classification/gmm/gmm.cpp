@@ -39,6 +39,19 @@ namespace music
     }
     
     template <typename ScalarType>
+    double Gaussian<ScalarType>::calculateDistance(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& vector1, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& vector2)
+    {
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> tmp = vector1 - vector2;
+        return sqrt(tmp.transpose() * llt.solve(tmp));
+    }
+    
+    template <typename ScalarType>
+    double Gaussian<ScalarType>::calculateDistance(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& vector1)
+    {
+        return this->calculateDistance(vector1, this->mean);
+    }
+    
+    template <typename ScalarType>
     Gaussian<ScalarType>::~Gaussian()
     {
         if (!externalRNG)
