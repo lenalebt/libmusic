@@ -181,6 +181,11 @@ namespace music
          */
         virtual bool getCategoryDescriptionByID(databaseentities::CategoryDescription& categoryDescription)=0;
         //TODO: need update for category description.
+        
+        virtual bool getRecordingToCategoryScore(databaseentities::id_datatype recordingID, databaseentities::id_datatype categoryID, double& score)=0;
+        virtual bool updateRecordingToCategoryScore(databaseentities::id_datatype recordingID, databaseentities::id_datatype categoryID, double score)=0;
+        virtual bool getCategoryExampleScore(databaseentities::id_datatype categoryID, databaseentities::id_datatype recordingID, double& score)=0;
+        virtual bool updateCategoryExampleScore(databaseentities::id_datatype categoryID, databaseentities::id_datatype recordingID, double score)=0;
     };
 }
 #endif  //DATABASECONNECTION_HPP

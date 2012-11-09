@@ -39,6 +39,14 @@ namespace music
         
         _saveCategoryDescriptionStatement       (NULL),
         _getCategoryDescriptionByIDStatement    (NULL)
+        
+        _getRecordingToCategoryScoreByIDsStatement    (NULL),  
+        _deleteRecordingToCategoryScoreByIDsStatement (NULL),  
+        _saveRecordingToCategoryScoreStatement        (NULL),  
+        
+        _getCategoryExampleScoreByIDsStatement        (NULL),  
+        _deleteCategoryExampleScoreByIDsStatement     (NULL),  
+        _saveCategoryExampleScoreStatement            (NULL)  
     {
         
     }
@@ -97,6 +105,22 @@ namespace music
             sqlite3_finalize(_saveCategoryDescriptionStatement);
         if (_getCategoryDescriptionByIDStatement != NULL)
             sqlite3_finalize(_getCategoryDescriptionByIDStatement);
+        
+        //
+        if (_getRecordingToCategoryScoreByIDsStatement != NULL)
+            sqlite3_finalize(_getRecordingToCategoryScoreByIDsStatement);
+        if (_deleteRecordingToCategoryScoreByIDsStatement != NULL)
+            sqlite3_finalize(_deleteRecordingToCategoryScoreByIDsStatement);
+        if (_saveRecordingToCategoryScoreStatement != NULL)
+            sqlite3_finalize(_saveRecordingToCategoryScoreStatement);
+        
+        if (_getCategoryExampleScoreByIDsStatement != NULL)
+            sqlite3_finalize(_getCategoryExampleScoreByIDsStatement);
+        if (_deleteCategoryExampleScoreByIDsStatement != NULL)
+            sqlite3_finalize(_deleteCategoryExampleScoreByIDsStatement);
+        if (_saveCategoryExampleScoreStatement != NULL)
+            sqlite3_finalize(_saveCategoryExampleScoreStatement);
+        
     }
     
     bool SQLiteDatabaseConnection::open(std::string dbConnectionString)
@@ -1320,5 +1344,22 @@ namespace music
         }
         
         return true;
+    }
+    
+    bool getRecordingToCategoryScore(databaseentities::id_datatype recordingID, databaseentities::id_datatype categoryID, double& score)
+    {
+        return false;
+    }
+    bool updateRecordingToCategoryScore(databaseentities::id_datatype recordingID, databaseentities::id_datatype categoryID, double score)
+    {
+        return false;
+    }
+    bool getCategoryExampleScore(databaseentities::id_datatype categoryID, databaseentities::id_datatype recordingID, double& score)
+    {
+        return false;
+    }
+    bool updateCategoryExampleScore(databaseentities::id_datatype categoryID, databaseentities::id_datatype recordingID, double score)
+    {
+        return false;
     }
 }
