@@ -756,7 +756,6 @@ namespace music
     template std::istream& operator>>(std::istream& is, GaussianMixtureModel<float>& model);
     
     template <typename ScalarType>
-    template <int GaussianType>
     void GMM2<ScalarType>::trainGMM(const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, int gaussianCount, unsigned int maxIterations)
     {
         std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> > means;
@@ -772,7 +771,7 @@ namespace music
             DEBUG_OUT("adding gaussian distribution " << i << "...", 25);
             
             means.push_back(data[std::rand() % dataSize]);
-            diagCovs.push_back(10000*Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>::Identity(dimension, dimension));
+            diagCovs.push_back(Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>::Constant(dimension, 1, 10000.0));
         }
         
         //set initial weights all equal to 1/gaussianCount
@@ -787,13 +786,16 @@ namespace music
         {
             iteration++;
             oldWeights = weights;
+            assert(weights.sum() > 0.95);
+            assert(weights.sum() < 1.05);
             
             //E-step BEGIN
             DEBUG_OUT("E-step BEGIN", 30);
             //for every gaussian do...
             for (int g=0; g<gaussianCount; g++)
             {
-                Eigen::LDLT<Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> > ldlt(diagCovs[g].asDiagonal());
+                //Eigen::LDLT<Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> > ldlt(diagCovs[g].asDiagonal());
+                Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> diagCovInv = diagCovs[g].array().inverse();
                 //diagCovs[g].prod() is equal to its determinant for diagonal matricies.
                 double factor = 1.0/(pow(2*M_PI, diagCovs[g].size()/2.0) * sqrt(diagCovs[g].prod()));
                 
@@ -801,7 +803,8 @@ namespace music
                 for (unsigned int i=0; i < dataSize; i++)
                 {
                     //calculate probability (non-normalized)
-                    p(i,g) = factor * std::exp(-0.5 * ((data[i] - means[g]).transpose() * ldlt.solve(data[i] - means[g]))(0));
+                    //p(i,g) = factor * std::exp(-0.5 * ((data[i] - means[g]).transpose() * ldlt.solve(data[i] - means[g]))(0));
+                    p(i,g) = factor * std::exp(-0.5 * ((data[i] - means[g]).transpose() * (diagCovInv.array() * (data[i] - means[g]).array() ).matrix() )(0));
                 }
             }
             
@@ -875,8 +878,8 @@ namespace music
         
         for (int g=0; g<gaussianCount; g++)
         {
-            DEBUG_VAR_OUT(means[g], 0);
-            DEBUG_VAR_OUT(diagCovs[g], 0);
+            DEBUG_VAR_OUT(means[g].transpose(), 0);
+            DEBUG_VAR_OUT(diagCovs[g].transpose(), 0);
         }
         
         #if 0
@@ -899,4 +902,6 @@ namespace music
         return gaussians;
         #endif
     }
+    
+    template class GMM2<double>;
 }
