@@ -4,6 +4,7 @@
 #include "gmm.hpp"
 #include <Eigen/Dense>
 #include "progress_callback.hpp"
+#include "databaseentities.hpp"
 
 namespace music
 {
@@ -29,6 +30,8 @@ namespace music
         
         bool calculateModel(GaussianMixtureModel<kiss_fft_scalar>*& model, std::vector<GaussianMixtureModel<kiss_fft_scalar>*> components, unsigned int gaussianCount, unsigned int samplesPerGMM, ProgressCallbackCaller* callback = NULL, double initVariance = 100.0, double minVariance = 0.1);
     public:
+        Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> createVectorForFeatures(databaseentities::RecordingFeatures* features, GaussianMixtureModel<kiss_fft_scalar>* categoryTimbreModel, GaussianMixtureModel<kiss_fft_scalar>* categoryChromaModel);
+        
         ClassificationCategory();
         ~ClassificationCategory();
         bool calculatePositiveTimbreModel(std::vector<GaussianMixtureModel<kiss_fft_scalar>*> components, unsigned int gaussianCount = 50, unsigned int samplesPerGMM = 10000, ProgressCallbackCaller* callback = NULL);
@@ -40,6 +43,14 @@ namespace music
         bool calculateNegativeChromaModel(std::vector<GaussianMixtureModel<kiss_fft_scalar>*> components, unsigned int gaussianCount = 8, unsigned int samplesPerGMM = 10000, ProgressCallbackCaller* callback = NULL);
         GaussianMixtureModel<kiss_fft_scalar>* getNegativeChromaModel() {return negativeChromaModel;}
         
+        void setPositiveTimbreModel(GaussianMixtureModel<kiss_fft_scalar>* model)
+                    {delete positiveTimbreModel; positiveTimbreModel = model->clone();}
+        void setPositiveChromaModel(GaussianMixtureModel<kiss_fft_scalar>* model)
+                    {delete positiveChromaModel; positiveChromaModel = model->clone();}
+        void setNegativeTimbreModel(GaussianMixtureModel<kiss_fft_scalar>* model)
+                    {delete negativeTimbreModel; negativeTimbreModel = model->clone();}
+        void setNegativeChromaModel(GaussianMixtureModel<kiss_fft_scalar>* model)
+                    {delete negativeChromaModel; negativeChromaModel = model->clone();}
     };
 }
 

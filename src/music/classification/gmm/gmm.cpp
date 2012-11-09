@@ -28,8 +28,7 @@ namespace music
      * @bug This function does not work properly when you give it just a few data vectors.
      *      Seems to be a problem with linear dependent rows, as the covariance matricies are ill-conditioned
      *      (condition > 1e8).
-     * @bug covariance matricies get singular if there are less than <code>dimension</code>
-     *      vectors in one class
+     * @bug if the rank of a covariance matrix is zero, evil things happen.
      */
     template <typename ScalarType>
     std::vector<Gaussian<ScalarType>*> GaussianMixtureModelFullCov<ScalarType>::emAlg(const std::vector<Gaussian<ScalarType>*>& init, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, unsigned int gaussianCount, unsigned int maxIterations, double initVariance, double minVariance)
@@ -156,6 +155,8 @@ namespace music
                         }
                     }
                     
+                    //TODO: if rank==0, evil things happen, because one gaussian does not represent any samples.
+                    
                     factor = -0.5*log(2.0*M_PI)*rank -0.5*logPseudoDet;
                     
                     Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, Eigen::Dynamic> pseudoInverse =
@@ -169,7 +170,6 @@ namespace music
                         //p(i,g) = factor * std::exp(-0.5 * ((data[i] - means[g]).transpose() * ldlt.solve(data[i] - means[g]))(0));
                         p(i,g) = -0.5 * ((data[i] - means[g]).transpose() * pseudoInverse * (data[i] - means[g]))(0) + factor;
                     }
-                    
                 }
                 else
                 {
@@ -213,6 +213,7 @@ namespace music
             Eigen::Matrix<double, Eigen::Dynamic, 1> prob(gaussianCount);
             //calculate probabilities for all clusters
             prob = p.colwise().mean();
+            DEBUG_VAR_OUT(prob.transpose(), 0);
             for (unsigned int g=0; g<gaussianCount; g++)
             {
                 //calculate mu
