@@ -7,7 +7,7 @@ namespace music
     
     void DCT::doDCT2(kiss_fft_scalar* timeData, int timeLength, kiss_fft_scalar* freqData)
     {
-        
+        #if 1
         for (int k=0; k<timeLength; k++)
         {
             double sum=0.0;
@@ -17,17 +17,19 @@ namespace music
             }
             freqData[k] = sum;
         }
+        
         //the following code contains some errors, but it is fast. has been replaced by the above slower version, which is accurate.
-        #if 0
+        #else
         //taken from "Numerical Recipes, Third Edition"
         //imho, this code is veeeery ugly
         int n=timeLength;
         int freqLength;
         
         double sum, sum1, y1, y2, theta, wi=0.0, wi1, wpi, wpr, wr=1.0, wr1, wtemp;
-        kiss_fft_scalar* tmpData = new kiss_fft_scalar[n];      //TODO: These two memory allocations are not inherently needed
-        kiss_fft_scalar* tmpData2 = new kiss_fft_scalar[n+2];   //but I don't know for the moment how to fix it without affecting
-                                            //too many other parts of the software.
+        kiss_fft_scalar* y = new kiss_fft_scalar[n];      //TODO: These memory allocations are not inherently needed
+        //copy data to new array for the in-place algorithm
+        for (int i=0; i<n; i++)
+            y[i] = timeData[i];
         
         theta = 0.5*M_PI/n;
         wr1 = cos(theta);
@@ -37,37 +39,41 @@ namespace music
         
         for (int i=0; i<n/2; i++)
         {
-            y1 = 0.5 * (timeData[i] + timeData[n-1-i]);
-            y2 = wi1 * (timeData[i] - timeData[n-1-i]);
-            tmpData[i] =        y1 + y2;
-            tmpData[n-1-i] =    y1 - y2;
+            y1 = 0.5 * (y[i] + y[n-1-i]);
+            y2 = wi1 * (y[i] - y[n-1-i]);
+            y[i] =        y1 + y2;
+            y[n-1-i] =    y1 - y2;
             wr1 = (wtemp=wr1)*wpr - wi1*wpi + wr1;
             wi1 = wi1*wpr + wtemp*wpi + wi1;
         }
         
-        fft.doFFT(tmpData, n, (kiss_fft_cpx*)tmpData2, freqLength);
+        fft.doFFT(y, n, (kiss_fft_cpx*)freqData, freqLength);
+        for (int i=0; i<n; i++)
+            y[i] = freqData[i];
         
-        freqData[0] = tmpData2[0];
         for (int i=2; i<n; i+=2)
         {
             wr = (wtemp=wr)*wpr - wi*wpi + wr;
             wi = wi*wpr + wtemp*wpi + wi;
-            y1 = tmpData2[i]*wr - tmpData2[i+1]*wi;
-            y2 = tmpData2[i+1]*wr + tmpData2[i]*wi;
-            freqData[i] = y1;
-            freqData[i+1] = y2;
+            y1 = y[i]*wr - y[i+1]*wi;
+            y2 = y[i+1]*wr + y[i]*wi;
+            y[i] = y1;
+            y[i+1] = y2;
         }
         
-        sum = 0.5 * tmpData2[1];
+        sum = 0.5 * y[1];
         for (int i=n-1; i>0; i-=2)
         {
             sum1 = sum;
-            sum += freqData[i];
-            freqData[i] = sum1;
+            sum += y[i];
+            y[i] = sum1;
         }
         
-        delete[] tmpData;
-        delete[] tmpData2;
+        //copy the data to the output array
+        for (int i=0; i<n; i++)
+            freqData[i] = y[i];
+        
+        delete[] y;
         #endif
     }
     void DCT::doDCT1(kiss_fft_scalar* timeData, int timeLength, kiss_fft_scalar* freqData)

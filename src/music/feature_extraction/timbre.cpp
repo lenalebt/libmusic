@@ -24,27 +24,29 @@ namespace music
             {
                 //when taking the mean values, absolute values are returned.
                 vec[i] = log(transformResult->getNoteValueMean(toTime, octave, bin, duration));
+                
                 if (vec[i] < -100)
                     vec[i] = -100;
+                if ((vec[i] > 10000) || (vec[i] != vec[i]))
+                {
+                    DEBUG_VAR_OUT(vec[i], 0);
+                    DEBUG_VAR_OUT(transformResult->getNoteValueMean(toTime, octave, bin, duration), 0);
+                    ERROR_OUT("stop! something bad!", 0);
+                    return Eigen::VectorXd();
+                }
+                
+                std::cerr << vec[i] << " ";
                 i++;
             }
         }
+        std::cerr << std::endl;
         //set the rest to zero...
         for (; i<128; i++)
             vec[i] = -100.0f;
         
         kiss_fft_scalar freqData[128];
         //apply dct...
-        //dct.doDCT2(vec, 128, freqData);
-        for (int i=0; i<128; i++)
-        {
-            double sum=0.0;
-            for (int j=0; j<128; j++)
-            {
-                sum += vec[j] * cos(double(i)*(double(j)-0.5)*M_PI/128.0);
-            }
-            freqData[i] = sum;
-        }
+        dct.doDCT2(vec, 128, freqData);
         
         //for (i=0; i<128; i++)
         //    std::cerr << vec[i] << " ";
@@ -55,7 +57,6 @@ namespace music
         int timbreVectorSize = 12;
         //int timbreVectorSize = 128;
         Eigen::VectorXd timbre(timbreVectorSize);
-        DEBUG_VAR_OUT(freqData[0], 0);
         for (int i=1; i<timbreVectorSize+1; i++)
         //for (int i=0; i<timbreVectorSize; i++)
         //    timbre[i] = freqData[i];
