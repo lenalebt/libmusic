@@ -16,6 +16,17 @@ namespace music
     {
         assert(transformResult != NULL);
     }
+    PerBinStatistics::~PerBinStatistics()
+    {
+        if (meanVector)
+            delete meanVector;
+        if (varianceVector)
+            delete varianceVector;
+        if (minVector)
+            delete minVector;
+        if (maxVector)
+            delete maxVector;
+    }
     
     void PerBinStatistics::calculateMeanMinMax()
     {
@@ -120,6 +131,20 @@ namespace music
     {
         assert(transformResult != NULL);
         assert(timeResolution > 0.0);
+    }
+    
+    PerTimeSliceStatistics::~PerTimeSliceStatistics()
+    {
+        if (meanVector)
+            delete meanVector;
+        if (varianceVector)
+            delete varianceVector;
+        if (minVector)
+            delete minVector;
+        if (maxVector)
+            delete maxVector;
+        if (sumVector)
+            delete sumVector;
     }
     
     void PerTimeSliceStatistics::calculateSum()
