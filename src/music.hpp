@@ -15,4 +15,14 @@
  * 
  */
 
+/**
+ * @brief This namespace contains all library specific functions
+ * 
+ * 
+ */
+namespace music
+{
+    
+}
+
 #endif //MUSIC_HPP

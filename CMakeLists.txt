@@ -51,6 +51,7 @@ FIND_PACKAGE(Doxygen)
 SET(
     music_SOURCES
     src/music/constantq.cpp
+    src/music/fft.cpp
     )
 
 #place header here
@@ -58,6 +59,7 @@ SET(
     music_HEADERS
     src/music.hpp
     src/music/constantq.hpp
+    src/music/fft.hpp
     )
 
 #put all (possibly autocreated) headers and source files here
@@ -131,6 +133,8 @@ ENABLE_TESTING()
 ADD_TEST(basename                  "musictests" "basename")
 ADD_TEST(libmusicaccess            "musictests" "libmusicaccess")
 ADD_TEST(eigen                     "musictests" "eigen")
+ADD_TEST(constantq                 "musictests" "constantq")
+ADD_TEST(fft                       "musictests" "fft")
 
 ADD_EXECUTABLE(musictests
     ${music_TEST_SOURCES}

@@ -26,6 +26,10 @@ int main(int argc, char *argv[])
         return tests::testLibMusicAccess();
     else if (testname == "eigen")
         return tests::testEigen();
+    else if (testname == "constantq")
+        return tests::testConstantQ();
+    else if (testname == "fft")
+        return tests::testFFT();
     else
     {
         std::cout << "test \"" << testname << "\" is unknown." << std::endl;
