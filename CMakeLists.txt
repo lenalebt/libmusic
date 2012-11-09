@@ -66,6 +66,9 @@ SET(
     src/music/feature_extraction/timbre.cpp
     src/music/feature_extraction/feature_extraction_helper.cpp
     
+    #console colors
+    src/tools/console_colors.cpp
+    
     #kissfft source files
     src/kissfft/kiss_fft.c
     src/kissfft/tools/kiss_fftr.c
@@ -86,6 +89,9 @@ SET(
     src/music/feature_extraction/chords.hpp
     src/music/feature_extraction/timbre.hpp
     src/music/feature_extraction/feature_extraction_helper.hpp
+    
+    #console colors
+    src/tools/console_colors.hpp
     
     #kissfft headers
     src/kissfft/kiss_fft.h
@@ -117,6 +123,7 @@ INCLUDE_DIRECTORIES(
     ${SQLITE_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIR}
     src/
+    src/tools
     src/music
     src/music/feature_extraction
     src/tests

@@ -5,10 +5,13 @@
 #include <algorithm>
 #include <vector>
 #include <iostream>
+#include <iomanip>
+
+#include "console_colors.hpp"
 
 namespace music
 {
-    std::string Chord::getNoteName(int i)
+    std::string ChordHypothesis::getNoteName(int i)
     {
         switch (i)
         {
@@ -33,11 +36,11 @@ namespace music
     {
         
     }
-    Chord* ChordEstimator::estimateChord(double fromTime, double toTime)
+    ChordHypothesis* ChordEstimator::estimateChord(double fromTime, double toTime)
     {
         return estimateChord2(fromTime, toTime);
     }
-    Chord* ChordEstimator::estimateChord2(double fromTime, double toTime)
+    ChordHypothesis* ChordEstimator::estimateChord3(double fromTime, double toTime)
     {
         if (fromTime < 0.0)
             fromTime = 0.0;
@@ -49,7 +52,73 @@ namespace music
         
         int binsPerOctave = transformResult->getBinsPerOctave();
         int octaveCount = transformResult->getOctaveCount();
-        Chord* chord = new Chord();
+        ChordHypothesis* chord = new ChordHypothesis();
+        
+        Eigen::VectorXd chroma(binsPerOctave);
+        for (int bin=0; bin < binsPerOctave; bin++)
+        {
+            chroma[bin] = 0.0;
+        }
+        
+        int maxElement = transformResult->getOriginalDuration() / timeResolution;
+        std::vector<std::pair<double, int> > chordLikelihood(2*binsPerOctave);
+        int oldChord=0;
+        int oldChordStartTime;
+        for (int i = 0; i < maxElement; i++)
+        {
+            chroma *= 1.0-1.0/(0.5/timeResolution);
+            for (int bin=0; bin < binsPerOctave; bin++)
+            {
+                double binSum = 0.0;
+                //double val = 0.0;
+                for (int octave=0; octave<octaveCount; octave++)
+                {
+                    //val = std::abs(transformResult->getNoteValueNoInterpolation(i*timeResolution, octave, bin));
+                    binSum += std::abs(transformResult->getNoteValueNoInterpolation(i*timeResolution, octave, bin));
+                }
+                chroma[bin] += binSum/(0.5/timeResolution);
+            }
+            
+            for (int j=0; j<binsPerOctave; j++)
+            {
+                chordLikelihood[j]               = std::pair<double,int>((chroma[j] + chroma[(j+4)%binsPerOctave] + chroma[(j+7)%binsPerOctave])/3.0, j);
+                chordLikelihood[j+binsPerOctave] = std::pair<double,int>((chroma[j] + chroma[(j+3)%binsPerOctave] + chroma[(j+7)%binsPerOctave])/3.0, j + binsPerOctave);
+            }
+            std::sort(chordLikelihood.begin(), chordLikelihood.end());
+            
+            /*
+            if ((oldChord != chordLikelihood[2*binsPerOctave-1].second) && (i-oldChordStartTime  > 0.125/timeResolution))
+            {
+                std::cerr << std::setw(10) << oldChordStartTime*timeResolution << ": ";
+                std::cerr << (oldChord/binsPerOctave == 0 ? "major " : "minor ") << chord->getNoteName(oldChord%12) << std::endl;
+                oldChord = chordLikelihood[2*binsPerOctave-1].second;
+            }
+            */
+            std::cerr << std::setw(10) << i*timeResolution << ": ";
+            std::cerr << (chordLikelihood[2*binsPerOctave-1].second/binsPerOctave == 0 ? "major " : "minor ") << chord->getNoteName(chordLikelihood[2*binsPerOctave-1].second%12) << std::endl;
+        }
+        
+        
+        
+        
+        
+
+        
+        return chord;
+    }
+    ChordHypothesis* ChordEstimator::estimateChord2(double fromTime, double toTime)
+    {
+        if (fromTime < 0.0)
+            fromTime = 0.0;
+        if (toTime > transformResult->getOriginalDuration())
+            toTime = transformResult->getOriginalDuration();
+        
+        assert(fromTime >= 0.0);
+        assert(toTime >= fromTime);
+        
+        int binsPerOctave = transformResult->getBinsPerOctave();
+        int octaveCount = transformResult->getOctaveCount();
+        ChordHypothesis* chordHypothesis = new ChordHypothesis();
         
         /* TODO:
          * -rechne binsumme aus, sodass 12 bins bleiben (einer pro ton). nimm
@@ -74,7 +143,7 @@ namespace music
             {
                 double binSum = 0.0;
                 //double val = 0.0;
-                for (int octave=0+1; octave<octaveCount-3; octave++)
+                for (int octave=0; octave<octaveCount; octave++)
                 {
                     //val = std::abs(transformResult->getNoteValueNoInterpolation(i*timeResolution, octave, bin));
                     binSum += std::abs(transformResult->getNoteValueNoInterpolation(i*timeResolution, octave, bin));
@@ -102,23 +171,19 @@ namespace music
             }
         }
         
-        std::vector<std::pair<double, int> > chordLikelihood(2*binsPerOctave);
-        
+        chordHypothesis->hypothesis.resize(2*binsPerOctave);
         for (int i=0; i<binsPerOctave; i++)
         {
-            chordLikelihood[i]               = std::pair<double,int>(chroma[i] + chroma[(i+4)%binsPerOctave] + chroma[(i+7)%binsPerOctave], i);
-            chordLikelihood[i+binsPerOctave] = std::pair<double,int>(chroma[i] + chroma[(i+3)%binsPerOctave] + chroma[(i+7)%binsPerOctave], i + binsPerOctave);
+            chordHypothesis->hypothesis[i]               = std::pair<double,int>((chroma[i] + chroma[(i+4)%binsPerOctave] + chroma[(i+7)%binsPerOctave]), i);
+            chordHypothesis->hypothesis[i+binsPerOctave] = std::pair<double,int>((chroma[i] + chroma[(i+3)%binsPerOctave] + chroma[(i+7)%binsPerOctave]), i + binsPerOctave);
         }
-        std::sort(chordLikelihood.begin(), chordLikelihood.end());
+        std::sort(chordHypothesis->hypothesis.begin(), chordHypothesis->hypothesis.end());
         
-        for (int i=0; i<2*binsPerOctave; i++)
-        {
-            std::cerr << ((chordLikelihood[i].second<binsPerOctave) ? "major " : "minor ") << chord->getNoteName(chordLikelihood[i].second%12) << ": " << chordLikelihood[i].first << std::endl;
-        }
         
-        return chord;
+        
+        return chordHypothesis;
     }
-    Chord* ChordEstimator::estimateChord1(double fromTime, double toTime)
+    ChordHypothesis* ChordEstimator::estimateChord1(double fromTime, double toTime)
     {
         if (fromTime < 0.0)
             fromTime = 0.0;
@@ -130,7 +195,7 @@ namespace music
         
         int binsPerOctave = transformResult->getBinsPerOctave();
         int octaveCount = transformResult->getOctaveCount();
-        Chord* chord = new Chord();
+        ChordHypothesis* chord = new ChordHypothesis();
         
         /* TODO:
          * -rechne binsumme aus, sodass 12 bins bleiben (einer pro ton). nimm
@@ -184,7 +249,7 @@ namespace music
             }
         }
         std::sort(noteList.begin(), noteList.end());
-        chord->chord = chroma;
+        //chord->chord = chroma;
         
         bool* baseChord = new bool[binsPerOctave];
         for (int i=0; i<binsPerOctave; i++)
@@ -215,9 +280,18 @@ namespace music
         return chord;
     }
     
-    std::ostream& operator<<(std::ostream& os, const Chord& chord)
+    std::ostream& operator<<(std::ostream& os, const ChordHypothesis& chordHypothesis)
     {
-        os << chord.chord;
+        os << "chord: ";
+        for (int i=chordHypothesis.hypothesis.size()-1; i>=chordHypothesis.hypothesis.size()-4; i--)
+        {
+            os << colors::ConsoleColors::green();
+            if (chordHypothesis.hypothesis[i].second/(chordHypothesis.hypothesis.size()/2) == 0)
+                os << "major ";
+            if (chordHypothesis.hypothesis[i].second/(chordHypothesis.hypothesis.size()/2) == 1)
+                os << "minor ";
+            os << std::setw(2) << ChordHypothesis::getNoteName(chordHypothesis.hypothesis[i].second%12) << colors::ConsoleColors::defaultText() << ": " << std::setw(7) << chordHypothesis.hypothesis[i].first << " ";
+        }
         return os;
     }
 }
