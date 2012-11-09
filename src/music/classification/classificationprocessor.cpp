@@ -43,6 +43,8 @@ namespace music
                 negativeExamples.push_back(it->first);
         }
         
+        //TODO: HERE: USE CLASSIFCATIONCATEGORY
+        
         if (callback)
             callback->progress(0.05, "loading timbre and chroma models...");
         

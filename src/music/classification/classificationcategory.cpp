@@ -95,29 +95,37 @@ namespace music
     
     bool ClassificationCategory::calculatePositiveTimbreModel(std::vector<GaussianMixtureModel<kiss_fft_scalar>*> components, unsigned int gaussianCount, unsigned int samplesPerGMM, ProgressCallbackCaller* callback)
     {
-        return calculateModel(positiveTimbreModel, components, gaussianCount, samplesPerGMM, callback);
+        return !(emptyPositiveTimbreModel = !calculateModel(positiveTimbreModel, components, gaussianCount, samplesPerGMM, callback));
     }
     
     bool ClassificationCategory::calculatePositiveChromaModel(std::vector<GaussianMixtureModel<kiss_fft_scalar>*> components, unsigned int gaussianCount, unsigned int samplesPerGMM, ProgressCallbackCaller* callback)
     {
-        return calculateModel(positiveChromaModel, components, gaussianCount, samplesPerGMM, callback, 1e-8, 1e-10);
+        return !(emptyPositiveChromaModel = !calculateModel(positiveChromaModel, components, gaussianCount, samplesPerGMM, callback, 1e-8, 1e-10));
     }
     
     bool ClassificationCategory::calculateNegativeTimbreModel(std::vector<GaussianMixtureModel<kiss_fft_scalar>*> components, unsigned int gaussianCount, unsigned int samplesPerGMM, ProgressCallbackCaller* callback)
     {
-        return calculateModel(negativeTimbreModel, components, gaussianCount, samplesPerGMM, callback);
+        return !(emptyNegativeTimbreModel = !calculateModel(negativeTimbreModel, components, gaussianCount, samplesPerGMM, callback));
     }
     
     bool ClassificationCategory::calculateNegativeChromaModel(std::vector<GaussianMixtureModel<kiss_fft_scalar>*> components, unsigned int gaussianCount, unsigned int samplesPerGMM, ProgressCallbackCaller* callback)
     {
-        return calculateModel(negativeChromaModel, components, gaussianCount, samplesPerGMM, callback, 1e-8, 1e-10);
+        return !(emptyNegativeChromaModel = !calculateModel(negativeChromaModel, components, gaussianCount, samplesPerGMM, callback, 1e-8, 1e-10));
     }
 
     ClassificationCategory::ClassificationCategory() :
         positiveTimbreModel(new GaussianMixtureModelDiagCov<kiss_fft_scalar>()),
         positiveChromaModel(new GaussianMixtureModelFullCov<kiss_fft_scalar>()),
         negativeTimbreModel(new GaussianMixtureModelDiagCov<kiss_fft_scalar>()),
-        negativeChromaModel(new GaussianMixtureModelFullCov<kiss_fft_scalar>())
+        negativeChromaModel(new GaussianMixtureModelFullCov<kiss_fft_scalar>()),
+        emptyPositiveTimbreModel(true),
+        emptyPositiveChromaModel(true),
+        emptyNegativeTimbreModel(true),
+        emptyNegativeChromaModel(true),
+        posClassifier(new GaussianOneClassClassifier()),
+        negClassifier(new GaussianOneClassClassifier()),
+        emptyPosClassifierModel(true),
+        emptyNegClassifierModel(true)
     {
         
     }
@@ -131,6 +139,10 @@ namespace music
             delete negativeTimbreModel;
         if (negativeChromaModel)
             delete negativeChromaModel;
+        if (posClassifier)
+            delete posClassifier;
+        if (negClassifier)
+            delete negClassifier;
     }
     
     Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> ClassificationCategory::createVectorForFeatures(databaseentities::RecordingFeatures* features, GaussianMixtureModel<kiss_fft_scalar>* categoryTimbreModel, GaussianMixtureModel<kiss_fft_scalar>* categoryChromaModel)
@@ -153,5 +165,141 @@ namespace music
         vec[3] = features->getLength();
         
         return vec;
+    }
+    
+    
+    bool ClassificationCategory::calculateClassificatorModel(const std::vector<databaseentities::Recording*>& posExamples, const std::vector<databaseentities::Recording*>& negExamples, unsigned int categoryTimbreModelSize, unsigned int categoryTimbrePerSongSampleCount, unsigned int categoryChromaModelSize, unsigned int categoryChromaPerSongSampleCount, ProgressCallbackCaller* callback)
+    {
+        if (callback)
+            callback->progress(0.0, "loading timbre and chroma models...");
+        
+        //for positives: load timbre & chroma models
+        std::vector<GaussianMixtureModel<kiss_fft_scalar>*> positiveTimbreModels;
+        std::vector<GaussianMixtureModel<kiss_fft_scalar>*> positiveChromaModels;
+        for (std::vector<databaseentities::Recording*>::const_iterator it = posExamples.begin(); it != posExamples.end(); ++it)
+        {
+            GaussianMixtureModel<kiss_fft_scalar>* gmm = GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString((*it)->getRecordingFeatures()->getTimbreModel());
+            positiveTimbreModels.push_back(gmm);
+            gmm = GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString((*it)->getRecordingFeatures()->getChromaModel());
+            positiveChromaModels.push_back(gmm);
+        }
+        //for negatives: load timbre & chroma models
+        std::vector<GaussianMixtureModel<kiss_fft_scalar>*> negativeTimbreModels;
+        std::vector<GaussianMixtureModel<kiss_fft_scalar>*> negativeChromaModels;
+        for (std::vector<databaseentities::Recording*>::const_iterator it = negExamples.begin(); it != negExamples.end(); ++it)
+        {
+            GaussianMixtureModel<kiss_fft_scalar>* gmm = GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString((*it)->getRecordingFeatures()->getTimbreModel());
+            negativeTimbreModels.push_back(gmm);
+            gmm = GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString((*it)->getRecordingFeatures()->getChromaModel());
+            negativeChromaModels.push_back(gmm);
+        }
+        
+        if (callback)
+            callback->progress(0.1, "processing timbre models...");
+        
+        //combine positive timbre models
+        if (positiveTimbreModels.size() != 0)
+        {
+            if (!calculatePositiveTimbreModel(positiveTimbreModels, categoryTimbreModelSize, categoryTimbrePerSongSampleCount))
+                return false;
+        }
+        else
+            emptyPositiveTimbreModel = true;
+        
+        //combine negative timbre models
+        if (negativeTimbreModels.size() != 0)
+        {
+            if (!calculatePositiveTimbreModel(negativeTimbreModels, categoryTimbreModelSize, categoryTimbrePerSongSampleCount))
+                return false;
+        }
+        else
+            emptyNegativeTimbreModel = true;
+        
+        if (callback)
+            callback->progress(0.5, "processing chroma models...");
+        
+        //combine positive chroma models
+        if (positiveChromaModels.size() != 0)
+        {
+            if (!calculateNegativeChromaModel(positiveChromaModels, categoryChromaModelSize, categoryChromaPerSongSampleCount))
+                return false;
+        }
+        else
+            emptyPositiveChromaModel = true;
+        
+        //combine negative chroma models
+        if (negativeChromaModels.size() != 0)
+        {
+            if (!calculateNegativeChromaModel(negativeChromaModels, categoryChromaModelSize, categoryChromaPerSongSampleCount))
+                return false;
+        }
+        else
+            emptyNegativeChromaModel = true;
+        
+        //we do not need the pos/neg chroma and timbre anymore. save space, delete them!
+        //delete timbreModels
+        for (std::vector<GaussianMixtureModel<kiss_fft_scalar>*>::iterator it = positiveTimbreModels.begin(); it != positiveTimbreModels.end(); ++it)
+        {
+            delete *it;
+        }
+        for (std::vector<GaussianMixtureModel<kiss_fft_scalar>*>::iterator it = negativeTimbreModels.begin(); it != negativeTimbreModels.end(); ++it)
+        {
+            delete *it;
+        }
+        //delete chromaModels
+        for (std::vector<GaussianMixtureModel<kiss_fft_scalar>*>::iterator it = positiveChromaModels.begin(); it != positiveChromaModels.end(); ++it)
+        {
+            delete *it;
+        }
+        for (std::vector<GaussianMixtureModel<kiss_fft_scalar>*>::iterator it = negativeChromaModels.begin(); it != negativeChromaModels.end(); ++it)
+        {
+            delete *it;
+        }
+        positiveTimbreModels.clear();
+        positiveChromaModels.clear();
+        negativeTimbreModels.clear();
+        negativeChromaModels.clear();
+        
+        //up to here: combined the timbres of category example positives to a new model for the category.
+        //now: build model of category when timbre and chroma was applied.
+        //first: create vectors
+        
+        if (callback)
+            callback->progress(0.8, "processing classifier models...");
+        
+        Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> vec;
+        
+        //positive
+        std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > positiveExampleVectors;
+        for (std::vector<databaseentities::Recording*>::const_iterator it = posExamples.begin(); it != posExamples.end(); ++it)
+        {
+            vec = createVectorForFeatures((*it)->getRecordingFeatures(), positiveTimbreModel, positiveChromaModel);
+            positiveExampleVectors.push_back(vec);
+        }
+        
+        //negative
+        std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > negativeExampleVectors;
+        for (std::vector<databaseentities::Recording*>::const_iterator it = negExamples.begin(); it != negExamples.end(); ++it)
+        {
+            vec = createVectorForFeatures((*it)->getRecordingFeatures(), negativeTimbreModel, negativeChromaModel);
+            negativeExampleVectors.push_back(vec);
+        }
+        
+        if (positiveExampleVectors.size() > 0)
+        {
+            emptyPosClassifierModel = false;
+            posClassifier->learnModel(positiveExampleVectors);
+        }
+        
+        if (negativeExampleVectors.size() > 0)
+        {
+            emptyNegClassifierModel = false;
+            negClassifier->learnModel(negativeExampleVectors);
+        }
+        
+        if (callback)
+            callback->progress(1.0, "finished");
+        
+        return true;
     }
 }
