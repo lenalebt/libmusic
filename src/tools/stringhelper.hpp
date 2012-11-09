@@ -21,9 +21,15 @@ inline void tolower(std::string& string)
 {
     std::transform(string.begin(), string.end(), string.begin(), (int (*)(int))::tolower);
 }
+
 inline void toupper(std::string& string)
 {
     std::transform(string.begin(), string.end(), string.begin(), (int (*)(int))::toupper);
+}
+
+inline bool contains(const std::string& string, const std::string& searchFor)
+{
+    return (std::string::npos != string.find(searchFor));
 }
 
 #endif //STRINGHELPER_HPP 
