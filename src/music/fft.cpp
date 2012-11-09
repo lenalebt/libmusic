@@ -2,42 +2,92 @@
 
 namespace music
 {
+    FFT::FFT()
+    {
+        for (int i=0; i<12; i++)
+        {
+            int timeLength = 1 << (i+1);
+            //init kissfft
+            rCfg[i] = kiss_fftr_alloc(timeLength, 0, NULL, NULL);
+            cCfg[i] = kiss_fft_alloc(timeLength, 0, NULL, NULL);
+            
+            //init inverse kissfft
+            riCfg[i] = kiss_fftr_alloc(timeLength, 1, NULL, NULL);
+            ciCfg[i] = kiss_fft_alloc(timeLength, 1, NULL, NULL);
+        }
+    }
+    FFT::~FFT()
+    {
+        for (int i=0; i<12; i++)
+        {
+            free(rCfg[i]);
+            free(cCfg[i]);
+            
+            free(riCfg[i]);
+            free(ciCfg[i]);
+        }
+    }
     void FFT::doFFT(const kiss_fft_scalar *timeData, int timeLength, kiss_fft_cpx *freqData, int& freqLength)
     {
-        //init kissfft
-        kiss_fftr_cfg cfg = kiss_fftr_alloc(timeLength, 0, NULL, NULL);
-        
-        //start kissfft
-        kiss_fftr(cfg, timeData, freqData);
-        
         freqLength = timeLength/2 +1;
         
-        free(cfg);
+        //choose the right cfg
+        int i=0;
+        for (i=0; i<12; i++)
+        {
+            if (timeLength & 2)
+                break;
+            timeLength >>= 1; 
+        }
+        //start kissfft
+        kiss_fftr(rCfg[i], timeData, freqData);
     }
     
     void FFT::docFFT(const kiss_fft_cpx *timeData, int timeLength, kiss_fft_cpx *freqData, int& freqLength)
     {
-        //init kissfft
-        kiss_fft_cfg cfg = kiss_fft_alloc(timeLength, 0, NULL, NULL);
-        
-        //start kissfft
-        kiss_fft(cfg, timeData, freqData);
-        
         freqLength = timeLength;
         
-        free(cfg);
+        //choose the right cfg
+        int i=0;
+        for (i=0; i<12; i++)
+        {
+            if (timeLength & 2)
+                break;
+            timeLength >>= 1; 
+        }
+        //start kissfft
+        kiss_fft(cCfg[i], timeData, freqData);
     }
     
     void FFT::doiFFT(const kiss_fft_cpx *freqData, int freqLength, kiss_fft_scalar *timeData, int& timeLength)
     {
-        //init kissfft
-        kiss_fftr_cfg cfg = kiss_fftr_alloc(freqLength, 1, NULL, NULL);
-        
-        //start kissfft
-        kiss_fftri(cfg, freqData, timeData);
-        
+        //choose the right cfg
+        int i=0;
+        for (i=0; i<12; i++)
+        {
+            if (timeLength & 2)
+                break;
+            timeLength >>= 1; 
+        }
+        //start inverse kissfft
+        kiss_fftri(riCfg[i], freqData, timeData);
         timeLength = 2*(freqLength-1);
-        
-        free(cfg);
     }
+    
+    /*
+    void FFT::doicFFT(const kiss_fft_cpx *freqData, int freqLength, kiss_fft_cpx *timeData, int& timeLength)
+    {
+        //choose the right cfg
+        int i=0;
+        for (i=0; i<12; i++)
+        {
+            if (timeLength & 2)
+                break;
+            timeLength >>= 1; 
+        }
+        //start inverse kissfft
+        kiss_ffti(ciCfg[i], freqData, timeData);
+        timeLength = 2*(freqLength-1);
+    }
+    */
 }

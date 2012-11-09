@@ -206,7 +206,9 @@ namespace music
         
         float* data = buffer;
         float* fftSourceData=NULL;
-        bool deleteFFTSourceData = false;
+        float* fftSourceDataZeroPadMemory=NULL;
+        fftSourceDataZeroPadMemory = new float[fftLen];
+        assert(fftSourceDataZeroPadMemory != NULL);
         
         ConstantQTransformResult* transformResult = NULL;
         transformResult = new ConstantQTransformResult();
@@ -239,13 +241,11 @@ namespace music
                 
                 if (position<0)
                 {   //zero-padding necessary, front
-                    deleteFFTSourceData = true;
-                    fftSourceData = NULL;
-                    fftSourceData = new float[fftLen];
-                    assert(fftSourceData != NULL);
+                    fftSourceData = fftSourceDataZeroPadMemory;
                     //Fill array, zero-pad it as necessary (->beginning).
-                    for (int i=position; i<position+zeroPadding; i++)
+                    for (int i=position; i<position+fftLen; i++)
                     {
+                        std::cerr << i-position;
                         if (i<0)
                             fftSourceData[i-position] = 0.0;
                         else
@@ -254,12 +254,9 @@ namespace music
                 }
                 else if (position > sampleCount - zeroPadding)
                 {   //zero-padding necessary, back
-                    deleteFFTSourceData = true;
-                    fftSourceData = NULL;
-                    fftSourceData = new float[fftLen];
-                    assert(fftSourceData != NULL);
+                    fftSourceData = fftSourceDataZeroPadMemory;
                     //Fill array, zero-pad it as necessary (->end).
-                    for (int i=position; i<position+zeroPadding; i++)
+                    for (int i=position; i<position+fftLen; i++)
                     {
                         if (i>sampleCount)
                             fftSourceData[i-position] = 0.0;
@@ -269,19 +266,12 @@ namespace music
                 }
                 else
                 {   //no zero padding needed: use old buffer array
-                    deleteFFTSourceData = false;
                     fftSourceData = data + position;
-                    assert(fftSourceData != NULL);
                 }
                 
                 //apply FFT to input data.
                 fft.doFFT((kiss_fft_scalar*)(fftSourceData), fftLen, (kiss_fft_cpx*)(fftData), fftlength);
                 assert(fftlength == fftLen/2+1);
-                
-                //TODO: delete[] fails. why? we need to delete some memory, otherwise -> memory leak
-                /*std::cerr << fftSourceData << std::endl;
-                if (deleteFFTSourceData)
-                    delete[] fftSourceData;*/
                 
                 //adjust fftData, as it only holds half of the data. the rest has to be computed.
                 //complex conjugate, etc...
@@ -348,6 +338,7 @@ namespace music
         }
         
         delete[] fftData;
+        delete[] fftSourceDataZeroPadMemory;
         
         //TODO: Map buffer to a Eigen vector via Map<>, see
         // http://eigen.tuxfamily.org/dox/TutorialMapClass.html
