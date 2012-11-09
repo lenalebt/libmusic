@@ -47,7 +47,17 @@ namespace music
             
             if (callback != NULL)
                 callback->progress(1.0/stepCount, "opening file...");
-            file.open(filename);
+            if (!file.open(filename))
+            {
+                DEBUG_OUT("opening file failed.", 10);
+                delete recording;
+                //delete features;  //will be done by the destructor of recording
+                
+                if (callback != NULL)
+                    callback->progress(stepCount, "aborted, opening file failed.");
+                
+                return false;
+            }
             
             /*
             if (file.getSampleRate() != 44100)
@@ -60,7 +70,7 @@ namespace music
             {
                 DEBUG_OUT("skipping file with less than 10 seconds of audio...", 10);
                 delete recording;
-                delete features;
+                //delete features;  //will be done by the destructor of recording
                 
                 if (callback != NULL)
                     callback->progress(stepCount, "aborted, file is shorter than 10 seconds.");
@@ -136,6 +146,7 @@ namespace music
             if (!success)
                 return false;
             
+            recordingID = recording->getID();
             
             //TODO: Do feature extraction on the file, save data to database.
             if (callback != NULL)

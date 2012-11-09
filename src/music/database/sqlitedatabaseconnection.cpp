@@ -19,10 +19,12 @@ namespace music
         _getRecordingIDByFilenameStatement              (NULL),
         _getRecordingIDsByArtistTitleAlbumStatement     (NULL),
         _getRecordingIDsByCategoryMembershipScoresStatement(NULL),
+        _deleteRecordingByIDStatement                   (NULL),
         
         _saveRecordingFeaturesStatement                 (NULL),
         _updateRecordingFeaturesStatement               (NULL),
         _getRecordingFeaturesByIDStatement              (NULL),
+        _deleteRecordingFeaturesByIDStatement           (NULL),
         
         _saveArtistStatement                            (NULL),
         _getArtistByIDStatement                         (NULL),
@@ -44,13 +46,15 @@ namespace music
         _saveCategoryDescriptionStatement               (NULL),
         _getCategoryDescriptionByIDStatement            (NULL),
         
-        _getRecordingToCategoryScoreByIDsStatement      (NULL),  
-        _deleteRecordingToCategoryScoreByIDsStatement   (NULL),  
-        _saveRecordingToCategoryScoreStatement          (NULL),  
+        _getRecordingToCategoryScoreByIDsStatement      (NULL),
+        _deleteRecordingToCategoryScoreByIDsStatement   (NULL),
+        _deleteRecordingToCategoryScoresByIDStatement   (NULL),
+        _saveRecordingToCategoryScoreStatement          (NULL),
         
-        _getCategoryExampleScoreByIDsStatement          (NULL),  
-        _deleteCategoryExampleScoreByIDsStatement       (NULL),  
-        _saveCategoryExampleScoreStatement              (NULL)  
+        _getCategoryExampleScoreByIDsStatement          (NULL),
+        _deleteCategoryExampleScoreByIDsStatement       (NULL),
+        _deleteCategoryExampleScoresByRecordingIDStatement(NULL),
+        _saveCategoryExampleScoreStatement              (NULL)
     {
         
     }
@@ -75,6 +79,8 @@ namespace music
             sqlite3_finalize(_getRecordingIDsByArtistTitleAlbumStatement);
         if (_getRecordingIDsByCategoryMembershipScoresStatement != NULL)
             sqlite3_finalize(_getRecordingIDsByCategoryMembershipScoresStatement);
+        if (_deleteRecordingByIDStatement != NULL)
+            sqlite3_finalize(_deleteRecordingByIDStatement);
             
         if (_saveRecordingFeaturesStatement != NULL)
             sqlite3_finalize(_saveRecordingFeaturesStatement);
@@ -82,6 +88,8 @@ namespace music
             sqlite3_finalize(_updateRecordingFeaturesStatement);
         if (_getRecordingFeaturesByIDStatement != NULL)
             sqlite3_finalize(_getRecordingFeaturesByIDStatement);
+        if (_deleteRecordingFeaturesByIDStatement != NULL)
+            sqlite3_finalize(_deleteRecordingFeaturesByIDStatement);
             
         if (_saveArtistStatement != NULL)
             sqlite3_finalize(_saveArtistStatement);
@@ -123,6 +131,8 @@ namespace music
             sqlite3_finalize(_getRecordingToCategoryScoreByIDsStatement);
         if (_deleteRecordingToCategoryScoreByIDsStatement != NULL)
             sqlite3_finalize(_deleteRecordingToCategoryScoreByIDsStatement);
+        if (_deleteRecordingToCategoryScoresByIDStatement != NULL)
+            sqlite3_finalize(_deleteRecordingToCategoryScoresByIDStatement);
         if (_saveRecordingToCategoryScoreStatement != NULL)
             sqlite3_finalize(_saveRecordingToCategoryScoreStatement);
         
@@ -130,6 +140,8 @@ namespace music
             sqlite3_finalize(_getCategoryExampleScoreByIDsStatement);
         if (_deleteCategoryExampleScoreByIDsStatement != NULL)
             sqlite3_finalize(_deleteCategoryExampleScoreByIDsStatement);
+        if (_deleteCategoryExampleScoresByRecordingIDStatement != NULL)
+            sqlite3_finalize(_deleteCategoryExampleScoresByRecordingIDStatement);
         if (_saveCategoryExampleScoreStatement != NULL)
             sqlite3_finalize(_saveCategoryExampleScoreStatement);
         
@@ -898,9 +910,6 @@ namespace music
         databaseentities::id_datatype recordingID = recording.getID();
         recording.setID(-1);    //set ID to -1. If the element is not found, this is what the user will see later on.
         
-        if (recordingID == -1)  //will not find entry if id==-1
-            return true;
-        
         int rc;
         
         if (_getRecordingByIDStatement == NULL)
@@ -912,6 +921,10 @@ namespace music
                 return false;
             }
         }
+        
+        //moved down here to be able to create the statement by calling the function with id -1.
+        if (recordingID == -1)  //will not find entry if id==-1
+            return true;
         
         //bind parameters
         sqlite3_bind_int64(_getRecordingByIDStatement, 1, recordingID);
@@ -966,9 +979,141 @@ namespace music
         return true;
     }
     
+    bool SQLiteDatabaseConnection::deleteRecordingByID(databaseentities::id_datatype& recordingID)
+    {
+        DEBUG_OUT("will remove recording now...", 35);
+        
+        databaseentities::id_datatype recordingFeaturesID=-1;
+        
+        if (recordingID == -1)  //will not find entry if id==-1
+            return true;
+        
+        int rc;
+        
+        if (_deleteRecordingByIDStatement == NULL)
+        {
+            rc = sqlite3_prepare_v2(_db, "DELETE FROM recording WHERE recordingID=@recordingID;", -1, &_deleteRecordingByIDStatement, NULL);
+            if (rc != SQLITE_OK)
+            {
+                ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        if (_deleteRecordingFeaturesByIDStatement == NULL)
+        {
+            rc = sqlite3_prepare_v2(_db, "DELETE FROM features WHERE featuresID=@featuresID;", -1, &_deleteRecordingFeaturesByIDStatement, NULL);
+            if (rc != SQLITE_OK)
+            {
+                ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        //needed to find out the featuresID...
+        if (_getRecordingByIDStatement == NULL)
+        {
+            //dirty hack to create _getRecordingByIDStatement
+            databaseentities::Recording rec;
+            rec.setID(-1);
+            getRecordingByID(rec);
+            if (_getRecordingByIDStatement == NULL) //if calling the function did not help...
+                return false;
+        }
+        
+        //find out appropriate featuresID
+        //bind parameters
+        sqlite3_bind_int64(_getRecordingByIDStatement, 1, recordingID);
+        while ((rc = sqlite3_step(_getRecordingByIDStatement)) != SQLITE_DONE)
+        {
+            if (rc == SQLITE_ROW)
+            {
+                recordingFeaturesID = sqlite3_column_int64( _getRecordingByIDStatement, 6);
+            }
+            else
+            {
+                ERROR_OUT("Failed to read data from database. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        if (rc != SQLITE_DONE)
+        {
+            ERROR_OUT("Failed to execute statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        rc = sqlite3_reset(_getRecordingByIDStatement);
+        if (rc != SQLITE_OK)
+        {
+            ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        if (recordingFeaturesID == -1)
+        {
+            //recordingID not found!
+            recordingID = -1;
+            return true;
+        }
+        
+        //okay, now: both IDs found. go delete them!
+        sqlite3_bind_int64(_deleteRecordingFeaturesByIDStatement, 1, recordingFeaturesID);
+        while ((rc = sqlite3_step(_deleteRecordingFeaturesByIDStatement)) != SQLITE_DONE)
+        {
+            if (rc == SQLITE_ROW)
+            {
+                //don't need the result. just skip it.
+            }
+            else
+            {
+                ERROR_OUT("Failed to read data from database. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        if (rc != SQLITE_DONE)
+        {
+            ERROR_OUT("Failed to execute statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        rc = sqlite3_reset(_deleteRecordingFeaturesByIDStatement);
+        if (rc != SQLITE_OK)
+        {
+            ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        sqlite3_bind_int64(_deleteRecordingByIDStatement, 1, recordingID);
+        while ((rc = sqlite3_step(_deleteRecordingByIDStatement)) != SQLITE_DONE)
+        {
+            if (rc == SQLITE_ROW)
+            {
+                //don't need the result. just skip it.
+            }
+            else
+            {
+                ERROR_OUT("Failed to read data from database. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        if (rc != SQLITE_DONE)
+        {
+            ERROR_OUT("Failed to execute statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        rc = sqlite3_reset(_deleteRecordingByIDStatement);
+        if (rc != SQLITE_OK)
+        {
+            ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        return true;
+    }
+    
     bool SQLiteDatabaseConnection::getRecordingIDByFilename(databaseentities::id_datatype& recordingID, const std::string& filename)
     {
         DEBUG_OUT("will read recordingID by filename now...", 35);
+        recordingID = -1;
         
         int rc;
         
@@ -1671,6 +1816,9 @@ namespace music
             return false;
         }
         
+        if (score != score) //if score is NaN, only delete the entry, do not recreate it
+            return true;
+        
         //insert new entry
         if (_saveRecordingToCategoryScoreStatement == NULL)
         {
@@ -1752,6 +1900,96 @@ namespace music
         
         return true;
     }
+    
+    bool SQLiteDatabaseConnection::deleteRecordingToCategoryScoresByRecordingID(databaseentities::id_datatype& recordingID)
+    {
+        int rc;
+        
+        if (_deleteRecordingToCategoryScoresByIDStatement == NULL)
+        {
+            rc = sqlite3_prepare_v2(_db, "DELETE FROM categoryMembership WHERE recordingID=@recordingID;", -1, &_deleteRecordingToCategoryScoresByIDStatement, NULL);
+            if (rc != SQLITE_OK)
+            {
+                ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        sqlite3_bind_int64(_deleteRecordingToCategoryScoresByIDStatement, 1, recordingID);
+        
+        while ((rc = sqlite3_step(_deleteRecordingToCategoryScoresByIDStatement)) != SQLITE_DONE)
+        {
+            if (rc == SQLITE_ROW)
+            {
+                ERROR_OUT("row available. should this happen?", 0);
+            }
+            else
+            {
+                ERROR_OUT("Failed to read data from database. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        if (rc != SQLITE_DONE)
+        {
+            ERROR_OUT("Failed to execute statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        rc = sqlite3_reset(_deleteRecordingToCategoryScoresByIDStatement);
+        if (rc != SQLITE_OK)
+        {
+            ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        return true;
+    }
+    bool SQLiteDatabaseConnection::deleteCategoryExampleScoresByRecordingID(databaseentities::id_datatype& recordingID)
+    {
+        int rc;
+        
+        if (_deleteCategoryExampleScoresByRecordingIDStatement == NULL)
+        {
+            rc = sqlite3_prepare_v2(_db, "DELETE FROM categoryExample WHERE recordingID=@recordingID;", -1, &_deleteCategoryExampleScoresByRecordingIDStatement, NULL);
+            if (rc != SQLITE_OK)
+            {
+                ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        sqlite3_bind_int64(_deleteCategoryExampleScoresByRecordingIDStatement, 1, recordingID);
+        
+        while ((rc = sqlite3_step(_deleteCategoryExampleScoresByRecordingIDStatement)) != SQLITE_DONE)
+        {
+            if (rc == SQLITE_ROW)
+            {
+                ERROR_OUT("row available. should this happen?", 0);
+            }
+            else
+            {
+                ERROR_OUT("Failed to read data from database. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        if (rc != SQLITE_DONE)
+        {
+            ERROR_OUT("Failed to execute statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        rc = sqlite3_reset(_deleteCategoryExampleScoresByRecordingIDStatement);
+        if (rc != SQLITE_OK)
+        {
+            ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        return true;
+    }
+    
     bool SQLiteDatabaseConnection::updateCategoryExampleScore(databaseentities::id_datatype categoryID, databaseentities::id_datatype recordingID, double score)
     {
         //first delete old entry (if any)
@@ -1796,6 +2034,9 @@ namespace music
             ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
             return false;
         }
+        
+        if (score != score) //if score is NaN, only delete the entry, do not recreate it
+            return true;
         
         //insert new entry
         if (_saveCategoryExampleScoreStatement == NULL)

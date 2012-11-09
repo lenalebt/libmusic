@@ -136,6 +136,19 @@ namespace music
         virtual bool getRecordingByID(databaseentities::Recording& recording, bool readFeatures=false)=0;
         
         /**
+         * @brief Removes the given recording with all accociated features from the database.
+         * 
+         * @todo Need to state here if everything regarding this recording will be removed, or if it
+         *      is just the recording and the features
+         * @todo better use the recording itself here?
+         * 
+         * @param recordingID The ID of the recording that should be removed.
+         *      Will be set to -1 if the recording was not found.
+         * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
+         */
+        virtual bool deleteRecordingByID(databaseentities::id_datatype& recordingID)=0;
+        
+        /**
          * @brief Reads a recording ID by giving the file name.
          * 
          * @param[out] recordingID The ID of the recording that belongs to the given file name. <code>-1</code>, if no recording was found.
@@ -243,6 +256,21 @@ namespace music
         virtual bool getCategoryDescriptionByID(databaseentities::CategoryDescription& categoryDescription)=0;
         //TODO: need update for category description.
         
+        /**
+         * @brief Deletes all relationships between the given recording and any category score.
+         * 
+         * @param recordingID The ID of the recording where all relationships should be deleted.
+         * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
+         */
+        virtual bool deleteRecordingToCategoryScoresByRecordingID(databaseentities::id_datatype& recordingID)=0;
+        /**
+         * @brief Deletes all relationships between the given recording and any category example score.
+         * 
+         * @param recordingID The ID of the recording where all relationships should be deleted.
+         * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
+         */
+        virtual bool deleteCategoryExampleScoresByRecordingID(databaseentities::id_datatype& recordingID)=0;
+        
         /** 
          * @brief Reads the score of a recording with which probability it belongs to a category.
          * 
@@ -256,9 +284,12 @@ namespace music
         /** 
          * @brief Updates the score of a recording for a category. If the score did not already exist, it creates the entry.
          * 
+         * @remarks To delete an entry, call it with <code>score=NaN</code>.
+         * 
          * @param recordingID The ID of the recording
          * @param categoryID The ID of the category
-         * @param score The score of the relation.
+         * @param score The score of the relation. If the score is <code>NaN</code>,
+         *      the entry will be deleted, but not recreated.
          * 
          * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
          */
@@ -294,9 +325,12 @@ namespace music
          * If this happens, all scores of recordings belonging to a category need to be recalculated,
          * and the classifier needs to be retrained.
          * 
+         * @remarks To delete an entry, call it with <code>score=NaN</code>.
+         * 
          * @param categoryID The ID of the category
          * @param recordingID The ID of the recording
-         * @param score The score of the relation.
+         * @param score The score of the relation. If the score is <code>NaN</code>,
+         *      the entry will be deleted, but not recreated.
          */
         virtual bool updateCategoryExampleScore(databaseentities::id_datatype categoryID, databaseentities::id_datatype recordingID, double score)=0;
     };
