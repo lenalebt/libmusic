@@ -210,6 +210,22 @@ namespace tests
         }
         
         DEBUG_OUT("Model as JSON: " << gmm, 0);
+        std::string gmmJSON = gmm.toJSONString();
+        DEBUG_OUT("Model as JSON from string: " << gmmJSON, 0);
+        
+        DEBUG_OUT("loading model from JSON string...", 0);
+        music::GaussianMixtureModel gmm2;
+        gmm2.loadFromJSONString(gmmJSON);
+        
+        gaussians = gmm2.getGaussians();
+        
+        for (std::vector<music::Gaussian*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
+        {
+            DEBUG_OUT("gaussian mean: " << (*it)->getMean(), 0);
+            DEBUG_OUT("gaussian sigma: " << (*it)->getCovarianceMatrix(), 0);
+            DEBUG_OUT("testing if the estimated mean fits to the input mean of the clusters...", 0);
+            CHECK( (((**it).getMean() - mu1).norm() / mu1.norm() < 10e-1) || (((**it).getMean() - mu2).norm() / mu2.norm() < 10e-1));
+        }
         
         return EXIT_SUCCESS;
     }
