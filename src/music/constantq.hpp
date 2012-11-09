@@ -61,10 +61,10 @@ namespace music
          * 
          * @param sampleNumber the sample number in time
          * @param midiNoteNumber the number of the midi note you want to get.
-         * @see 
+         * @see \ref midinote_scale
          * @return the value of the constant Q transform at a given sample number
          */
-        std::complex<float> getNoteValueLinearInterpolation(int64_t sampleNumber, int midiNoteNumber);
+        std::complex<float> getNoteValueLinearInterpolation(uint64_t sampleNumber, int midiNoteNumber);
         
         /**
          * @brief Returns the value of the constant Q transform at the given sample number
@@ -72,9 +72,14 @@ namespace music
          * 
          * It just takes the value of the transform that is before the given sample number.
          * 
+         * @param sampleNumber the sample number in time
+         * @param midiNoteNumber the number of the midi note you want to get.
+         * @see \ref midinote_scale
          * @return the value of the constant Q transform at a given sample number
          */
-        std::complex<float> getNoteValueNoInterpolation(int64_t sampleNumber, int midiNoteNumber);
+        std::complex<float> getNoteValueNoInterpolation(uint64_t sampleNumber, int midiNoteNumber);
+        
+        friend class ConstantQTransform;
     };
     
     /**
@@ -249,7 +254,7 @@ Spain, 2010.
          * @todo implement
          * @todo set the right return value.
          */
-        ConstantQTransformResult* apply(uint16_t* buffer, int sampleCount);
+        ConstantQTransformResult* apply(float* buffer, int sampleCount);
         
         friend int tests::testConstantQ();
     };

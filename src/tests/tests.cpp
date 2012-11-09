@@ -109,6 +109,7 @@ namespace tests
         
         kiss_fft_scalar mem[8] = {1.0, 1.2, 1.5, 1.3, 1.05, 1.0, 1.0, 1.0};
         kiss_fft_cpx outmem[8];
+        kiss_fft_cpx outmem2[8];
         
         int freqLength;
         fft.doFFT(mem, 8, outmem, freqLength);
@@ -118,7 +119,46 @@ namespace tests
         {
             std::cerr << "(" << outmem[i].r << "+" << outmem[i].i << "*i)" << " ";
         }
+        
+        std::cerr << "calculating full fft from real-values fft..." << std::endl;
+        std::cerr << std::endl;
+        int midPoint = 8/2;
+        for (int i=1; i<8/2; i++)
+        {
+            outmem[midPoint + i] = outmem[midPoint - i];
+            outmem[midPoint + i].i *= -1;
+        }
+        for (int i=0; i<8; i++)
+        {
+            std::cerr << "(" << outmem[i].r << "+" << outmem[i].i << "*i)" << " ";
+        }
+        std::cerr << std::endl;
+        
+        std::cerr << "checking full fft..." << std::endl;
+        std::complex<kiss_fft_scalar> cpxmem[8];
+        cpxmem[0] = std::complex<kiss_fft_scalar>(1.0, 0.0);
+        cpxmem[1] = std::complex<kiss_fft_scalar>(1.2, 0.0);
+        cpxmem[2] = std::complex<kiss_fft_scalar>(1.5, 0.0);
+        cpxmem[3] = std::complex<kiss_fft_scalar>(1.3, 0.0);
+        cpxmem[4] = std::complex<kiss_fft_scalar>(1.05, 0.0);
+        cpxmem[5] = std::complex<kiss_fft_scalar>(1.0, 0.0);
+        cpxmem[6] = std::complex<kiss_fft_scalar>(1.0, 0.0);
+        cpxmem[7] = std::complex<kiss_fft_scalar>(1.0, 0.0);
+        
+        fft.docFFT((kiss_fft_cpx*)cpxmem, 8, outmem2, freqLength);
+        
+        CHECK_EQ(freqLength, 8);
+        for (int i=0; i<freqLength; i++)
+        {
+            std::cerr << "(" << outmem2[i].r << "+" << outmem2[i].i << "*i)" << " ";
+        }
         std:: cerr << std::endl;
+        
+        for (int i=0; i<freqLength; i++)
+        {
+            CHECK_EQ(outmem[i].r, outmem2[i].r);
+            CHECK_EQ(outmem[i].i, outmem2[i].i);
+        }
         
         kiss_fft_scalar largemem[1024];
         kiss_fft_cpx largeoutmem[1024];
