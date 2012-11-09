@@ -136,7 +136,8 @@ namespace music
             std::string positiveChromaModel;
             std::string negativeTimbreModel;
             std::string negativeChromaModel;
-            std::string classifierDescription;
+            std::string positiveClassifierDescription;
+            std::string negativeClassifierDescription;
         protected:
             
         public:
@@ -156,9 +157,12 @@ namespace music
             void setNegativeChromaModel(const std::string& model)   {this->negativeChromaModel = model;}
             std::string getNegativeChromaModel() const              {return negativeChromaModel;}
             
-            void setClassifierDescription(const std::string& classifierDescription)
-                                                                    {this->classifierDescription = classifierDescription;}
-            std::string getClassifierDescription() const            {return classifierDescription;}
+            void setPositiveClassifierDescription(const std::string& classifierDescription)
+                                                                    {this->positiveClassifierDescription = classifierDescription;}
+            void setNegativeClassifierDescription(const std::string& classifierDescription)
+                                                                    {this->negativeClassifierDescription = classifierDescription;}
+            std::string getPositiveClassifierDescription() const    {return positiveClassifierDescription;}
+            std::string getNegativeClassifierDescription() const    {return negativeClassifierDescription;}
         };
         
         /**

@@ -52,7 +52,8 @@ namespace music
             positiveChromaModel(""),
             negativeTimbreModel(""),
             negativeChromaModel(""),
-            classifierDescription("")
+            positiveClassifierDescription(""),
+            negativeClassifierDescription("")
         {
             
         }
