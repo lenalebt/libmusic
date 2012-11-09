@@ -337,6 +337,9 @@ namespace music
     
     double ClassificationCategory::classifyRecording(const databaseentities::Recording& recording)
     {
+        if (recording.getRecordingFeatures() == NULL)
+            return 0.0;
+        
         GaussianMixtureModel<kiss_fft_scalar>* timbreModel = GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(recording.getRecordingFeatures()->getTimbreModel());
         GaussianMixtureModel<kiss_fft_scalar>* chromaModel = GaussianMixtureModel<kiss_fft_scalar>::loadFromJSONString(recording.getRecordingFeatures()->getChromaModel());
         
@@ -345,15 +348,6 @@ namespace music
         
         delete timbreModel;
         delete chromaModel;
-                
-        DEBUG_VAR_OUT(emptyPositiveTimbreModel, 0);
-        DEBUG_VAR_OUT(emptyPositiveChromaModel, 0);
-        DEBUG_VAR_OUT(emptyNegativeTimbreModel, 0);
-        DEBUG_VAR_OUT(emptyNegativeChromaModel, 0);
-        DEBUG_VAR_OUT(emptyPosClassifierModel , 0);
-        DEBUG_VAR_OUT(emptyNegClassifierModel , 0);
-        
-        
         
         return (emptyPosClassifierModel ? 0.0 : 1.0/(1.0+posClassifier->classifyVector(posVec)))
             - (emptyNegClassifierModel ? 0.0 : 1.0/(1.0+negClassifier->classifyVector(negVec)));

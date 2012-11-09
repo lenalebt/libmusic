@@ -39,28 +39,26 @@ namespace music
     template <typename ScalarType>
     double Gaussian<ScalarType>::calculateDistance(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& vector1, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& vector2)
     {
-        DEBUG_VAR_OUT(vector1, 0);
-        DEBUG_VAR_OUT(vector2, 0);
         Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> tmp = vector1 - vector2;
         if (pseudoInverse)
         {
-            DEBUG_OUT("pseudo", 10);
+            /*DEBUG_OUT("pseudo", 10);
             DEBUG_VAR_OUT(*pseudoInverse, 0);
             DEBUG_VAR_OUT(tmp, 0);
             DEBUG_VAR_OUT(getCovarianceMatrix(), 0);
             DEBUG_VAR_OUT(getCovarianceMatrix().determinant(), 0);
             DEBUG_VAR_OUT((*pseudoInverse) * tmp, 0);
             DEBUG_VAR_OUT(tmp.transpose() * (*pseudoInverse), 0);
-            DEBUG_VAR_OUT(tmp.transpose() * (*pseudoInverse) * tmp, 0);
+            DEBUG_VAR_OUT(tmp.transpose() * (*pseudoInverse) * tmp, 0);*/
             return std::sqrt(tmp.transpose() * (*pseudoInverse) * tmp);
         }
         else
         {
-            DEBUG_OUT("nonpseudo", 10);
+            /*DEBUG_OUT("nonpseudo", 10);
             DEBUG_VAR_OUT(tmp, 0);
             DEBUG_VAR_OUT(getCovarianceMatrix(), 0);
             DEBUG_VAR_OUT(getCovarianceMatrix().determinant(), 0);
-            DEBUG_VAR_OUT(tmp.transpose() * llt.solve(tmp), 0);
+            DEBUG_VAR_OUT(tmp.transpose() * llt.solve(tmp), 0);*/
             return std::sqrt(tmp.transpose() * llt.solve(tmp));
         }
     }

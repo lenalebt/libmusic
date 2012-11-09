@@ -20,8 +20,6 @@ namespace music
          * 
          * @remarks Use this object to store data in a database.
          * 
-         * @todo features are not ready yet. some are missing, formats are not clear, etc.
-         * 
          * @ingroup database
          * @author Lena Brueder
          * @date 2012-07-16
