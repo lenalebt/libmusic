@@ -105,9 +105,6 @@ namespace tests
         }
         CHECK_OP(misclassificationCount, <, 5);
         
-        ERROR_OUT("this test is not finished yet.", 0);
-        return EXIT_FAILURE;
-        
         return EXIT_SUCCESS;
     }
     
