@@ -111,12 +111,29 @@ namespace music
         virtual bool getRecordingByID(databaseentities::Recording& recording, bool readFeatures=false)=0;
         
         /**
+         * @brief Updates a recording in the database by giving the id.
+         * 
+         * @param[in,out] recording Will read the id from this parameter, as well as all other data.
+         * @param updateFeatures Determines if the features will be updated, or not.
+         * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
+         */
+        virtual bool updateRecordingByID(databaseentities::Recording& recording, bool updateFeatures=false)=0;
+        
+        /**
          * @brief Reads recording features from the database by giving the id.
          * 
          * @param[in,out] recordingFeatures Will read the id from this parameter. Will store the data in this parameter.
          * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
          */
         virtual bool getRecordingFeaturesByID(databaseentities::RecordingFeatures& recordingFeatures)=0;
+        
+        /**
+         * @brief Updates recording features in the database by giving the id.
+         * 
+         * @param[in,out] recordingFeatures Will read the id from this parameter, as well as all other data.
+         * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
+         */
+        virtual bool updateRecordingFeaturesByID(databaseentities::RecordingFeatures& recordingFeatures)=0;
         
         /**
          * @brief Adds a new category to the database.
