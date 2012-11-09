@@ -54,8 +54,26 @@ namespace tests
                 recording->setGenre("unknown");
                 recording->setAlbum("unknown");
                 recording->setArtist("unknown");
+                recording->setTrackNumber(17);
+                recording->setTitle("unknown");
                 
                 CHECK(conn->addRecording(*recording));
+                
+                recording->setGenre("");
+                recording->setAlbum("");
+                recording->setArtist("");
+                recording->setFilename("");
+                recording->setTrackNumber(10);
+                recording->setTitle("");
+                
+                CHECK(conn->getRecordingByID(*recording));
+                
+                CHECK_OP(recording->getGenre(), ==, std::string("unknown"));
+                CHECK_OP(recording->getAlbum(), ==, std::string("unknown"));
+                CHECK_OP(recording->getArtist(), ==, std::string("unknown"));
+                CHECK_OP(recording->getFilename(), ==, filename);
+                CHECK_OP(recording->getTrackNumber(), ==, 17);
+                CHECK_OP(recording->getTitle(), ==, std::string("unknown"));
                 
                 delete recording;
             }
