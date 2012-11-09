@@ -59,8 +59,13 @@ namespace music
     {
         
     }
+    /**
+     * @todo the algorithm behind estimateChord3 is more reliable,
+     *      but slower on chord changes. use it nevertheless?
+     */
     ChordHypothesis* ChordEstimator::estimateChord(double fromTime, double toTime)
     {
+        //return estimateChord3(fromTime, toTime);
         return estimateChord2(fromTime, toTime);
     }
     ChordHypothesis* ChordEstimator::estimateChord3(double fromTime, double toTime)

@@ -837,7 +837,8 @@ namespace tests
         chords << "b";
         files <<  "./testdata/chord-minor-b-keyboard.mp3";
         chords << "b";
-
+        
+        #if 0
         while (!files.empty())
         {
             std::string filename = files.front();
@@ -885,7 +886,7 @@ namespace tests
                 //chordstr << *chord << ConsoleColors::defaultText() << std::endl << std::flush;
             //}
         }
-        
+        #endif
         std::queue<std::pair<std::string, std::vector<std::pair<double, std::string> > > > data;
         std::vector<std::pair<double, std::string> > times;
         
@@ -978,7 +979,7 @@ namespace tests
         
         musicaccess::SoundFile file;
         CHECK(!file.isFileOpen());
-        CHECK(file.open("./testdata/instrument-alto_sax.mp3", true));
+        CHECK(file.open("./testdata/instrument-clarinet2.mp3", true));
         CHECK(file.isFileOpen());
         
         float* buffer = NULL;
@@ -1009,6 +1010,7 @@ namespace tests
         //if two bins are used for an overtone, put the percentage in parameters 2 and 3.
         //got percentages through cent scale, matlab command: 2.^((1:7201-1)/1200)
         //and then lookup...
+        //add shaping, such that higher overtones do not get that much influence? might help with misinterpreted overtones...
         std::vector<std::pair<int, std::pair<double, double> > > overtones;
         overtones.push_back(std::pair<int, std::pair<double, double> >( 0, std::pair<double, double>(1.00, 0.00)));
         overtones.push_back(std::pair<int, std::pair<double, double> >(12, std::pair<double, double>(1.00, 0.00)));
@@ -1021,12 +1023,13 @@ namespace tests
         overtones.push_back(std::pair<int, std::pair<double, double> >(38, std::pair<double, double>(0.96, 0.04)));
         overtones.push_back(std::pair<int, std::pair<double, double> >(39, std::pair<double, double>(0.13, 0.87)));
         overtones.push_back(std::pair<int, std::pair<double, double> >(41, std::pair<double, double>(0.52, 0.48)));
+        overtones.push_back(std::pair<int, std::pair<double, double> >(43, std::pair<double, double>(0.98, 0.02)));
         
         std::ofstream timbredata("timbredata.dat", std::ios_base::app);
         
         int binCount = transformResult->getBinsPerOctave()*transformResult->getOctaveCount();
         Eigen::VectorXd vec(binCount);
-        Eigen::VectorXd timbre(11);
+        Eigen::VectorXd timbre(12);
         std::vector<std::pair<double, int> > sortVec(binCount);
         double time;
         //for (double time=0.0; time<transformResult->getOriginalDuration(); time += 0.125/8)
@@ -1062,7 +1065,7 @@ namespace tests
             std::sort(sortVec.begin(), sortVec.end());
             if (i%8)
             {
-                for (int otone=0; otone<11; otone++)
+                for (int otone=0; otone<12; otone++)
                 {
                     timbre[otone] = 0.0;
                 }
@@ -1071,7 +1074,7 @@ namespace tests
             for (int j=0; j<1; j++)
             {
                 int loudestPos = sortVec[binCount-j-1].second;
-                for (int otone=0; otone<11; otone++)
+                for (int otone=0; otone<12; otone++)
                 {
                     int otonePos = loudestPos + overtones[otone].first;
                     if (otonePos > binCount-2)
@@ -1088,7 +1091,7 @@ namespace tests
                 if ((time >= 1.0 && time <= 1.0+8*0.125) /*|| (time >= 6.2 && time <= 6.2+0.125)*/)
                 {
                     DEBUG_OUT("timbre at time " << time << ": " << std::endl << timbre, 10);
-                    for (int k=0; k<11; k++)
+                    for (int k=0; k<12; k++)
                         timbredata << timbre[k] << " ";
                     timbredata << std::endl;
                 }
