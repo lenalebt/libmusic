@@ -38,7 +38,7 @@ namespace music
         _getCategoryByNameStatement             (NULL),
         
         _saveCategoryDescriptionStatement       (NULL),
-        _getCategoryDescriptionByIDStatement    (NULL)
+        _getCategoryDescriptionByIDStatement    (NULL),
         
         _getRecordingToCategoryScoreByIDsStatement    (NULL),  
         _deleteRecordingToCategoryScoreByIDsStatement (NULL),  
@@ -1346,7 +1346,7 @@ namespace music
         return true;
     }
     
-    bool getRecordingToCategoryScore(databaseentities::id_datatype recordingID, databaseentities::id_datatype categoryID, double& score)
+    bool SQLiteDatabaseConnection::getRecordingToCategoryScore(databaseentities::id_datatype recordingID, databaseentities::id_datatype categoryID, double& score)
     {
         int rc;
         score = -1.0;
@@ -1363,7 +1363,7 @@ namespace music
         
         //bind parameters
         sqlite3_bind_int64(_getRecordingToCategoryScoreByIDsStatement, 1, recordingID);
-        sqlite3_bind_int64(_getRecordingToCategoryScoreByIDsStatement, 1, categoryID);
+        sqlite3_bind_int64(_getRecordingToCategoryScoreByIDsStatement, 2, categoryID);
         
         while ((rc = sqlite3_step(_getRecordingToCategoryScoreByIDsStatement)) != SQLITE_DONE)
         {
@@ -1393,11 +1393,84 @@ namespace music
         
         return true;
     }
-    bool updateRecordingToCategoryScore(databaseentities::id_datatype recordingID, databaseentities::id_datatype categoryID, double score)
+    bool SQLiteDatabaseConnection::updateRecordingToCategoryScore(databaseentities::id_datatype recordingID, databaseentities::id_datatype categoryID, double score)
     {
-        return false;
+        int rc;
+        
+        if (_deleteRecordingToCategoryScoreByIDsStatement == NULL)
+        {
+            rc = sqlite3_prepare_v2(_db, "DELETE FROM categoryMembership WHERE (recordingID=@recordingID AND categoryID=@categoryID);", -1, &_deleteRecordingToCategoryScoreByIDsStatement, NULL);
+            if (rc != SQLITE_OK)
+            {
+                ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        //bind parameters
+        sqlite3_bind_int64(_deleteRecordingToCategoryScoreByIDsStatement, 1, recordingID);
+        sqlite3_bind_int64(_deleteRecordingToCategoryScoreByIDsStatement, 2, categoryID);
+        
+        while ((rc = sqlite3_step(_deleteRecordingToCategoryScoreByIDsStatement)) != SQLITE_DONE)
+        {
+            if (rc == SQLITE_ROW)
+            {
+                ERROR_OUT("row available. should this happen?", 0);
+            }
+            else
+            {
+                ERROR_OUT("Failed to read data from database. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        if (rc != SQLITE_DONE)
+        {
+            ERROR_OUT("Failed to execute statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        rc = sqlite3_reset(_deleteRecordingToCategoryScoreByIDsStatement);
+        if (rc != SQLITE_OK)
+        {
+            ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        if (_saveRecordingToCategoryScoreStatement == NULL)
+        {
+            rc = sqlite3_prepare_v2(_db, "INSERT INTO categoryMembership VALUES(@categoryID, @recordingID, @score);", -1, &_saveRecordingToCategoryScoreStatement, NULL);
+            if (rc != SQLITE_OK)
+            {
+                ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        //bind parameters
+        sqlite3_bind_int64(_saveRecordingToCategoryScoreStatement, 1, categoryID);
+        sqlite3_bind_int64(_saveRecordingToCategoryScoreStatement, 2, recordingID);
+        sqlite3_bind_double(_saveRecordingToCategoryScoreStatement, 3, score);
+        
+        rc = sqlite3_step(_saveRecordingToCategoryScoreStatement);
+        
+        if (rc != SQLITE_DONE)
+        {
+            ERROR_OUT("Failed to execute statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        rc = sqlite3_reset(_saveRecordingToCategoryScoreStatement);
+        if (rc != SQLITE_OK)
+        {
+            ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        return true;
     }
-    bool getCategoryExampleScore(databaseentities::id_datatype categoryID, databaseentities::id_datatype recordingID, double& score)
+    
+    bool SQLiteDatabaseConnection::getCategoryExampleScore(databaseentities::id_datatype categoryID, databaseentities::id_datatype recordingID, double& score)
     {
         int rc;
         score = -1.0;
@@ -1414,7 +1487,7 @@ namespace music
         
         //bind parameters
         sqlite3_bind_int64(_getCategoryExampleScoreByIDsStatement, 1, recordingID);
-        sqlite3_bind_int64(_getCategoryExampleScoreByIDsStatement, 1, categoryID);
+        sqlite3_bind_int64(_getCategoryExampleScoreByIDsStatement, 2, categoryID);
         
         while ((rc = sqlite3_step(_getCategoryExampleScoreByIDsStatement)) != SQLITE_DONE)
         {
@@ -1444,7 +1517,7 @@ namespace music
         
         return true;
     }
-    bool updateCategoryExampleScore(databaseentities::id_datatype categoryID, databaseentities::id_datatype recordingID, double score)
+    bool SQLiteDatabaseConnection::updateCategoryExampleScore(databaseentities::id_datatype categoryID, databaseentities::id_datatype recordingID, double score)
     {
         return false;
     }
