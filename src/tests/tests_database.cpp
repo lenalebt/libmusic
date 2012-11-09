@@ -178,6 +178,28 @@ namespace tests
         
         closedir (dir);
         
+        CHECK(conn->updateRecordingToCategoryScore(1, 1, 1.0));
+        CHECK(conn->updateRecordingToCategoryScore(2, 1, 0.9));
+        CHECK(conn->updateRecordingToCategoryScore(3, 1, 0.8));
+        CHECK(conn->updateRecordingToCategoryScore(4, 1, 0.7));
+        
+        CHECK(conn->updateRecordingToCategoryScore(2, 1, 0.0));
+        CHECK(conn->updateRecordingToCategoryScore(3, 1, 0.1));
+        CHECK(conn->updateRecordingToCategoryScore(4, 1, 0.2));
+        CHECK(conn->updateRecordingToCategoryScore(5, 1, 0.3));
+        
+        double score=0.0;
+        CHECK(conn->getRecordingToCategoryScore(1, 1, score));
+        CHECK_EQ(score, 1.0);
+        CHECK(conn->getRecordingToCategoryScore(2, 1, score));
+        CHECK_EQ(score, 0.0);
+        CHECK(conn->getRecordingToCategoryScore(3, 1, score));
+        CHECK_EQ(score, 0.1);
+        CHECK(conn->getRecordingToCategoryScore(4, 1, score));
+        CHECK_EQ(score, 0.2);
+        CHECK(conn->getRecordingToCategoryScore(5, 1, score));
+        CHECK_EQ(score, 0.3);
+        
         CHECK(conn->close());
         
         return EXIT_SUCCESS;
