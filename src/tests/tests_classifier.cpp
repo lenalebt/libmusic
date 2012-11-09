@@ -206,7 +206,7 @@ namespace tests
     int testGMM()
     {
         int dimension=12;
-        int dataCount=50000;
+        int dataCount=10000;
         int gaussianCount=3;
         
         music::GaussianMixtureModelDiagCov<kiss_fft_scalar> gmm;

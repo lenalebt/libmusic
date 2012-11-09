@@ -240,7 +240,7 @@ namespace music
         if (model)
             delete model;
     }
-    void TimbreModel::calculateModel(int modelSize, double timeSliceSize)
+    void TimbreModel::calculateModel(int modelSize, double timeSliceSize, unsigned int timbreVectorSize)
     {
         assert(modelSize > 0);
         assert(timeSliceSize > 0.0);
@@ -250,10 +250,10 @@ namespace music
             delete model;
             model = NULL;
         }
-        model = new GaussianMixtureModelFullCov<kiss_fft_scalar>();
+        model = new GaussianMixtureModelDiagCov<kiss_fft_scalar>();
         
         //first get data vectors
-        TimbreEstimator tEst(transformResult);
+        TimbreEstimator tEst(transformResult, timbreVectorSize);
         double time;
         std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > data;
         for (int i=1; i<transformResult->getOriginalDuration()/timeSliceSize; i++)

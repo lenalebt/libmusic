@@ -7,7 +7,7 @@
 
 namespace music
 {
-    #define SMALLEST_VARIANCE_VALUE 1.0
+    #define SMALLEST_VARIANCE_VALUE 0.1
     
     template <typename ScalarType>
     Gaussian<ScalarType>::Gaussian(unsigned int dimension) :
@@ -214,7 +214,7 @@ namespace music
             for (std::set<unsigned int>::iterator it = initElements.begin(); it != initElements.end(); it++)
             {
                 means.push_back(data[*it]);
-                fullCovs.push_back(10000.0 * Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>::Identity(dimension, dimension));
+                fullCovs.push_back(100.0 * Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>::Identity(dimension, dimension));
             }
         }
         else
@@ -235,6 +235,7 @@ namespace music
         Eigen::Matrix<double, Eigen::Dynamic, 1> weights = Eigen::Matrix<double, Eigen::Dynamic, 1>::Constant(gaussianCount, 1.0/double(gaussianCount));
         Eigen::Matrix<double, Eigen::Dynamic, 1> oldWeights = weights;
         Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic> p(dataSize, gaussianCount);
+        float loglike=0.0, oldLoglike=0.0;
         
         unsigned int iteration = 0;
         bool converged = false;
@@ -292,7 +293,8 @@ namespace music
             
             double sum;
             double max;
-            //loglike=0;
+            oldLoglike = loglike;
+            loglike=0.0;
             for (unsigned int i=0; i<dataSize; i++)
             {
                 //normalize p.
@@ -303,12 +305,12 @@ namespace music
                 //resolve possible aliasing issues by calling eval().
                 p.row(i) = (p.row(i) - (max + log(sum))).exp().eval();
                 
-                //loglike += max + log(sum);
+                loglike += max + log(sum);
             }
             DEBUG_OUT("E-step END", 30);
             //E-step END
             
-            DEBUG_VAR_OUT(p, 0);
+            //DEBUG_VAR_OUT(p, 0);
             
             //M-step BEGIN
             DEBUG_OUT("M-step BEGIN", 30);
@@ -345,9 +347,11 @@ namespace music
             DEBUG_OUT("M-step END", 30);
             //M-step END
             weights = prob;
-            DEBUG_OUT("check for convergence... weights: " << weights << ", relative change of weights:" << (oldWeights - weights).norm() / oldWeights.norm(), 50);
-            if ((oldWeights - weights).norm() / oldWeights.norm() < 10e-6)
-                converged = true;
+            DEBUG_OUT("check for convergence... weights: " << weights << ", relative change of weights:" << (oldWeights - weights).norm() / oldWeights.norm() << std::endl << "loglikechange: " << fabs(oldLoglike - loglike), 50);
+            //if ((oldWeights - weights).norm() / oldWeights.norm() < 10e-6)
+            //    converged = true;
+            if (fabs(oldLoglike - loglike) < 1e-6)
+                converged=true;
         }
         
         if (converged)
@@ -414,7 +418,7 @@ namespace music
             for (std::set<unsigned int>::iterator it = initElements.begin(); it != initElements.end(); it++)
             {
                 means.push_back(data[*it]);
-                diagCovs.push_back(Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>::Constant(dimension, 1, 1e-10));
+                diagCovs.push_back(Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>::Constant(dimension, 1, 100.0));
             }
         }
         else
@@ -435,12 +439,11 @@ namespace music
         Eigen::Matrix<double, Eigen::Dynamic, 1> weights = Eigen::Matrix<double, Eigen::Dynamic, 1>::Constant(gaussianCount, 1.0/double(gaussianCount));
         Eigen::Matrix<double, Eigen::Dynamic, 1> oldWeights = weights;
         Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic> p(dataSize, gaussianCount);
+        float loglike=0.0, oldLoglike=0.0;
         
         unsigned int iteration = 0;
         bool converged = false;
         DEBUG_OUT("starting iteration loop...", 20);
-        
-        double loglike=0.0, oldLoglike=0.0;
         while ((iteration < maxIterations) && (!converged))
         {
             iteration++;

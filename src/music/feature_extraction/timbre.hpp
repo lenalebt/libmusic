@@ -56,7 +56,7 @@ namespace music
     public:
         TimbreModel(ConstantQTransformResult* transformResult);
         ~TimbreModel();
-        void calculateModel(int modelSize=5, double timeSliceSize=0.02);
+        void calculateModel(int modelSize=5, double timeSliceSize=0.02, unsigned int timbreVectorSize=12);
         //Model will be property of this class. if you want a copy, go make yourself one!
         GaussianMixtureModel<kiss_fft_scalar>* getModel();
     };
