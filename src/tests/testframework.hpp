@@ -11,7 +11,7 @@
 #include "debug.hpp"
 
 #define CHECK_EQ(a,b)           if (!check_equality(LINESTR(a,b), a, b)) return EXIT_FAILURE;
-#define CHECK_OP(a,op,b)        std::cerr << std::left << std::setw(TEST_PASSED_MSG_WIDTH) << LINESTR_OP(a,op,b) << " - " << std::flush; if (!(a op b)) {std::cerr << "failed!" << std::endl << "\t" << a << " " << std::string(QUOTEME(op)) << " " << b << std::endl; return EXIT_FAILURE;} else {std::cerr << "passed!" << std::endl;}
+#define CHECK_OP(a,op,b)        std::cerr << std::left << std::setw(TEST_PASSED_MSG_WIDTH) << LINESTR_OP(a,op,b) << " - " << std::flush; if (!(a op b)) {std::cerr << "failed!" << std::endl << "\t" << a << " " << std::string(QUOTEME(op)) << " " << b << " ?"<< std::endl; return EXIT_FAILURE;} else {std::cerr << "passed!" << std::endl;}
 #define CHECK_EQ_TYPE(a,b,type) if (!check_equality<type, type >(LINESTR(a,b), a, b)) return EXIT_FAILURE;
 #define CHECK(a)                if (!check_equality(LINESTR(a,true), a, true)) return EXIT_FAILURE;
 

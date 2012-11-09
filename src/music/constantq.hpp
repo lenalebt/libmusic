@@ -65,6 +65,7 @@ namespace music
         //array of matricies. we have one matrix for every octave.
         //the matricies are dense, with one row being an octave bin.
         Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >** octaveMatrix;
+        int* drop;
         
         float minBinMidiNote;
         int originalSampleCount;
@@ -147,8 +148,12 @@ namespace music
         int fftLen;
         
         int atomNr;
+        int atomHop;
         
         int nkMax;      //length of the largest atom in samples
+        
+        int firstCenter;
+        int lastCenter;
         
         Eigen::SparseMatrix<std::complex<float> >* fKernel;  //the transform kernel for one octave. it already is complex conjugated.
         
