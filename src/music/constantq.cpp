@@ -335,6 +335,11 @@ namespace music
                 data = newData;
                 sampleCount /= 2;
             }
+            else
+            {
+                if (octaveCount>1)
+                    delete[] data;
+            }
         }
         
         transformResult->minBinMidiNote = (12*log2(this->fMin/440.0))+69+transpose;
@@ -365,6 +370,12 @@ namespace music
         #endif
         
         return transformResult;
+    }
+    
+    ConstantQTransform::~ConstantQTransform()
+    {
+        if (fKernel)
+            delete fKernel;
     }
     
     std::complex<float> ConstantQTransformResult::getNoteValueNoInterpolation(float time, int octave, int bin) const
