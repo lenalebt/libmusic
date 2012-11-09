@@ -22,8 +22,6 @@ namespace music
         //all accesses will be in one transaction
         conn->beginTransaction();
         
-        ClassificationCategory cat;
-        
         if (callback)
             callback->progress(0.0, "init");
         
@@ -31,20 +29,30 @@ namespace music
         std::vector<std::pair<databaseentities::id_datatype, double> > recordingIDsAndScores;
         conn->getCategoryExampleRecordingIDs(recordingIDsAndScores, category.getID());
         
-        std::vector<databaseentities::id_datatype> positiveExamples;
-        std::vector<databaseentities::id_datatype> negativeExamples;
+        std::vector<databaseentities::Recording*> positiveExamples;
+        std::vector<databaseentities::Recording*> negativeExamples;
         
-        //seperate positive and negative examples
+        //seperate positive and negative examples, load from database
         for (std::vector<std::pair<databaseentities::id_datatype, double> >::const_iterator it = recordingIDsAndScores.begin(); it != recordingIDsAndScores.end(); ++it)
         {
+            databaseentities::Recording* rec = new databaseentities::Recording();
+            rec->setID(it->first);
+            conn->getRecordingByID(*rec, true);
+            
             if (it->second > 0.5)
-                positiveExamples.push_back(it->first);
+                positiveExamples.push_back(rec);
             else
-                negativeExamples.push_back(it->first);
+                negativeExamples.push_back(rec);
         }
         
         //TODO: HERE: USE CLASSIFCATIONCATEGORY
+        ClassificationCategory cat;
+        cat.calculateClassificatorModel(positiveExamples, negativeExamples, categoryTimbreModelSize, categoryTimbrePerSongSampleCount, categoryChromaModelSize, categoryChromaPerSongSampleCount);
         
+        
+        //TODO: TO HERE: USE CLASSIFICATIONCATEGORY
+        
+        #if 0
         if (callback)
             callback->progress(0.05, "loading timbre and chroma models...");
         
@@ -273,6 +281,7 @@ namespace music
         
         if (callback)
             callback->progress(1.0, "finished");
+        #endif
         
         return true;
     }
