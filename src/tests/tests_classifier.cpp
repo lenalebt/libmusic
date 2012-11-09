@@ -288,7 +288,7 @@ namespace tests
         DEBUG_OUT("results of GMM 1:", 10);
         std::vector<music::Gaussian<kiss_fft_scalar>*> gaussians = gmm1.getGaussians();
         CHECK_EQ(gaussians.size(), gaussianCount);
-        for (typename std::vector<music::Gaussian<kiss_fft_scalar>*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
+        for (std::vector<music::Gaussian<kiss_fft_scalar>*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
         {
             DEBUG_OUT("gaussian mean: " << (*it)->getMean(), 0);
             DEBUG_OUT("gaussian sigma: " << (*it)->getCovarianceMatrix(), 0);
@@ -297,7 +297,7 @@ namespace tests
         DEBUG_OUT("results of GMM 2:", 10);
         gaussians = gmm2.getGaussians();
         CHECK_EQ(gaussians.size(), gaussianCount);
-        for (typename std::vector<music::Gaussian<kiss_fft_scalar>*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
+        for (std::vector<music::Gaussian<kiss_fft_scalar>*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
         {
             DEBUG_OUT("gaussian mean: " << (*it)->getMean(), 0);
             DEBUG_OUT("gaussian sigma: " << (*it)->getCovarianceMatrix(), 0);
@@ -306,7 +306,7 @@ namespace tests
         DEBUG_OUT("results of GMM 3:", 10);
         gaussians = gmm3.getGaussians();
         CHECK_EQ(gaussians.size(), gaussianCount);
-        for (typename std::vector<music::Gaussian<kiss_fft_scalar>*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
+        for (std::vector<music::Gaussian<kiss_fft_scalar>*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
         {
             DEBUG_OUT("gaussian mean: " << (*it)->getMean(), 0);
             DEBUG_OUT("gaussian sigma: " << (*it)->getCovarianceMatrix(), 0);

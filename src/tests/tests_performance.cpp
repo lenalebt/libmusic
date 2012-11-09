@@ -40,7 +40,7 @@ namespace performance_tests
                 basefiles.push_back(files[i].substr(0, files[i].size()-6));
                 DEBUG_OUT("found basefile: " << basefiles[basefiles.size()-1], 10);
             }
-            DEBUG_OUT(i << ":\t " << files[i], 10);
+            DEBUG_OUT(i+1 << ":\t " << files[i], 10);
         }
         if (basefiles.size() == 0)
             basefiles.push_back("xxx---null---xxx");
@@ -67,7 +67,7 @@ namespace performance_tests
             if ((basefiles.size()) > 1 && (!contains(files[i], basefiles[j])))
             {
                 music::TimbreModel iModel(NULL);
-                iModel.calculateModel(instrumentTimbre, 20, 0.01, 25, &osc);
+                iModel.calculateModel(instrumentTimbre, 20, 0.01, 16, &osc);
                 gmmBase.push_back(iModel.getModel()->clone());
                 instrumentTimbre.clear();
                 j++;
@@ -97,7 +97,7 @@ namespace performance_tests
             
             //calculate model
             assert(data.empty());
-            tModel.calculateModel(data, 3, 0.01, 25, &osc);
+            tModel.calculateModel(data, 20, 0.01, 16, &osc);
             
             if (basefiles.size() > 1)
             {
@@ -167,6 +167,23 @@ namespace performance_tests
         for (unsigned int i = 0; i < basefiles.size(); i++)
         {
             DEBUG_OUT(i+1 << ": " << basefiles[i], 10);
+        }
+        
+        unsigned int knearest=3;
+        DEBUG_OUT("printing " << knearest << " nearest neighbours now for every file:", 0);
+        
+        for (int i=0; i<similarity.rows(); i++)
+        {
+            DEBUG_OUT("file: " << files[i], 0);
+            std::vector<std::pair<double, int> > list;
+            for (int j=0; j<similarity.cols(); j++)
+            {
+                list.push_back(std::pair<double, int>(similarity(i, j) + similarity(j, i), j));
+            }
+            std::sort(list.begin(), list.end());
+            
+            for (unsigned int j=0; j<std::min<unsigned int>(knearest, list.size()); j++)
+                DEBUG_OUT(j+1 << ":\t\t " << "score: " << list[j].first << ":\t" << files[list[j].second], 0);
         }
         
         
