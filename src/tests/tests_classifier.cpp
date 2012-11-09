@@ -209,7 +209,7 @@ namespace tests
         int dataCount=50000;
         int gaussianCount=3;
         
-        music::GaussianMixtureModelFullCov<kiss_fft_scalar> gmm;
+        music::GaussianMixtureModelDiagCov<kiss_fft_scalar> gmm;
         music::KMeans<kiss_fft_scalar> kmeans;
         music::GaussianDiagCov<kiss_fft_scalar> gdc1(dimension);
         music::GaussianDiagCov<kiss_fft_scalar> gdc2(dimension);

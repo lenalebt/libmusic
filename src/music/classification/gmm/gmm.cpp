@@ -214,7 +214,7 @@ namespace music
             for (std::set<unsigned int>::iterator it = initElements.begin(); it != initElements.end(); it++)
             {
                 means.push_back(data[*it]);
-                fullCovs.push_back(10000.0 * Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>::Identity(dimension, dimension));
+                fullCovs.push_back(10000.0 * Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>::Identity(dimension, dimension));
             }
         }
         else
@@ -278,21 +278,25 @@ namespace music
                     DEBUG_OUT("lalala, sachen ersetzt!", 10);
                 }*/
                 
+                /*
                 DEBUG_VAR_OUT(fullCovs[g], 0);
                 DEBUG_VAR_OUT(fullCovs[g].template cast<double>().determinant(), 0);
                 double a=fullCovs[g].template cast<double>().determinant();
                 DEBUG_VAR_OUT(sqrt(a), 0);
                 DEBUG_VAR_OUT(factor, 0);
+                */
                 
                 //for every data point do...
                 for (unsigned int i=0; i < dataSize; i++)
                 {
                     //calculate probability (non-normalized)
                     p(i,g) = factor * std::exp(-0.5 * ((data[i] - means[g]).transpose() * ldlt.solve(data[i] - means[g]))(0));
+                    /*
                     DEBUG_VAR_OUT(p(i,g), 0);
                     DEBUG_VAR_OUT((data[i] - means[g]).transpose(), 0);
                     DEBUG_VAR_OUT(ldlt.solve(data[i] - means[g]).transpose(), 0);
                     DEBUG_VAR_OUT((data[i] - means[g]).transpose() * ldlt.solve(data[i] - means[g]), 0);
+                    */
                 }
             }
             
@@ -471,32 +475,38 @@ namespace music
                 Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> diagCovInv = diagCovs[g].array().inverse();
                 //diagCovs[g].prod() is equal to its determinant for diagonal matricies.
                 //taking the sqrt first helps with some accuracy issues
-                double factor = 1.0/( pow(2*M_PI, dimension/2.0) * diagCovs[g].template cast<double>().cwiseSqrt().prod() );
+                //double factor = 1.0/( pow(2*M_PI, dimension/2.0) * diagCovs[g].template cast<double>().cwiseSqrt().prod() );
+                
+                //alternative version with logarithms. log of determinant is sum of logs, since it is a log of a product.
+                double factor = -0.5 * diagCovs[g].array().log().sum() - (0.5*dimension) * log(2*M_PI);
                 
                 //for every data point do...
                 for (unsigned int i=0; i < dataSize; i++)
                 {
                     //calculate probability (non-normalized)
+                    //first version: with ldlt-solver. second version: optimized for diagonal matricies. third version: diagonal matricies with logarithms
                     //p(i,g) = factor * std::exp(-0.5 * ((data[i] - means[g]).transpose() * ldlt.solve(data[i] - means[g]))(0));
-                    p(i,g) = factor * std::exp(-0.5 * ((data[i] - means[g]).transpose() * (diagCovInv.array() * (data[i] - means[g]).array() ).matrix() )(0));
+                    //p(i,g) = factor * std::exp(-0.5 * ((data[i] - means[g]).transpose() * (diagCovInv.array() * (data[i] - means[g]).array() ).matrix() )(0));
+                    p(i,g) = -0.5 * ((data[i] - means[g]).transpose() * (diagCovInv.array() * (data[i] - means[g]).array() ).matrix() )(0) + factor;
                 }
             }
             
             //DEBUG_VAR_OUT(p, 0);
             
             double sum;
+            double max;
+            //loglike=0;
             for (unsigned int i=0; i<dataSize; i++)
             {
                 //normalize p.
-                //sometimes the sum gets 0 or veeeery small, and then
-                //dividing by it leads to nan/inf values. we try to
-                //skip these values.
-                sum = p.row(i).sum();
-                if (sum <= 1.0e-280)
-                    sum = 1.0;
+                //use the log-exp-sum-trick from "Numerical Recipes", p.844-846
+                max = p.row(i).maxCoeff();
+                sum = (p.row(i) - max).exp().sum();
                 
-                //resolve aliasing issues here with calling eval()
-                p.row(i) = (p.row(i) / sum).eval();
+                //resolve possible aliasing issues by calling eval().
+                p.row(i) = (p.row(i) - (max + log(sum))).exp().eval();
+                
+                //loglike += max + log(sum);
             }
             DEBUG_OUT("E-step END", 30);
             //E-step END
