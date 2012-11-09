@@ -1,0 +1,9 @@
+Using this library in another project
+=====================================
+
+See INSTALL for details on how to install and build the library. If 
+you are using cmake to build your project, feel free to use the 
+supplied "FindMusic.cmake" file in the "cmake/Modules/" directory in 
+order to find the library on the build system.
+
+

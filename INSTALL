@@ -1,0 +1,41 @@
+Installing the library
+======================
+
+If you want to install the library in a normal, 
+non-cross-compile-environment, just go to the "build/" directory and 
+type
+
+cmake ..
+make -j5
+make install
+
+The last step might require root privileges. If you want to build 
+the docs, type
+
+make doc
+
+in the very same directory. You will find the docs in the api-doc/ 
+directory. There are two formats available, for the more commen HTML 
+version open the file api-doc/html/index.html .
+
+Installing for Cross-Compilation
+================================
+
+If you want to cross-compile and install the library, you need to 
+build the library with a cmake toolchain file and afterwards copy 
+the files manually to the right directories. This step highly 
+depends on the environment you are using.
+
+Example: Blackberry Playbook NDK 2.0.1
+
+Assuming you installed the NDK in "/opt/bbndk-2.0.1/", you need to:
+- build the library:
+    * go to the "build/" directory. Type:
+        cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/modules/Toolchain-QNX-6.5.0-armv7.cmake ..
+        make -j4
+- copy the file "libmusic.so" to "/opt/bbndk-2.0.1/target/qnx6/armle-v7/usr/lib"
+//TODO: - copy all header files (*.hpp) from the "../src/" directory to 
+  "/opt/bbndk-2.0.1/target/qnx6/usr/include". Also copy the headers 
+  in the subdirectories!
+
+All libraries depending on this library should now be able to find it.
