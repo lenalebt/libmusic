@@ -73,13 +73,13 @@ namespace music
          * @brief Reports progress to an instance of ProgressCallback.
          * @see ProgressCallback
          * 
-         * @param percent the amount of the job that is finished (0.0 <= percent <= 1.0), if applicable.
-         *      if not applicable, percent < 0.0.
+         * @param value the amount of the job that is finished (0.0 <= value <= 1.0), if applicable.
+         *      if not applicable, value < 0.0.
          * @param progressMessage an optional message that might be presented to the user.
          */
-        virtual void progress(double percent, const std::string& progressMessage)
+        virtual void progress(double value, const std::string& progressMessage)
         {
-            callback.progress(id, percent, progressMessage);
+            callback.progress(id, value, progressMessage);
         }
     };
     
@@ -91,13 +91,13 @@ namespace music
         
     public:
         OutputStreamCallback(std::ostream& os, const std::string& id = "") : ProgressCallbackCaller(*this, id), os(os) {}
-        void progress(double percent, const std::string& progressMessage)
+        void progress(double value, const std::string& progressMessage)
         {
             if (id != "")
                 os << id << ": ";
-            os << std::fixed << std::setprecision(2) << percent << "%, \"" << progressMessage << "\"" << std::endl;
+            os << std::fixed << std::setprecision(2) << value*100.0 << "%, \"" << progressMessage << "\"" << std::endl;
         }
-        void progress(const std::string& id, double percent, const std::string& progressMessage) {}
+        void progress(const std::string& id, double value, const std::string& progressMessage) {}
     };
 }
 #endif //PROGRESS_CALLBACK_HPP

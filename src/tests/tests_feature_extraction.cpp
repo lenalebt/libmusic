@@ -51,7 +51,7 @@ namespace tests
         std::queue<double> minBPMs;
         std::queue<double> maxBPMs;
         
-        /*files.push("testdata/rhythm-metronom-80.mp3");    //80bpm
+        files.push("testdata/rhythm-metronom-80.mp3");    //80bpm
         minBPMs.push(75);
         maxBPMs.push(85);
         files.push("testdata/rhythm-metronom-180.mp3");    //180bpm
@@ -75,7 +75,7 @@ namespace tests
         
         files.push("testdata/test.mp3");    //92bpm
         minBPMs.push(90);
-        maxBPMs.push(96);*/
+        maxBPMs.push(96);
         files.push("sonne.mp3");    //198bpm
         minBPMs.push(195);
         maxBPMs.push(207);

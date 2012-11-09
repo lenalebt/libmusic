@@ -233,7 +233,11 @@ namespace tests
     
     int testPreprocessFiles(const std::string& path)
     {
-        DEBUG_OUT("using path \"" << path << "\"...", 10);
+        std::string newPath(path);
+        if (!endsWith(path, "/"))
+            newPath += "/";
+        
+        DEBUG_OUT("using path \"" << newPath << "\"...", 10);
         
         music::SQLiteDatabaseConnection* conn = NULL;
         
@@ -262,7 +266,7 @@ namespace tests
         DIR* dir = NULL;        //POSIX standard calls
         CHECK(dir == NULL);
         struct dirent *ent;
-        dir = opendir(path.c_str());
+        dir = opendir(newPath.c_str());
         CHECK(dir != NULL);
         
         music::databaseentities::id_datatype recordingID = -1;
@@ -278,7 +282,7 @@ namespace tests
             if (endsWith(loweredFilename, ".mp3"))
             {
                 music::ProgressCallbackCaller* callback = new music::OutputStreamCallback(std::cout);
-                preprop.preprocessFile(filename, recordingID, conn, callback);
+                preprop.preprocessFile(newPath + filename, recordingID, conn, callback);
             }
         }
         

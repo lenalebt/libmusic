@@ -77,6 +77,8 @@ namespace music
          * (call getID()).
          * 
          * @remarks This function may change the contents of the parameter.
+         * @remarks If the recording does not have any features (recordingFeatures == NULL), they
+         *      will be created.
          * @param recording The recording that will be saved in the database. The ID
          *      of the recording may and will be altered by the database if
          *      it is below 0. Otherwise it will not be touched.

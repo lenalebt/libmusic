@@ -218,8 +218,8 @@ namespace music
             "FOREIGN KEY(timbreID)  REFERENCES timbre(timbreID),"
             "FOREIGN KEY(chordsID)  REFERENCES chords(chordsID)"    //TODO: add more elements
             ");");
-        ctstatements.push_back("CREATE TABLE IF NOT EXISTS chords(chordsID INTEGER NOT NULL, starttime REAL, endtime REAL, timbreVector TEXT);");
-        ctstatements.push_back("CREATE TABLE IF NOT EXISTS timbre(timbreID INTEGER NOT NULL, starttime REAL, endtime REAL, chordVector TEXT);");
+        ctstatements.push_back("CREATE TABLE IF NOT EXISTS chords(chordsID INTEGER NOT NULL, starttime REAL, endtime REAL, chordVector TEXT);");
+        ctstatements.push_back("CREATE TABLE IF NOT EXISTS timbre(timbreID INTEGER NOT NULL, starttime REAL, endtime REAL, timbreVector TEXT);");
         
         ctstatements.push_back("CREATE TABLE IF NOT EXISTS category(categoryID INTEGER PRIMARY KEY, categoryName TEXT UNIQUE, "
             "categoryDescriptionID INTEGER NOT NULL,"

@@ -4,6 +4,7 @@
 #include <string>
 #include "databaseconnection.hpp"
 #include "progress_callback.hpp"
+#include "constantq.hpp"
 
 namespace music
 {
@@ -18,8 +19,11 @@ namespace music
     private:
         
     protected:
-        
+        musicaccess::IIRFilter* lowpassFilter;
+        ConstantQTransform* cqt;
     public:
+        FilePreprocessor();
+        ~FilePreprocessor();
         bool preprocessFile(std::string filename, databaseentities::id_datatype& recordingID, DatabaseConnection* dbconnection, ProgressCallbackCaller* callback = NULL);
     };
 }
