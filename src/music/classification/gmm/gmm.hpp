@@ -315,7 +315,7 @@ namespace music
     protected:
         std::vector<Gaussian<ScalarType>*> gaussians;
         UniformRNG<ScalarType> uniRNG;
-        NormalRNG<ScalarType> normalRNG;
+        static NormalRNG<ScalarType>* normalRNG;
         ScalarType normalizationFactor;
         
         /**

@@ -28,7 +28,7 @@ namespace performance_tests
         DEBUG_OUT("load files and train their GMMs...", 5);
         //first load files and create models for them
         
-        std::string folder("testdata/instrument/singlenotes/");
+        std::string folder("./testdata/instrument/singlenotes/");
         
         std::vector<std::string> files;
         std::vector<std::string> basefiles;
@@ -37,7 +37,7 @@ namespace performance_tests
         
         for (unsigned int i = 0; i < files.size(); i++)
         {
-            if (endsWith(files[i], "-c.mp3"))
+            if (endsWith(files[i], "-a.mp3"))
             {
                 basefiles.push_back(files[i].substr(0, files[i].size()-6));
                 DEBUG_OUT("found basefile: " << basefiles[basefiles.size()-1], 10);
@@ -56,9 +56,10 @@ namespace performance_tests
         CHECK_OP(cqt, !=, NULL);
         
         int j=0;
-        for (unsigned int i = 0; i < 18/*files.size()*/; i++)
+        music::OutputStreamCallback osc(std::cout);
+        for (unsigned int i = 0; i < /*5*8*/files.size(); i++)
         {
-            DEBUG_OUT("Processing file: " << files[i], 7);
+            DEBUG_OUT("Processing file: \"" << folder + files[i] << "\"", 7);
             //gmmFile.push_back(music::GaussianMixtureModelDiagCov<kiss_fft_scalar>());
             if (!contains(files[i], basefiles[j]))
             {
@@ -69,9 +70,11 @@ namespace performance_tests
             //open file
             musicaccess::SoundFile file;
             assert(!file.isFileOpen());
-            assert(file.open(folder + files[i], true));
+            bool retVal = file.open(folder + files[i], true);
+            assert(retVal);
             assert(file.isFileOpen());
             
+            DEBUG_OUT("loading file contents...", 20);
             float* buffer = NULL;
             buffer = new float[file.getSampleCount()];
             assert(buffer != NULL);
@@ -80,31 +83,41 @@ namespace performance_tests
             //apply cqt
             music::ConstantQTransformResult* tResult = cqt->apply(buffer, sampleCount);
             music::TimbreModel tModel(tResult);
-            tModel.calculateModel();
-            gmmFile.push_back(tModel.getModel()->clone());
+            
+            tModel.calculateModel(3, 0.005, 6, &osc);
+            music::GaussianMixtureModel<kiss_fft_scalar>* model = tModel.getModel();
+            DEBUG_OUT(model->toJSONString(), 10);
+            gmmFile.push_back(model->clone());
+            
+            delete tResult;
+            delete buffer;
         }
         DEBUG_OUT("finished calculating GMMs.", 10);
         
         DEBUG_OUT("calculate model similarity matricies...", 5);
         //then calculate model similarity matrix
         
-        Eigen::MatrixXd similarity(files.size(), files.size());
+        Eigen::MatrixXd similarity(gmmFile.size(), gmmFile.size());
         
-        for (unsigned int i = 0; i < files.size(); i++)
+        for (unsigned int i = 0; i < gmmFile.size(); i++)
         {
-            for (unsigned int j = 0; j < files.size(); j++)
+            for (unsigned int j = 0; j < gmmFile.size(); j++)
             {
-                similarity(i, j) = gmmFile[i]->compareTo(*gmmFile[j]);
+                similarity(i, j) = 0.5 * (gmmFile[i]->compareTo(*gmmFile[j]) + gmmFile[j]->compareTo(*gmmFile[i]));
+                std::cout << "x ";
             }
+            std::cout << std::endl;
         }
         
-        DEBUG_OUT("writing similarity matrix to file ", 10);
-        mkdir("./performance/instrument-single-perfile.dat", 0777);
+        DEBUG_OUT("writing similarity matrix to file \"./performance/instrument-single-perfile.dat\"", 10);
+        mkdir("./performance/", 0777);
         std::ofstream outstr("./performance/instrument-single-perfile.dat");
         outstr << similarity << std::endl;
         DEBUG_VAR_OUT(similarity, 0);
         
-        
+        delete cqt;
+        delete lowpassFilter;
+        //TODO: delete GMMs
         
         return EXIT_SUCCESS;
     }
