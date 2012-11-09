@@ -84,19 +84,26 @@ namespace tests
                 
         }
         
+        int misclassificationCount=0;
+        
         DEBUG_OUT("test classification. first: class 1.", 0);
         for (int i=0; i<1000; i++)
         {
             vec2.setRandom();
-            CHECK_OP(c->classifyVector(vec2), <, 0.0);
+            if (c->classifyVector(vec2) >= 0.0)
+                misclassificationCount++;
         }
+        CHECK_OP(misclassificationCount, <, 5);
+        misclassificationCount = 0;
         DEBUG_OUT("test classification. second: class 2.", 0);
         for (int i=0; i<1000; i++)
         {
             vec2.setRandom();
             vec2 += vec1;
-            CHECK_OP(c->classifyVector(vec2), >=, 0.0);
+            if (c->classifyVector(vec2) < 0.0)
+                misclassificationCount++;
         }
+        CHECK_OP(misclassificationCount, <, 5);
         
         ERROR_OUT("this test is not finished yet.", 0);
         return EXIT_FAILURE;
