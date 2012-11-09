@@ -38,6 +38,8 @@ namespace music
         mean1 /= class1Count;
         mean2 /= class2Count;
         
+        if (callback != NULL)
+            callback->progress(2.0/steps, "calculating covariance matrices...");
         
         return true;
     }
