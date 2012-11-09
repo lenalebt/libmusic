@@ -17,7 +17,6 @@ namespace music
      * 
      * Have a look at the implementations for details.
      * 
-     * @todo implement
      * @remarks The return code of the functions does not say anything about if an element was found or not.
      *      It only tells you if an error occured (results in <code>false</code>), or
      *      not (results in <code>true</code>).
@@ -59,17 +58,31 @@ namespace music
         /**
          * @brief Tells the database backend to open a transaction.
          * @return if the operation failed
+         * @remarks Transactions cannot be nested.
+         * @see endTransaction()
+         * @see rollbackTransaction()
          */
         virtual bool beginTransaction()=0;
         /**
          * @brief Tells the database backend to close a transaction.
+         * 
+         * You can only end a transaction, if it was open. Ending a transaction where no
+         * transaction was open results in an error.
+         * 
          * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
+         * @see beginTransaction()
+         * @see rollbackTransaction()
          */
         virtual bool endTransaction()=0;
         
         /**
-         * @brief Tells the database to rollback the last open transaction. Automatically ends the transaction.
+         * @brief Tells the database to rollback the last open transaction.
+         * 
+         * Automatically ends the transaction. You do not need to end it.
+         * 
          * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
+         * @see beginTransaction()
+         * @see endTransaction()
          */
         virtual bool rollbackTransaction()=0;
         
