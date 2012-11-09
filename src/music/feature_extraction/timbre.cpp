@@ -78,7 +78,7 @@ namespace music
     {
         //use overload to hide the possibility of getting the data vectors.
         std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > data;
-        calculateModel(data, modelSize, timeSliceSize, timbreVectorSize, callback);
+        return calculateModel(data, modelSize, timeSliceSize, timbreVectorSize, callback);
     }
     bool TimbreModel::calculateModel(std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> >& timbreVectors, int modelSize, double timeSliceSize, unsigned int timbreVectorSize, ProgressCallbackCaller* callback)
     {

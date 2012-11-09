@@ -444,7 +444,7 @@ namespace music
         assert(dimension>0);
         unsigned int dataSize = data.size();
         assert(dataSize>0);
-        assert(dataCount > gaussianCount);
+        assert(dataSize > gaussianCount);
         assert(dataSize >= dimension);
         
         if (init.empty())

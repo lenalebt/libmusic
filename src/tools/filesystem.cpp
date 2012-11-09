@@ -18,4 +18,5 @@ void loadFilenames(const std::string& folder, std::vector<std::string>& files, c
         if ((filename != ".") && (filename != "..") && endsWith(filename, ending))
             files.push_back(filename);
     }
+    closedir(dir);
 }
