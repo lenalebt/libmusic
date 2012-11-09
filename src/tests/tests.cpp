@@ -732,7 +732,7 @@ namespace tests
         lowpassFilter = musicaccess::IIRFilter::createLowpassFilter(0.25);
         CHECK_OP(lowpassFilter, !=, NULL);
         
-        double q=1.0;
+        double q=2.0;
         int bins=12;
         
         DEBUG_OUT("creating constant q transform kernel...", 15);
@@ -740,8 +740,8 @@ namespace tests
         
         musicaccess::SoundFile file;
         CHECK(!file.isFileOpen());
-        //CHECK(file.open("./testdata/test.mp3", true));
-        CHECK(file.open("./imagine.mp3", true));
+        //CHECK(file.open("./testdata/major-c-keyboard.mp3", true));
+        CHECK(file.open("./sonne.mp3", true));
         CHECK(file.isFileOpen());
         
         float* buffer = NULL;
@@ -764,13 +764,19 @@ namespace tests
         music::ConstantQTransformResult* transformResult = cqt->apply(buffer, sampleCount);
         CHECK(transformResult != NULL);
         
+        std::ofstream chordstr("chords.dat");
+        
         music::ChordEstimator chordEstimator(transformResult);
-        for (double time=0.0; time<20.0; time += 0.5)
+        for (double time=0.0; time<transformResult->getOriginalDuration(); time += 0.5)
         {
             music::Chord* chord = chordEstimator.estimateChord(time, time + 0.5);
         
             DEBUG_OUT("chord at time " << time << ":" << std::endl << *chord, 10);
+            chordstr << *chord << std::endl << std::flush;
         }
+        
+        
+        
         
         return EXIT_SUCCESS;
     }
