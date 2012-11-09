@@ -59,6 +59,144 @@ namespace music
     }
     
     template <typename ScalarType>
+    std::string Gaussian<ScalarType>::toJSONString(bool styledWriter) const
+    {
+        DEBUG_OUT("saving gaussian as JSON", 40);
+        //uses Jsoncpp as library. Jsoncpp is licensed as MIT, so we may use it without restriction.
+        Json::Value root;
+        Json::Writer* writer=NULL;
+        
+        if (styledWriter)
+            writer = new Json::StyledWriter();
+        else
+            writer = new Json::FastWriter();
+        
+        //output the weight
+        root["weight"]      = getWeight();
+        
+        //output the mean as array of doubles
+        Json::Value mean(Json::arrayValue);
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> gMean = getMean();
+        for (int i=0; i<gMean.size(); i++)
+            mean.append(Json::Value(gMean[i]));
+        root["mean"]        = mean;
+        
+        //output the variance as array of double. only save the lower
+        //triangular, as the other values are mirrored.
+        Json::Value variance(Json::arrayValue);
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> gVariance = getCovarianceMatrix();
+        if (isDiagonal(gVariance))
+        {
+            DEBUG_OUT("save as diagonal covariance matrix", 45);
+            for (int i=0; i<gVariance.rows(); i++)
+            {
+                variance.append(Json::Value(gVariance(i, i)));
+            }
+        }
+        else
+        {
+            DEBUG_OUT("save as full covariance matrix", 45);
+            for (int i=0; i<gVariance.rows(); i++)
+            {
+                for (int j=i; j<gVariance.cols(); j++)
+                {
+                    variance.append(Json::Value(gVariance(i, j)));
+                }
+            }
+        }
+        root["covariance"]    = variance;
+        
+        std::string str = writer->write(root);
+        delete writer;
+        return str;
+    }
+    
+    template <typename ScalarType>
+    Gaussian<ScalarType>* Gaussian<ScalarType>::loadFromJSONString(const std::string& jsonString)
+    {
+        if (jsonString != "")
+        {
+            Json::Value root;
+            Json::Reader reader;
+            reader.parse(jsonString, root, false);
+            return loadFromJsonValue(root);
+        }
+        else
+            return NULL;
+    }
+    template <typename ScalarType>
+    Gaussian<ScalarType>* Gaussian<ScalarType>::loadFromJsonValue(Json::Value& jsonValue)
+    {
+        DEBUG_OUT("load gaussian from JSON...", 40);
+        
+        //first init variables and read dimensionality
+        Gaussian<ScalarType>* gauss=NULL;
+        int dimension=jsonValue["mean"].size();
+        bool varianceIsFull;
+        if (jsonValue["mean"].size() == jsonValue["covariance"].size())
+        {
+            DEBUG_OUT("loading as diagonal covariance matrix", 45);
+            gauss = new GaussianDiagCov<ScalarType>(dimension);
+            varianceIsFull = false;
+        }
+        else
+        {
+            DEBUG_OUT("loading as full covariance matrix", 45);
+            gauss = new GaussianFullCov<ScalarType>(dimension);
+            varianceIsFull = true;
+        }
+        
+        //read weight
+        gauss->setWeight(jsonValue["weight"].asDouble());
+        
+        //read mean
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> mean(dimension);
+        Json::Value jMean = jsonValue["mean"];
+        for (int i=0; i<dimension; i++)
+            mean[i] = jMean[i].asDouble();
+        gauss->setMean(mean);
+        
+        //read covariance
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> variance(dimension, dimension);
+        Json::Value jVariance = jsonValue["covariance"];
+        if (varianceIsFull)
+        {
+            //read values in lower triangular order.
+            //i and j are the coordinates of the matrix (i=row, j=col)
+            //k is the index of the input vector.
+            int i=0;
+            int j=0;
+            for (unsigned int k=0; k<jVariance.size(); k++)
+            {
+                variance(i,j) = jVariance[k].asDouble();
+                if (i != j)
+                    variance(j,i) = variance(i,j);
+                
+                //go one step to the right when we exceed the matrix dimensions
+                //begin on the diagonal.
+                i++;
+                if (i>=dimension)
+                {
+                    j++;
+                    i=j;
+                }
+            }
+        }
+        else
+        {
+            //set all Values to zero, as we will not write to every cell.
+            variance.setZero();
+            //read diagonal elements. we don't have other values.
+            for (int i=0; i<dimension; i++)
+                variance(i,i) = jVariance[i].asDouble();
+        }
+        gauss->setCovarianceMatrix(variance);
+        
+        return gauss;
+    }
+    
+    
+    template <typename ScalarType>
     double GaussianDiagCov<ScalarType>::calculateValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector)
     {
         assert(dataVector.size() == mean.size());
@@ -954,8 +1092,8 @@ namespace music
         for (unsigned int g=0; g<jsonValue.size(); g++)
         {
             //first init variables and read dimensionality
-            Gaussian<ScalarType>* gauss=NULL;
-            int dimension=jsonValue[g]["mean"].size();
+            Gaussian<ScalarType>* gauss=Gaussian<ScalarType>::loadFromJsonValue(jsonValue[g]);
+            /*int dimension=jsonValue[g]["mean"].size();
             bool varianceIsFull;
             if (jsonValue[g]["mean"].size() == jsonValue[g]["covariance"].size())
             {
@@ -1027,6 +1165,7 @@ namespace music
                     variance(i,i) = jVariance[i].asDouble();
             }
             gauss->setCovarianceMatrix(variance);
+            */
             
             gmm->gaussians.push_back(gauss);
         }
