@@ -53,6 +53,8 @@ FIND_PACKAGE(Musicaccess REQUIRED)
 FIND_PACKAGE(Eigen3 3.0.0 REQUIRED)
 #use doxygen for documentation. don't need this for compilation.
 FIND_PACKAGE(Doxygen)
+#sqlite is needed for the database backend
+FIND_PACKAGE(SQLITE3 REQUIRED)
 
 #place source files here
 SET(
@@ -66,6 +68,10 @@ SET(
     src/music/feature_extraction/timbre.cpp
     src/music/feature_extraction/dynamic_range.cpp
     src/music/feature_extraction/feature_extraction_helper.cpp
+    
+    #database
+    src/music/database/databaseconnection.cpp
+    src/music/database/sqlitedatabaseconnection.cpp
     
     #console colors
     src/tools/console_colors.cpp
@@ -91,6 +97,10 @@ SET(
     src/music/feature_extraction/timbre.hpp
     src/music/feature_extraction/dynamic_range.hpp
     src/music/feature_extraction/feature_extraction_helper.hpp
+    
+    #database
+    src/music/database/databaseconnection.hpp
+    src/music/database/sqlitedatabaseconnection.hpp
     
     #console colors
     src/tools/console_colors.hpp
