@@ -174,7 +174,14 @@ namespace tests
     }
     int testConstantQ()
     {
-        music::ConstantQTransform cqt;
+        music::ConstantQTransform* cqt = NULL;
+        musicaccess::IIRFilter* lowpassFilter = NULL;
+        
+        lowpassFilter = musicaccess::IIRFilter::createLowpassFilter(0.5);
+        CHECK(lowpassFilter != NULL);
+        
+        cqt = music::ConstantQTransform::createTransform(12, 40, 11025, 22050, 1.0, 0.5, lowpassFilter);
+        CHECK(cqt != NULL);
         
         return EXIT_FAILURE;
     }
