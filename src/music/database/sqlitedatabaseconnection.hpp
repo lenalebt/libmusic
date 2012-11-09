@@ -69,25 +69,49 @@ namespace music
         bool execStatement(std::string statement);
         id_datatype getLastInsertRowID();
         
+        /**
+         * @brief Adds a genre to the database, or reads the ID if it already is present.
+         * @param[out] id the genre ID, no matter if it was found or created.
+         * @param genreName the name of the genre that should be searched for/created.
+         * @return if the operation failed, or not
+         */
         bool addOrGetGenre( id_datatype& id, std::string genreName);
+        /**
+         * @brief Adds an album to the database, or reads the ID if it already is present.
+         * @param[out] id the album ID, no matter if it was found or created.
+         * @param albumName the name of the album that should be searched for/created.
+         * @return if the operation failed, or not
+         */
         bool addOrGetAlbum( id_datatype& id, std::string albumName);
+        /**
+         * @brief Adds an artist to the database, or reads the ID if it already is present.
+         * @param[out] id the artist ID, no matter if it was found or created.
+         * @param artistName the name of the artist that should be searched for/created.
+         * @return if the operation failed, or not
+         */
         bool addOrGetArtist(id_datatype& id, std::string artistName);
         
         /**
          * @brief Reads the genre ID by name.
-         * @return the genre ID, or -1 if the read failed.
+         * @param[out] genreID the genre ID, or -1 if the genre was not found.
+         * @param genreName the name of the genre that should be searched for.
+         * @return if the operation failed, or not
          */
-        bool getGenreIDByName(std::string genreName, id_datatype& genreID);
+        bool getGenreIDByName(id_datatype& genreID, std::string genreName);
         /**
          * @brief Reads the album ID by name.
-         * @return the album ID, or -1 if the read failed.
+         * @param[out] albumID the album ID, or -1 if the album was not found.
+         * @param albumName the name of the album that should be searched for.
+         * @return if the operation failed, or not
          */
-        bool getAlbumIDByName(std::string albumName, id_datatype& albumID);
+        bool getAlbumIDByName(id_datatype& albumID, std::string albumName);
         /**
          * @brief Reads the artist ID by name.
-         * @return the artist ID, or -1 if the read failed.
+         * @param[out] artistID the artist ID, or -1 if the artist was not found.
+         * @param artistName the name of the artist that should be searched for.
+         * @return if the operation failed, or not
          */
-        bool getArtistIDByName(std::string artistName, id_datatype& artistID);
+        bool getArtistIDByName(id_datatype& artistID, std::string artistName);
     };
 }
 #endif //SQLITEDATABASECONNECTION_HPP
