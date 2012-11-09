@@ -300,7 +300,7 @@ namespace tests
         
         
         delete transformResult;
-        delete[] buffer;
+        //delete[] buffer;
         delete cqt;
         delete lowpassFilter;
         return EXIT_SUCCESS;
