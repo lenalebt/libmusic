@@ -53,32 +53,40 @@ namespace music
         //array of matricies. we have one matrix for every octave.
         //the matricies are dense, with one row being an octave bin.
         Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >** octaveMatrix;
+        
+        float minBinMidiNote;
+        int originalSampleCount;
+        int originalSamplingFrequency;
+        
+        int binsPerOctave;
     public:
         ~ConstantQTransformResult();
         /**
-         * @brief Returns the value of the constant Q transform at the given sample number
+         * @brief Returns the value of the constant Q transform at the given time
          *      and interpolates linearly between samples where the transform is known.
          * 
          * 
-         * @param sampleNumber the sample number in time
+         * @param time the time in seconds
          * @param midiNoteNumber the number of the midi note you want to get.
          * @see \ref midinote_scale
          * @return the value of the constant Q transform at a given sample number
+         * @todo description does not match function parameters
          */
-        std::complex<float> getNoteValueLinearInterpolation(uint64_t sampleNumber, int midiNoteNumber) const;
+        std::complex<float> getNoteValueLinearInterpolation(float time, int octave, int bin) const;
         
         /**
-         * @brief Returns the value of the constant Q transform at the given sample number
+         * @brief Returns the value of the constant Q transform at the given time
          *      and does not interpolate.
          * 
-         * It just takes the value of the transform that is before the given sample number.
+         * It just takes the value of the transform that is before the given time value.
          * 
-         * @param sampleNumber the sample number in time
+         * @param time the time in seconds
          * @param midiNoteNumber the number of the midi note you want to get.
          * @see \ref midinote_scale
          * @return the value of the constant Q transform at a given sample number
+         * @todo description does not match function parameters
          */
-        std::complex<float> getNoteValueNoInterpolation(uint64_t sampleNumber, int midiNoteNumber) const;
+        std::complex<float> getNoteValueNoInterpolation(float time, int octave, int bin) const;
         
         friend class ConstantQTransform;
     };

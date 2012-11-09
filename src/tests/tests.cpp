@@ -298,6 +298,11 @@ namespace tests
         music::ConstantQTransformResult* transformResult = cqt->apply(buffer, sampleCount);
         CHECK(transformResult != NULL);
         
+        
+        delete transformResult;
+        delete[] buffer;
+        delete cqt;
+        delete lowpassFilter;
         return EXIT_SUCCESS;
     }
 }
