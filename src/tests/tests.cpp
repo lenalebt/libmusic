@@ -245,8 +245,8 @@ namespace tests
         
         DEBUG_OUT("calculating the dct of a signal...", 0);
         
-        float* mem = new float[130];
-        float* outmem = new float[130];
+        kiss_fft_scalar* mem = new kiss_fft_scalar[130];
+        kiss_fft_scalar* outmem = new kiss_fft_scalar[130];
         
         for(int i=0; i<128; i++)
         {

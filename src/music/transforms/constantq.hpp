@@ -66,7 +66,7 @@ namespace music
         int maxOctave;      //highest octave
         //array of matricies. we have one matrix for every octave.
         //the matricies are dense, with one row being an octave bin.
-        Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >** octaveMatrix;
+        Eigen::Matrix<std::complex<kiss_fft_scalar>, Eigen::Dynamic, Eigen::Dynamic >** octaveMatrix;
         int* drop;
         
         float minBinMidiNote;
@@ -98,7 +98,7 @@ namespace music
          * @return the value of the constant Q transform at a given sample number
          * @todo timing is not right: lower octaves get squeezed (they are too short)
          */
-        std::complex<float> getNoteValueLinearInterpolation(float time, int octave, int bin) const;
+        std::complex<kiss_fft_scalar> getNoteValueLinearInterpolation(float time, int octave, int bin) const;
         
         /**
          * @brief Returns the value of the constant Q transform at the given time
@@ -111,7 +111,7 @@ namespace music
          * @param bin the bin within the octave
          * @return the value of the constant Q transform at a given sample number
          */
-        std::complex<float> getNoteValueNoInterpolation(float time, int octave, int bin) const;
+        std::complex<kiss_fft_scalar> getNoteValueNoInterpolation(float time, int octave, int bin) const;
         
         /**
          * @brief Returns the value of the constant Q transform at the given time slot
@@ -126,7 +126,7 @@ namespace music
          *      when calculating the mean.
          * @return the value of the constant Q transform at a given sample number
          */
-        float getNoteValueMean(float time, int octave, int bin, float preDuration=0.01) const;
+        kiss_fft_scalar getNoteValueMean(float time, int octave, int bin, float preDuration=0.01) const;
         
         /**
          * @brief Returns the original duration of the piece of music.
@@ -152,7 +152,7 @@ namespace music
         double getBinMean(int octave, int bin) const;
         
         /** @todo documentation*/
-        const Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >* getOctaveMatrix(int octave) const;
+        const Eigen::Matrix<std::complex<kiss_fft_scalar>, Eigen::Dynamic, Eigen::Dynamic >* getOctaveMatrix(int octave) const;
         
         friend class ConstantQTransform;
     };
@@ -194,7 +194,7 @@ namespace music
         int firstCenter;
         int lastCenter;
         
-        Eigen::SparseMatrix<std::complex<float> >* fKernel;  //the transform kernel for one octave. it already is complex conjugated.
+        Eigen::SparseMatrix<std::complex<kiss_fft_scalar> >* fKernel;  //the transform kernel for one octave. it already is complex conjugated.
         
         ConstantQTransform();
         //square root of blackman-harris window, as used in the matlab implementation of the mentioned paper. other window that might be okay: blackman.
@@ -300,7 +300,7 @@ namespace music
          */
         int getFFTHop() const {return fftHop;}
         
-        const Eigen::SparseMatrix<std::complex<float> >* getFKernel() const {return fKernel;}
+        const Eigen::SparseMatrix<std::complex<kiss_fft_scalar> >* getFKernel() const {return fKernel;}
         
         /**
          * @brief Creates the kernels for the Constant Q transform which can later be applied to many pieces of music.

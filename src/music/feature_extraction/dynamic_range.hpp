@@ -19,10 +19,11 @@ namespace music
      * @ingroup feature_extraction
      * @date 2012-07-06
      */
+    template <typename ScalarType=kiss_fft_scalar>
     class DynamicRangeCalculator
     {
     private:
-        PerTimeSliceStatistics* ptss;
+        PerTimeSliceStatistics<ScalarType>* ptss;
     protected:
         double loudnessMean;
         double loudnessRMS;          //RMS: root mean square
@@ -30,7 +31,7 @@ namespace music
         double loudnessRMSVariance;
     public:
         //Benutze das PerTimeSliceStatistics wegen dem Summenvektor, dann muss man den evtl nur einmal ausrechnen
-        DynamicRangeCalculator(PerTimeSliceStatistics* perTimeSliceStatistics);
+        DynamicRangeCalculator(PerTimeSliceStatistics<ScalarType>* perTimeSliceStatistics);
         
         /**
          * @brief Returns the loudness mean.

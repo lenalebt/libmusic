@@ -201,7 +201,7 @@ namespace music
             double sum=0.0;
             for (int i=0; i<tmpFKernel->cols(); i++)
             {
-                std::complex<float> val = (*tmpFKernel)(j,i);
+                std::complex<kiss_fft_scalar> val = (*tmpFKernel)(j,i);
                 sum += std::abs(val*std::conj(val));
             }
             DEBUG_OUT("weightVec[" << j-(maxAPos + 1.0/q) << "] = " << sum, 30);
@@ -223,7 +223,7 @@ namespace music
         
         //copy the data from our tmpFKernel to our sparse fKernel.
         //also complex conjugate it.
-        cqt->fKernel = new Eigen::SparseMatrix<std::complex<float> >(binsPerOctave * cqt->atomNr, cqt->fftLen);
+        cqt->fKernel = new Eigen::SparseMatrix<std::complex<kiss_fft_scalar> >(binsPerOctave * cqt->atomNr, cqt->fftLen);
         for (int i=0; i<binsPerOctave * cqt->atomNr; i++)
         {
             for (int j=0; j<cqt->fftLen; j++)
@@ -271,8 +271,8 @@ namespace music
         
         FFT fft;
         //temporary fft data
-        std::complex<float>* fftData = NULL;
-        fftData = new std::complex<float>[fftLen];
+        std::complex<kiss_fft_scalar>* fftData = NULL;
+        fftData = new std::complex<kiss_fft_scalar>[fftLen];
         assert(fftData != NULL);
         
         float* data = new float[sampleCountWithBlock];
@@ -297,11 +297,11 @@ namespace music
         ConstantQTransformResult* transformResult = NULL;
         transformResult = new ConstantQTransformResult();
         assert(transformResult != NULL);
-        Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >* octaveResult = NULL;
+        Eigen::Matrix<std::complex<kiss_fft_scalar>, Eigen::Dynamic, Eigen::Dynamic >* octaveResult = NULL;
         
-        Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic> resultMatrix;
+        Eigen::Matrix<std::complex<kiss_fft_scalar>, Eigen::Dynamic, Eigen::Dynamic> resultMatrix;
         
-        transformResult->octaveMatrix = new Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >*[octaveCount];
+        transformResult->octaveMatrix = new Eigen::Matrix<std::complex<kiss_fft_scalar>, Eigen::Dynamic, Eigen::Dynamic >*[octaveCount];
         transformResult->drop = new int[octaveCount];
         
         transformResult->originalZeroPadding = zeroPadding;
@@ -318,7 +318,7 @@ namespace music
             DEBUG_OUT("drop[" << octave << "] = " << transformResult->drop[octave], 12);
             
             octaveResult = NULL;
-            octaveResult = new Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >(binsPerOctave, sampleCountWithBlock / fftHop * atomNr);
+            octaveResult = new Eigen::Matrix<std::complex<kiss_fft_scalar>, Eigen::Dynamic, Eigen::Dynamic >(binsPerOctave, sampleCountWithBlock / fftHop * atomNr);
             assert(octaveResult != NULL);
             
             int windowNumber=0;
@@ -353,7 +353,7 @@ namespace music
                 //up to here: calculated FFT of the input data, one frame.
                 
                 //map fft Data vector to an Eigen data type
-                Eigen::Map<Eigen::Matrix<std::complex<float>, Eigen::Dynamic, 1> > fftDataMap(fftData, fftLen);
+                Eigen::Map<Eigen::Matrix<std::complex<kiss_fft_scalar>, Eigen::Dynamic, 1> > fftDataMap(fftData, fftLen);
                 
                 //Calculate the transform: apply fKernel to fftData.
                 resultMatrix = *fKernel * fftDataMap;
@@ -459,10 +459,10 @@ namespace music
             delete fKernel;
     }
     
-    std::complex<float> ConstantQTransformResult::getNoteValueNoInterpolation(float time, int octave, int bin) const
+    std::complex<kiss_fft_scalar> ConstantQTransformResult::getNoteValueNoInterpolation(float time, int octave, int bin) const
     {
         if (time <= 0.0f)
-            return std::complex<float>(0.0f, 0.0f);
+            return std::complex<kiss_fft_scalar>(0.0f, 0.0f);
         
         if (octave >= octaveCount)
         {
@@ -481,16 +481,16 @@ namespace music
         if (pos >= octaveMatrix[octave]->cols())
         {
             DEBUG_OUT("too large pos: " << pos, 25);
-            return std::complex<float>(0.0f, 0.0f);
+            return std::complex<kiss_fft_scalar>(0.0f, 0.0f);
         } else if (pos < 0)
         {
             DEBUG_OUT("too small pos: " << pos, 25);
-            return std::complex<float>(0.0f, 0.0f);
+            return std::complex<kiss_fft_scalar>(0.0f, 0.0f);
         }
         
         return (*octaveMatrix[octave])(bin, pos);
     }
-    float ConstantQTransformResult::getNoteValueMean(float time, int octave, int bin, float preDuration) const
+    kiss_fft_scalar ConstantQTransformResult::getNoteValueMean(float time, int octave, int bin, float preDuration) const
     {
         if (time <= 0.0f)
             return 0.0f;
@@ -541,10 +541,10 @@ namespace music
         
         return mean;
     }
-    std::complex<float> ConstantQTransformResult::getNoteValueLinearInterpolation(float time, int octave, int bin) const
+    std::complex<kiss_fft_scalar> ConstantQTransformResult::getNoteValueLinearInterpolation(float time, int octave, int bin) const
     {
         /*if (time <= 0.0f)
-            return std::complex<float>(0.0f, 0.0f);
+            return std::complex<kiss_fft_scalar>(0.0f, 0.0f);
         
         if (octave >= octaveCount)
         {
@@ -572,11 +572,11 @@ namespace music
         else if (pos >= octaveMatrix[octave]->cols())
         {
             DEBUG_OUT("too large pos: " << pos, 25);
-            return std::complex<float>(0.0f, 0.0f);
+            return std::complex<kiss_fft_scalar>(0.0f, 0.0f);
         } else if (pos < 0)
         {
             DEBUG_OUT("too small pos: " << pos, 25);
-            return std::complex<float>(0.0f, 0.0f);
+            return std::complex<kiss_fft_scalar>(0.0f, 0.0f);
         }
         
         
@@ -600,7 +600,7 @@ namespace music
         assert(octave >= 0);
         
         double maxVal = std::numeric_limits<double>::min();
-        Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >* octaveBins = octaveMatrix[octave];
+        Eigen::Matrix<std::complex<kiss_fft_scalar>, Eigen::Dynamic, Eigen::Dynamic >* octaveBins = octaveMatrix[octave];
         for (int i=0; i<octaveBins->cols(); i++)
         {
             double val = std::abs((*octaveBins)(bin, i));
@@ -618,7 +618,7 @@ namespace music
         assert(octave >= 0);
         
         double minVal = std::numeric_limits<double>::max();
-        Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >* octaveBins = octaveMatrix[octave];
+        Eigen::Matrix<std::complex<kiss_fft_scalar>, Eigen::Dynamic, Eigen::Dynamic >* octaveBins = octaveMatrix[octave];
         for (int i=0; i<octaveBins->cols(); i++)
         {
             double val = std::abs((*octaveBins)(bin, i));
@@ -636,7 +636,7 @@ namespace music
         assert(octave >= 0);
         
         double mean = 0.0;
-        Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >* octaveBins = octaveMatrix[octave];
+        Eigen::Matrix<std::complex<kiss_fft_scalar>, Eigen::Dynamic, Eigen::Dynamic >* octaveBins = octaveMatrix[octave];
         for (int i=0; i<octaveBins->cols(); i++)
         {
             mean += std::abs((*octaveBins)(bin, i));
@@ -645,7 +645,7 @@ namespace music
         return mean;
     }
     
-    const Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >* ConstantQTransformResult::getOctaveMatrix(int octave) const
+    const Eigen::Matrix<std::complex<kiss_fft_scalar>, Eigen::Dynamic, Eigen::Dynamic >* ConstantQTransformResult::getOctaveMatrix(int octave) const
     {
         assert (octave < octaveCount);
         assert (octave >= 0);

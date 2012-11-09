@@ -5,7 +5,7 @@
 namespace music
 {
     
-    void DCT::doDCT2(float* timeData, int timeLength, float* freqData)
+    void DCT::doDCT2(kiss_fft_scalar* timeData, int timeLength, kiss_fft_scalar* freqData)
     {
         //taken from "Numerical Recipes, Third Edition"
         //imho, this code is veeeery ugly
@@ -13,8 +13,8 @@ namespace music
         int freqLength;
         
         double sum, sum1, y1, y2, theta, wi=0.0, wi1, wpi, wpr, wr=1.0, wr1, wtemp;
-        float* tmpData = new float[n];      //TODO: These two memory allocations are not inherently needed
-        float* tmpData2 = new float[n+2];   //but I don't know for the moment how to fix it without affecting
+        kiss_fft_scalar* tmpData = new kiss_fft_scalar[n];      //TODO: These two memory allocations are not inherently needed
+        kiss_fft_scalar* tmpData2 = new kiss_fft_scalar[n+2];   //but I don't know for the moment how to fix it without affecting
                                             //too many other parts of the software.
         
         theta = 0.5*M_PI/n;
@@ -56,15 +56,15 @@ namespace music
         delete[] tmpData;
         delete[] tmpData2;
     }
-    void DCT::doDCT1(float* timeData, int timeLength, float* freqData)
+    void DCT::doDCT1(kiss_fft_scalar* timeData, int timeLength, kiss_fft_scalar* freqData)
     {
         //taken from "Numerical Recipes, Third Edition"
         //imho, this code is veeeery ugly
         int n=timeLength-1;
         int freqLength;
         
-        float sum, y1, y2, theta, wi=0.0, wpi, wpr, wr=1.0, wtemp;
-        float* tmpData = new float[n];   //TODO: get rid of this part... dynamic memory allocation is uncool in terms of efficiency!
+        kiss_fft_scalar sum, y1, y2, theta, wi=0.0, wpi, wpr, wr=1.0, wtemp;
+        kiss_fft_scalar* tmpData = new kiss_fft_scalar[n];   //TODO: get rid of this part... dynamic memory allocation is uncool in terms of efficiency!
         
         theta = M_PI/n;
         DEBUG_VAR_OUT(theta, 0);

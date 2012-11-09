@@ -5,7 +5,8 @@
 
 namespace music
 {
-    DynamicRangeCalculator::DynamicRangeCalculator(PerTimeSliceStatistics* perTimeSliceStatistics) :
+    template <typename ScalarType>
+    DynamicRangeCalculator<ScalarType>::DynamicRangeCalculator(PerTimeSliceStatistics<ScalarType>* perTimeSliceStatistics) :
         ptss(perTimeSliceStatistics),
         loudnessMean(0.0),
         loudnessRMS(0.0),
@@ -14,12 +15,13 @@ namespace music
     {
         
     }
-
-    void DynamicRangeCalculator::calculateDynamicRange()
+    
+    template <typename ScalarType>
+    void DynamicRangeCalculator<ScalarType>::calculateDynamicRange()
     {
         ptss->calculateSum();
         
-        Eigen::VectorXd sumVec = *(ptss->getSumVector());
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> sumVec = *(ptss->getSumVector());
         
         //first normalize our sum vector.
         double maxVal = -std::numeric_limits<double>::max();
@@ -71,4 +73,6 @@ namespace music
         loudnessMean = 1.0 - loudnessMean;
         loudnessRMS = 1.0 - loudnessRMS;
     }
+    
+    template class DynamicRangeCalculator<kiss_fft_scalar>;
 }

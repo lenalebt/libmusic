@@ -46,7 +46,7 @@ extern "C" {
 # ifndef kiss_fft_scalar
 /*  default is float */
 /* changed to double, lena brueder, 2012-06-11 */
-#   define kiss_fft_scalar float
+#   define kiss_fft_scalar double
 # endif
 #endif
 

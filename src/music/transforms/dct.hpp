@@ -54,7 +54,7 @@ namespace music
              *      to supply the function with a pointer to at least
              *      <code>timeLength</code> <code>float</code>s.
              */
-            void doDCT1(float* timeData, int timeLength, float* freqData);
+            void doDCT1(kiss_fft_scalar* timeData, int timeLength, kiss_fft_scalar* freqData);
             /**
              * @brief Performs a discrete cosine transform, form II.
              * 
@@ -69,7 +69,7 @@ namespace music
              *      to supply the function with a pointer to at least
              *      <code>timeLength</code> <code>float</code>s.
              */
-            void doDCT2(float* timeData, int timeLength, float* freqData);
+            void doDCT2(kiss_fft_scalar* timeData, int timeLength, kiss_fft_scalar* freqData);
         };
 }
 #endif  //DCT_HPP

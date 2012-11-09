@@ -10,6 +10,7 @@ namespace music
      * @todo Implementierung überdenken/überarbeiten
      * @ingroup feature_extraction
      */
+    template <typename Scalartype=kiss_fft_scalar>
     class BPMEstimator
     {
     private:

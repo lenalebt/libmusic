@@ -22,16 +22,17 @@ namespace music
      * @ingroup feature_extraction
      * @date 2012-07-02
      */
+    template <typename ScalarType=kiss_fft_scalar>
     class PerBinStatistics
     {
     private:
         ConstantQTransformResult* transformResult;
         
     protected:
-        Eigen::VectorXd* meanVector;
-        Eigen::VectorXd* varianceVector;
-        Eigen::VectorXd* minVector;
-        Eigen::VectorXd* maxVector;
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>* meanVector;
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>* varianceVector;
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>* minVector;
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>* maxVector;
     public:
         PerBinStatistics(ConstantQTransformResult* transformResult);
         ~PerBinStatistics();
@@ -59,7 +60,7 @@ namespace music
          * 
          * @return the mean vector with the means per time slice
          */
-        const Eigen::VectorXd* getMeanVector() const            {return meanVector;}
+        const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>* getMeanVector() const            {return meanVector;}
         /**
          * @brief Returns the max vector with the maximum values per time slice.
          * 
@@ -68,7 +69,7 @@ namespace music
          * 
          * @return the max vector with the maximum values per time slice.
          */
-        const Eigen::VectorXd* getMaxVector() const             {return maxVector;}
+        const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>* getMaxVector() const             {return maxVector;}
         /**
          * @brief Returns the min vector with the minimum per time slice.
          * 
@@ -77,7 +78,7 @@ namespace music
          * 
          * @return the min vector with the minimums per time slice
          */
-        const Eigen::VectorXd* getMinVector() const             {return minVector;}
+        const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>* getMinVector() const             {return minVector;}
         /**
          * @brief Returns the variance vector with the variances per time slice.
          * 
@@ -86,7 +87,7 @@ namespace music
          * 
          * @return the variance vector with the variances per time slice
          */
-        const Eigen::VectorXd* getVarianceVector() const        {return varianceVector;}
+        const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>* getVarianceVector() const        {return varianceVector;}
     };
     
     /**
@@ -99,17 +100,18 @@ namespace music
      * @author Lena Brueder
      * @date 2012-07-02
      */
+    template <typename ScalarType=kiss_fft_scalar>
     class PerTimeSliceStatistics
     {
     private:
         ConstantQTransformResult* transformResult;
         
     protected:
-        Eigen::VectorXd* meanVector;
-        Eigen::VectorXd* varianceVector;
-        Eigen::VectorXd* minVector;
-        Eigen::VectorXd* maxVector;
-        Eigen::VectorXd* sumVector;
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>* meanVector;
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>* varianceVector;
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>* minVector;
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>* maxVector;
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>* sumVector;
         
         double timeResolution;
     public:
@@ -147,7 +149,7 @@ namespace music
          * 
          * @return the mean vector with the means per time slice
          */
-        const Eigen::VectorXd* getMeanVector() const            {return meanVector;}
+        const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>* getMeanVector() const            {return meanVector;}
         /**
          * @brief Returns the max vector with the maximum values per time slice.
          * 
@@ -156,7 +158,7 @@ namespace music
          * 
          * @return the max vector with the maximum values per time slice.
          */
-        const Eigen::VectorXd* getMaxVector() const             {return maxVector;}
+        const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>* getMaxVector() const             {return maxVector;}
         /**
          * @brief Returns the min vector with the minimum per time slice.
          * 
@@ -165,7 +167,7 @@ namespace music
          * 
          * @return the min vector with the minimums per time slice
          */
-        const Eigen::VectorXd* getMinVector() const             {return minVector;}
+        const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>* getMinVector() const             {return minVector;}
         /**
          * @brief Returns the variance vector with the variances per time slice.
          * 
@@ -174,7 +176,7 @@ namespace music
          * 
          * @return the variance vector with the variances per time slice
          */
-        const Eigen::VectorXd* getVarianceVector() const        {return varianceVector;}
+        const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>* getVarianceVector() const        {return varianceVector;}
         /**
          * @brief Returns the sum vector with the sums per time slice.
          * 
@@ -183,7 +185,7 @@ namespace music
          * 
          * @return the sum vector with the sums per time slice
          */
-        const Eigen::VectorXd* getSumVector() const             {return sumVector;}
+        const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>* getSumVector() const             {return sumVector;}
     };
 }
 #endif //FEATURE_EXTRACTION_HELPER_HPP
