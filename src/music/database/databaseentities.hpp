@@ -2,12 +2,61 @@
 #define DATABASEENTITIES_HPP
 
 #include <string>
+#include <Eigen/Dense>
 
 namespace music
 {
+    /**
+     * @brief Objects of this class are database value objects for the timbre feature.
+     * 
+     * 
+     * 
+     * @remarks Use this object to store data in a database.
+     * @todo interface is not stable yet
+     * 
+     * @ingroup database
+     * @author Lena Brueder
+     * @date 2012-07-17
+     */
+    class TimbreFeature
+    {
+    private:
+        
+    protected:
+        Eigen::VectorXd timbre;
+        double starttime;
+        double endtime;
+    public:
+        
+    };
     
     /**
-     * @brief This class is a database value object for the features of a song
+     * @brief Objects of this class are database value objects for the timbre feature.
+     * 
+     * 
+     * 
+     * @remarks Use this object to store data in a database.
+     * @todo interface is not stable yet
+     * 
+     * @ingroup database
+     * @author Lena Brueder
+     * @date 2012-07-17
+     */
+    class ChordFeature
+    {
+    private:
+        
+    protected:
+        Eigen::VectorXd chord;  //TODO: will be changed soon!
+        double starttime;
+        double endtime;
+    public:
+        
+    };
+    
+    /**
+     * @brief Objects of this class are database value objects for the
+     *      features of a song
      *      that were extracted from the signal,
      *      such as tempo, length, dynamic range, ...
      * 
@@ -38,7 +87,8 @@ namespace music
     };
     
     /**
-     * @brief This is a database value object for a song and its properties
+     * @brief Objects of this class are database value objects for
+     *      a song and its properties
      *      that are no features that were extracted from the signal.
      * 
      * @remarks Use this object to store data in a database.
