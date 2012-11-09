@@ -1,8 +1,9 @@
 #ifndef MUSIC_HPP
 #define MUSIC_HPP
 
-#include "music/constantq.hpp"
-#include "music/fft.hpp"
+#include "music/transformations/constantq.hpp"
+#include "music/transformations/fft.hpp"
+#include "music/transformations/dct.hpp"
 #include "music/database/databaseconnection.hpp"
 #include "music/database/databaseentities.hpp"
 #include "music/database/sqlitedatabaseconnection.hpp"
