@@ -205,7 +205,7 @@ namespace tests
     
     int testGMM()
     {
-        int dimension=8;
+        int dimension=12;
         int dataCount=50000;
         int gaussianCount=3;
         
@@ -220,17 +220,17 @@ namespace tests
         Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> mu2(dimension);
         Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> mu3(dimension);
         
-        mu1 << 500, -500, 200, 150,  100, 50, 1, 20;
-        mu2 << 100,  100, 900, 190,  -60, 90, 8, 10;
-        mu3 << 800,-1000,-300,  50, -100,-50, 5, 30;
+        mu1 << 500, -500, 200, 150,  100, 50, 1, 20, 50, -10, 10, 350;
+        mu2 << 100,  100, 900, 190,  -60, 90, 8, 10, 20, -30, 70, 800;
+        mu3 << 800,-1000,-300,  50, -100,-50, 5, 30, 80, -50, 30, 300;
         
         Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> cov1(dimension);
         Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> cov2(dimension);
         Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> cov3(dimension);
         
-        cov1 << 500,   2000, 200, 150,  100, 50, 1, 20;
-        cov2 << 1000,  1000, 900, 190,   60, 90, 8, 10;
-        cov3 << 10000, 1000, 300,  50,  100, 50, 5, 30;
+        cov1 << 500,   2000, 200, 150,  100, 50, 1, 20, 50, 100, 8000, 550;
+        cov2 << 1000,  1000, 900, 190,   60, 90, 8, 10, 50, 100, 8000, 550;
+        cov3 << 10000, 1000, 300,  50,  100, 50, 5, 30, 50, 100, 8000, 550;
         
         gdc1.setMean(mu1);
         gdc1.setCovarianceMatrix(cov1.asDiagonal());
