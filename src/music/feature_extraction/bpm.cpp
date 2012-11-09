@@ -8,7 +8,7 @@ namespace music
         return (T(0) < val) - (val < T(0));
     }
     
-    float BPMEstimator::estimateBPM(ConstantQTransformResult* transformResult)
+    void BPMEstimator::estimateBPM(ConstantQTransformResult* transformResult)
     {
         DEBUG_OUT("estimating tempo of song...", 10);
         DEBUG_OUT("sum all bins per time slice...", 15);
@@ -87,7 +87,8 @@ namespace music
             std::sort(diffPosVector.begin(), diffPosVector.end());
         }
         
-        double bpmMean = 30.0/(double(maxCorrPos[maxCorrPos.size()-1])/maxCorrPos.size()*timeSliceLength);
+        this->bpmMean = 30.0/(double(maxCorrPos[maxCorrPos.size()-1])/maxCorrPos.size()*timeSliceLength);
+        this->bpmMedian = 30.0/(double(diffPosVector[diffPosVector.size()/2])*timeSliceLength);
         
         
         
@@ -204,6 +205,5 @@ namespace music
         DEBUG_OUT("TODO: cancel out outliers, without them, estimation should be good.", 15);
         */
         
-        return bpmMean;
     }
 }

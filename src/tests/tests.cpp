@@ -489,10 +489,17 @@ namespace tests
             CHECK(transformResult != NULL);
             
             music::BPMEstimator bpmEst;
-            double bpm = bpmEst.estimateBPM(transformResult);
-            DEBUG_OUT("bpm is " << bpm, 10);
-            CHECK_OP(bpm, >, 90);
-            CHECK_OP(bpm, <, 95);
+            bpmEst.estimateBPM(transformResult);
+            
+            double bpmMean = bpmEst.getBPMMean();
+            DEBUG_OUT("BPM mean is " << bpmMean, 10);
+            CHECK_OP(bpmMean, >, 90);
+            CHECK_OP(bpmMean, <, 95);
+            
+            double bpmMedian = bpmEst.getBPMMedian();
+            DEBUG_OUT("BPM median is " << bpmMedian, 10);
+            CHECK_OP(bpmMedian, >, 90);
+            CHECK_OP(bpmMedian, <, 95);
             
             
             delete transformResult;
