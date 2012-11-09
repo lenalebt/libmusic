@@ -231,7 +231,7 @@ namespace tests
         CHECK_OP(lowpassFilter, !=, NULL);
         
         std::cerr << "creating constant q transform kernel..." << std::endl;
-        cqt = music::ConstantQTransform::createTransform(lowpassFilter, 12, 25, 11025, 22050, 1.0, 0.0005, 0.25);
+        cqt = music::ConstantQTransform::createTransform(lowpassFilter, 12, 25, 11025, 22050, 1.0, 0.0, 0.0005, 0.25);
         CHECK_OP(cqt, !=, NULL);
         CHECK_OP(cqt->window<float>(20, 10), !=, 0.0);
         CHECK_EQ(cqt->log2(2), 1);
@@ -240,10 +240,10 @@ namespace tests
         CHECK_EQ(cqt->log2(256), 8);
         
         CHECK_EQ(cqt->getBinsPerOctave(), 12);
-        CHECK_EQ(cqt->getFMax(), 11025);
+        CHECK_EQ(cqt->getFMax(), 10548.081821211835631);
         //fMin will be recalculated
-        CHECK_EQ(cqt->getFMin(), 22);
-        CHECK_EQ(cqt->getKernelFMin(), 5840.290307655615834);
+        CHECK_EQ(cqt->getFMin(), 21.826764464562739);
+        CHECK_EQ(cqt->getKernelFMin(), 5587.651702928061241);
         CHECK_EQ(cqt->getFs(), 22050);
         CHECK_OP(cqt->getLowpassFilter(), !=, NULL);
         CHECK_EQ(cqt->getOctaveCount(), 9);
@@ -254,6 +254,7 @@ namespace tests
         CHECK_EQ(cqt->getAtomNr(), 7);
         CHECK_EQ(cqt->getFFTLength(), 128);
         CHECK_EQ(cqt->getFFTHop(), 63);
+        CHECK_EQ(cqt->getTranspose(), 0.0);
         
         //std::cerr << "fKernel:" << *(cqt->getFKernel()) << std::endl;
         

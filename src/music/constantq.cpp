@@ -22,6 +22,7 @@ namespace music
         fMax(11025),
         fs(22050),
         binsPerOctave(12),
+        transpose(0.0),
         lowpassFilter(NULL),
         q(1.0),
         threshold(0.0005),
@@ -34,13 +35,24 @@ namespace music
         
     }
     
-    ConstantQTransform* ConstantQTransform::createTransform(musicaccess::IIRFilter* lowpassFilter, int binsPerOctave, int fMin, int fMax, int fs, double q, double threshold, double atomHopFactor)
+    ConstantQTransform* ConstantQTransform::createTransform(musicaccess::IIRFilter* lowpassFilter, int binsPerOctave, double fMin, double fMax, int fs, double q, double transpose, double threshold, double atomHopFactor)
     {
         assert(lowpassFilter != NULL);
         
         ConstantQTransform* cqt = NULL;
         cqt = new ConstantQTransform();
         assert(cqt != NULL);
+        
+        //recalculate fMax to be tied to a note. Apply transposing.
+        {
+            double k = ((12.0) * log2(fMax/440.0));
+            do
+            {
+                fMax = 440.0 * pow(2.0, (std::floor(k) + transpose)/12.0);
+                k--;
+            }
+            while (fMax > fs/2.0);
+        }
         
         //set internal variables
         double fRatio = fMax/fMin;
@@ -51,6 +63,7 @@ namespace music
         cqt->fMax = fMax;
         cqt->fs = fs;
         cqt->binsPerOctave = binsPerOctave;
+        cqt->transpose = transpose;
         cqt->lowpassFilter = lowpassFilter;
         cqt->q = q;
         cqt->threshold = threshold;
@@ -193,23 +206,6 @@ namespace music
         
         //how many zeros should be padded?
         int zeroPadding = fftLen / 2;
-        
-        /*
-        //we need to use std::complex<float> type to calculate the constant q transform.
-        //this hurts in terms of memory usage, as we will occupy four times the memory
-        //plus a bit for zero padding, effectively meaning we use about 10MiB/minute of music
-        //in addition to the memory that is occupied by the original data.
-        std::complex<float>* floatBuffer = new std::complex<float>[sampleCount + 2*zeroPadding];
-        
-        //copy input array to complex float array with zero padding (about 32kB zero padding for 8 octaves should be okay)
-        for (int i=0; i<sampleCount + 2*zeroPadding; i++)
-        {
-            if ((i<zeroPadding) || (i>sampleCount + zeroPadding))
-                floatBuffer[i] = 0.0;
-            else
-                floatBuffer[i] = std::complex<float>(float(buffer[i+zeroPadding]) / 32768.0f, 0.0);
-        }
-        */
         
         FFT fft;
         //temporary fft data
@@ -370,6 +366,9 @@ namespace music
     
     std::complex<float> ConstantQTransformResult::getNoteValueNoInterpolation(uint64_t sampleNumber, int midiNoteNumber) const
     {
+        
+        
+        
         return std::complex<float>(0.0f, 0.0f);
     }
     std::complex<float> ConstantQTransformResult::getNoteValueLinearInterpolation(uint64_t sampleNumber, int midiNoteNumber) const
