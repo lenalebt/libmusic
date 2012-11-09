@@ -74,9 +74,9 @@ namespace music
     }
     Eigen::VectorXd GaussianFullCov::rand()
     {
+        assert(mean.size() > 0);
         Eigen::LDLT<Eigen::MatrixXd> ldlt(fullCov);
         Eigen::VectorXd y(mean.size());
-        //y.setRandom();    //this creates random number with a uniform distribution!
         for (int i=0; i<mean.size(); i++)
             y[i] = rng->rand();
         return ldlt.matrixL() * y + mean;
