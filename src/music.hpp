@@ -1,19 +1,19 @@
 #ifndef MUSIC_HPP
 #define MUSIC_HPP
 
-#include "music/transforms/constantq.hpp"
-#include "music/transforms/fft.hpp"
-#include "music/transforms/dct.hpp"
-#include "music/database/databaseconnection.hpp"
-#include "music/database/databaseentities.hpp"
-#include "music/database/sqlitedatabaseconnection.hpp"
-#include "music/uihelper/progress_callback.hpp"
-#include "music/feature_extraction/feature_extraction_helper.hpp"
-#include "music/feature_extraction/bpm.hpp"
-#include "music/feature_extraction/chords.hpp"
-#include "music/feature_extraction/dynamic_range.hpp"
-#include "music/feature_extraction/timbre.hpp"
-#include "music/feature_extraction/preprocessor.hpp"
+#include "music/constantq.hpp"
+#include "music/fft.hpp"
+#include "music/dct.hpp"
+#include "music/databaseconnection.hpp"
+#include "music/databaseentities.hpp"
+#include "music/sqlitedatabaseconnection.hpp"
+#include "music/progress_callback.hpp"
+#include "music/feature_extraction_helper.hpp"
+#include "music/bpm.hpp"
+#include "music/chords.hpp"
+#include "music/dynamic_range.hpp"
+#include "music/timbre.hpp"
+#include "music/preprocessor.hpp"
 
 
 /**

@@ -353,33 +353,45 @@ INSTALL (FILES ${music_special_headers}
     )
 FILE(GLOB music_transforms_headers "${CMAKE_CURRENT_SOURCE_DIR}/src/music/transforms/*.hpp")
 INSTALL (FILES ${music_transforms_headers}
-    DESTINATION include/music/transforms
+    DESTINATION include/music
     )
 FILE(GLOB music_database_headers "${CMAKE_CURRENT_SOURCE_DIR}/src/music/database/*.hpp")
 INSTALL (FILES ${music_database_headers}
-    DESTINATION include/music/database
+    DESTINATION include/music
     )
 FILE(GLOB music_classification_headers "${CMAKE_CURRENT_SOURCE_DIR}/src/music/classification/*.hpp")
 INSTALL (FILES ${music_classification_headers}
-    DESTINATION include/music/classification
+    DESTINATION include/music
+    )
+FILE(GLOB music_classification_gmm_headers "${CMAKE_CURRENT_SOURCE_DIR}/src/music/classification/gmm/*.hpp")
+INSTALL (FILES ${music_classification_gmm_headers}
+    DESTINATION include/music
     )
 FILE(GLOB music_uihelper_headers "${CMAKE_CURRENT_SOURCE_DIR}/src/music/uihelper/*.hpp")
 INSTALL (FILES ${music_uihelper_headers}
-    DESTINATION include/music/uihelper
+    DESTINATION include/music
     )
 FILE(GLOB music_feature_extraction_headers "${CMAKE_CURRENT_SOURCE_DIR}/src/music/feature_extraction/*.hpp")
 INSTALL (FILES ${music_feature_extraction_headers}
-    DESTINATION include/music/feature_extraction
+    DESTINATION include/music
     )
 FILE(GLOB music_tools_headers "${CMAKE_CURRENT_SOURCE_DIR}/src/tools/*.hpp")
 INSTALL (FILES ${music_tools_headers}
-    DESTINATION include/tools
+    DESTINATION include/music
     )
 FILE(GLOB music_kissfft_headers "${CMAKE_CURRENT_SOURCE_DIR}/src/kissfft/*.h")
 INSTALL (FILES ${music_kissfft_headers}
-    DESTINATION include/kissfft
+    DESTINATION include/music
     )
 FILE(GLOB music_kissfft_tools_headers "${CMAKE_CURRENT_SOURCE_DIR}/src/kissfft/tools/*.h")
 INSTALL (FILES ${music_kissfft_tools_headers}
-    DESTINATION include/kissfft/tools
+    DESTINATION include/music
+    )
+FILE(GLOB music_json_headers "${CMAKE_CURRENT_SOURCE_DIR}/src/tools/jsoncpp/json/*.h")
+INSTALL (FILES ${music_json_headers}
+    DESTINATION include/music/json
+    )
+FILE(GLOB music_tests_headers "${CMAKE_CURRENT_SOURCE_DIR}/src/tests/*.hpp")
+INSTALL (FILES ${music_tests_headers}
+    DESTINATION include/music
     )
