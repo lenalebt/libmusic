@@ -2,6 +2,7 @@
 #define DATABASECONNECTION_HPP
 
 #include <string>
+#include <vector>
 #include "databaseentities.hpp"
 
 namespace music
@@ -117,6 +118,27 @@ namespace music
          * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
          */
         virtual bool getRecordingByID(databaseentities::Recording& recording, bool readFeatures=false)=0;
+        
+        /**
+         * @brief Reads a recording ID by giving the file name.
+         * 
+         * @param[out] recordingID The ID of the recording that belongs to the given file name. <code>-1</code>, if no recording was found.
+         * @param filename The filename of the recording. Needs to be an exact match (case sensitive).
+         * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
+         */
+        virtual bool getRecordingIDByFilename(databaseentities::id_datatype& recordingID, const std::string& filename)=0;
+        /**
+         * @brief Reads a recording ID by giving some properties.
+         * 
+         * @param[out] recordingIDs The IDs of the recordings that fit the search criteria. The vector is empty if no file matches.
+         * @param artist The artist of the recording. Will perform a pattern match.
+         * @param title The title of the recording. Will perform a pattern match.
+         * @param album The album of the recording. Will perform a pattern match.
+         * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
+         * 
+         * @remarks Pattern match means that partwise matches are matches, too. The match will be case-insensitive.
+         */
+        virtual bool getRecordingIDByProperties(std::vector<databaseentities::id_datatype>& recordingIDs, const std::string& artist, const std::string& title, const std::string& album)=0;
         
         /**
          * @brief Updates a recording in the database by giving the id.

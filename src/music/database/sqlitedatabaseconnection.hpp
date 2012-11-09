@@ -43,6 +43,10 @@ namespace music
         
         bool getRecordingByID(databaseentities::Recording& recording, bool readFeatures=false);
         bool updateRecordingByID(databaseentities::Recording& recording, bool updateFeatures=false);
+        
+        bool getRecordingIDByFilename(databaseentities::id_datatype& recordingID, const std::string& filename);
+        bool getRecordingIDByProperties(std::vector<databaseentities::id_datatype>& recordingIDs, const std::string& artist, const std::string& title, const std::string& album);
+        
         bool getRecordingFeaturesByID(databaseentities::RecordingFeatures& recordingFeatures);
         bool updateRecordingFeaturesByID(databaseentities::RecordingFeatures& recordingFeatures);
         
@@ -66,6 +70,8 @@ namespace music
         sqlite3_stmt* _saveRecordingStatement;
         sqlite3_stmt* _updateRecordingByIDStatement;
         sqlite3_stmt* _getRecordingByIDStatement;
+        sqlite3_stmt* _getRecordingIDByFilenameStatement;
+        sqlite3_stmt* _getRecordingIDByArtistTitleAlbumStatement;
         
         sqlite3_stmt* _saveRecordingFeaturesStatement;
         sqlite3_stmt* _updateRecordingFeaturesStatement;
