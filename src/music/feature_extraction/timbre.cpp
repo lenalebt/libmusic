@@ -96,13 +96,13 @@ namespace music
         }
         return foundTimbreVectors>0;
     }
-    bool TimbreModel::calculateModel(int modelSize, double timeSliceSize, unsigned int timbreVectorSize, ProgressCallbackCaller* callback)
+    bool TimbreModel::calculateModel(unsigned int modelSize, double timeSliceSize, unsigned int timbreVectorSize, ProgressCallbackCaller* callback)
     {
         //use overload to hide the possibility of getting the data vectors.
         std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > data;
         return calculateModel(data, modelSize, timeSliceSize, timbreVectorSize, callback);
     }
-    bool TimbreModel::calculateModel(std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> >& timbreVectors, int modelSize, double timeSliceSize, unsigned int timbreVectorSize, ProgressCallbackCaller* callback)
+    bool TimbreModel::calculateModel(std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> >& timbreVectors, unsigned int modelSize, double timeSliceSize, unsigned int timbreVectorSize, ProgressCallbackCaller* callback)
     {
         assert(modelSize > 0);
         assert(timeSliceSize > 0.0);

@@ -4,67 +4,52 @@
 #include <string>
 #include "constantq.hpp"
 #include <ostream>
+#include "gmm.hpp"
+#include "progress_callback.hpp"
 
 #include <Eigen/Dense>
 
 namespace music
 {
-    //Holds one chord, e.g. c or A or D7.
-    //add some similarity measure (zwei dur- oder zwei mollakkorde vergleichen, ...)
-    /**
-     * @todo Doku schreiben
-     * @todo Implementierung überdenken
-     * @ingroup feature_extraction
-     */
-    class ChordHypothesis
-    {
-    private:
-        std::vector<std::pair<double, int> > hypothesis;
-        Eigen::VectorXf normalizedChroma;
-        float chromaMean;
-        float chromaVariance;
-        
-    protected:
-        static std::string getNoteName(int i);
-        void createHypothesis();
-    public:
-        ChordHypothesis(int binsPerOctave=12);
-        
-        std::string getMaxHypothesisAsString();
-        
-        friend std::ostream& operator<<(std::ostream& os, const ChordHypothesis& chord);
-        friend class ChordEstimator;
-    };
     /**
      * @ingroup feature_extraction
      */
-    class ChordEstimator
+    class ChromaEstimator
     {
     private:
         ConstantQTransformResult* transformResult;
         double timeResolution;
         
         void applyNonlinearFunction(Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1>& vector);
+        static std::string getNoteName(int i);
     protected:
-        ChordHypothesis* estimateChord1(double fromTime, double toTime);
-        ChordHypothesis* estimateChord2(double fromTime, double toTime);
-        ChordHypothesis* estimateChord3(double fromTime, double toTime);
     public:
-        ChordEstimator(ConstantQTransformResult* transformResult, double timeResolution = 0.005);
-        ChordHypothesis* estimateChord(double fromTime, double toTime);
-        bool estimateChords(std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > chords, double timeSliceLength = 0.01, double timeResolution = 0.005);
+        ChromaEstimator(ConstantQTransformResult* transformResult);
+        bool estimateChroma(std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> >& chromaVectors, int& mode, double timeSliceLength = 0.01, bool makeTransposeInvariant = true);
     };
     
-    std::ostream& operator<<(std::ostream& os, const ChordHypothesis& chord);
-    
-    class ChordModel
+    /**
+     * @ingroup feature_extraction
+     */
+    class ChromaModel
     {
     private:
-        
+        ConstantQTransformResult* transformResult;
+        GaussianMixtureModel<kiss_fft_scalar>* model;
     protected:
-        
+        int mode;
     public:
+        ChromaModel(ConstantQTransformResult* transformResult);
+        ~ChromaModel();
         
+        bool calculateChromaVectors(std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> >& chromaVectors, double timeSliceLength=0.01, bool makeTransposeInvariant = true);
+        
+        bool calculateModel(unsigned int modelSize=10, double timeSliceLength=0.01, bool makeTransposeInvariant = true, ProgressCallbackCaller* callback = NULL);
+        
+        //bool calculateModel(std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> >& chromaVectors, int modelSize=10, double timeSliceLength=0.02, unsigned int timbreVectorSize=12, ProgressCallbackCaller* callback = NULL);
+        
+        GaussianMixtureModel<kiss_fft_scalar>* getModel();
+        int getMode();
     };
 }
 #endif  //CHORDS_HPP

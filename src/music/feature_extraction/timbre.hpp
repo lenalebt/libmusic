@@ -138,7 +138,7 @@ namespace music
          * 
          * @return if calculating the model was successful, or not.
          */
-        bool calculateModel(int modelSize=10, double timeSliceSize=0.01, unsigned int timbreVectorSize=12, ProgressCallbackCaller* callback = NULL);
+        bool calculateModel(unsigned int modelSize=10, double timeSliceSize=0.01, unsigned int timbreVectorSize=12, ProgressCallbackCaller* callback = NULL);
         
         /**
          * @brief Calculates the model and preserves the calculated timbre vectors.
@@ -158,7 +158,7 @@ namespace music
          * 
          * @return if calculating the model was successful, or not.
          */
-        bool calculateModel(std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> >& timbreVectors, int modelSize=10, double timeSliceSize=0.02, unsigned int timbreVectorSize=12, ProgressCallbackCaller* callback = NULL);
+        bool calculateModel(std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> >& timbreVectors, unsigned int modelSize=10, double timeSliceSize=0.02, unsigned int timbreVectorSize=12, ProgressCallbackCaller* callback = NULL);
         
         /**
          * @brief Return the model that was calculated beforehand.
