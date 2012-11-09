@@ -43,16 +43,17 @@ namespace music
      * @author Lena Brueder
      * @date 2012-08-27
      */
-    class Gaussian : public StandardRNG<Eigen::VectorXd>
+    template <typename T>
+    class Gaussian : public StandardRNG<Eigen::Matrix<T, Eigen::Dynamic, 1> >
     {
     private:
         
     protected:
-        double weight;
-        Eigen::VectorXd mean;
-        double preFactor;
-        double preFactorWithoutWeights;
-        NormalRNG<double>* rng;
+        T weight;
+        Eigen::Matrix<T, Eigen::Dynamic, 1> mean;
+        T preFactor;
+        T preFactorWithoutWeights;
+        NormalRNG<T>* rng;
         
         /**
          * @brief Calculates the prefactor of the gaussian, which is used in
@@ -64,17 +65,17 @@ namespace music
         virtual void calculatePrefactor()=0;
     public:
         Gaussian(unsigned int dimension);
-        Gaussian(double weight, Eigen::VectorXd mean);
+        Gaussian(T weight, const Eigen::Matrix<T, Eigen::Dynamic, 1>& mean);
         /**
          * @brief Calculate the value of the gaussian distribution at the given position.
          * @return The value of the pdf at the given position.
          */
-        virtual double calculateValue(const Eigen::VectorXd& dataVector)=0;
+        virtual T calculateValue(const Eigen::Matrix<T, Eigen::Dynamic, 1>& dataVector)=0;
         /**
          * @brief Calculate the value of the gaussian distribution at the given position without applying the weight.
          * @return The value of the pdf at the given position without the weight applied.
          */
-        virtual double calculateValueWithoutWeights(const Eigen::VectorXd& dataVector)=0;
+        virtual T calculateValueWithoutWeights(const Eigen::Matrix<T, Eigen::Dynamic, 1>& dataVector)=0;
         /**
          * @brief Calculate the value of the gaussian distribution with mean
          *      at position zero.
@@ -84,29 +85,29 @@ namespace music
          * 
          * @return The value of the pdf at the given position if the mean was zero.
          */
-        virtual double calculateNoMeanValue(const Eigen::VectorXd& dataVector)=0;
+        virtual T calculateNoMeanValue(const Eigen::Matrix<T, Eigen::Dynamic, 1>& dataVector)=0;
         
         /**
          * @brief Get the weight factor of this gaussian.
          * @return The weight factor of this gaussian distribution.
          */
-        double getWeight() const                    {return weight;}
+        T getWeight() const                    {return weight;}
         /**
          * @brief Set the weight factor of this gaussian.
          * @param weight The weight factor of this gaussian distribution.
          */
-        void setWeight(double weight)               {this->weight = weight; calculatePrefactor();}
+        void setWeight(T weight)               {this->weight = weight; calculatePrefactor();}
         
         /**
          * @brief Get the mean of this gaussian.
          * @return The mean of this gaussian distribution.
          */
-        const Eigen::VectorXd& getMean() const      {return mean;}
+        const Eigen::Matrix<T, Eigen::Dynamic, 1>& getMean() const      {return mean;}
         /**
          * @brief Set the mean of this gaussian.
          * @param mean The mean of this gaussian distribution.
          */
-        void setMean(const Eigen::VectorXd& mean)   {this->mean = mean; calculatePrefactor();}
+        void setMean(const Eigen::Matrix<T, Eigen::Dynamic, 1>& mean)   {this->mean = mean; calculatePrefactor();}
         
         /**
          * @brief Get the covariance matrix of this gaussian.
@@ -114,7 +115,7 @@ namespace music
          *      even if the matrix is not represented as such internally.
          * @return The covariance matrix of this gaussian distribution.
          */
-        virtual Eigen::MatrixXd getCovarianceMatrix()=0;
+        virtual Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> getCovarianceMatrix()=0;
         /**
          * @brief Set the covariance matrix of this gaussian.
          * @remarks This function will always take full covariance matricies,
@@ -122,7 +123,7 @@ namespace music
          *      If this is the case, only the diagonal elements will be used!
          * @param matrix The covariance matrix of this gaussian distribution.
          */
-        virtual void setCovarianceMatrix(const Eigen::MatrixXd& matrix)=0;
+        virtual void setCovarianceMatrix(const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& matrix)=0;
         
         /**
          * @brief Generate a random vector that follows the distribution.
@@ -131,7 +132,7 @@ namespace music
          * 
          * @return A random vector following this distribution.
          */
-        virtual Eigen::VectorXd rand()=0;
+        virtual Eigen::Matrix<T, Eigen::Dynamic, 1> rand()=0;
     };
     
     /**
@@ -142,24 +143,32 @@ namespace music
      * @author Lena Brueder
      * @date 2012-08-27
      */
-    class GaussianFullCov : public Gaussian
+    template <typename T>
+    class GaussianFullCov : public Gaussian<T>
     {
     private:
         
     protected:
-        Eigen::MatrixXd fullCov;
-        Eigen::LDLT<Eigen::MatrixXd> ldlt;
+        //weird things with templates and derived classes...
+        using Gaussian<T>::mean;
+        using Gaussian<T>::preFactor;
+        using Gaussian<T>::preFactorWithoutWeights;
+        using Gaussian<T>::rng;
+        using Gaussian<T>::weight;
+        
+        Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> fullCov;
+        Eigen::LDLT<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > ldlt;
         
         void calculatePrefactor();
     public:
         GaussianFullCov(unsigned int dimension);
-        double calculateValue(const Eigen::VectorXd& dataVector);
-        double calculateValueWithoutWeights(const Eigen::VectorXd& dataVector);
-        double calculateNoMeanValue(const Eigen::VectorXd& dataVector);
-        void setCovarianceMatrix(const Eigen::MatrixXd& matrix);
-        Eigen::MatrixXd getCovarianceMatrix()   {return fullCov;}
+        T calculateValue(const Eigen::Matrix<T, Eigen::Dynamic, 1>& dataVector);
+        T calculateValueWithoutWeights(const Eigen::Matrix<T, Eigen::Dynamic, 1>& dataVector);
+        T calculateNoMeanValue(const Eigen::Matrix<T, Eigen::Dynamic, 1>& dataVector);
+        void setCovarianceMatrix(const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& matrix);
+        Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> getCovarianceMatrix()   {return fullCov;}
         
-        Eigen::VectorXd rand();
+        Eigen::Matrix<T, Eigen::Dynamic, 1> rand();
     };
     
     /**
@@ -170,24 +179,32 @@ namespace music
      * @author Lena Brueder
      * @date 2012-08-27
      */
-    class GaussianDiagCov : public Gaussian
+    template <typename T>
+    class GaussianDiagCov : public Gaussian<T>
     {
     private:
         
     protected:
-        Eigen::VectorXd diagCov;
-        Eigen::LDLT<Eigen::MatrixXd> ldlt;
+        //weird things with templates and derived classes...
+        using Gaussian<T>::mean;
+        using Gaussian<T>::preFactor;
+        using Gaussian<T>::preFactorWithoutWeights;
+        using Gaussian<T>::rng;
+        using Gaussian<T>::weight;
+        
+        Eigen::Matrix<T, Eigen::Dynamic, 1> diagCov;
+        Eigen::LDLT<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > ldlt;
         
         void calculatePrefactor();
     public:
         GaussianDiagCov(unsigned int dimension);
-        double calculateValue(const Eigen::VectorXd& dataVector);
-        double calculateValueWithoutWeights(const Eigen::VectorXd& dataVector);
-        double calculateNoMeanValue(const Eigen::VectorXd& dataVector);
-        Eigen::MatrixXd getCovarianceMatrix()   {return diagCov.asDiagonal();}
-        void setCovarianceMatrix(const Eigen::MatrixXd& matrix);
+        T calculateValue(const Eigen::Matrix<T, Eigen::Dynamic, 1>& dataVector);
+        T calculateValueWithoutWeights(const Eigen::Matrix<T, Eigen::Dynamic, 1>& dataVector);
+        T calculateNoMeanValue(const Eigen::Matrix<T, Eigen::Dynamic, 1>& dataVector);
+        Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> getCovarianceMatrix()   {return diagCov.asDiagonal();}
+        void setCovarianceMatrix(const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& matrix);
         
-        Eigen::VectorXd rand();
+        Eigen::Matrix<T, Eigen::Dynamic, 1> rand();
     };
     
     /**
@@ -208,14 +225,15 @@ namespace music
      * @author Lena Brueder
      * @date 2012-08-27
      */
-    class GaussianMixtureModel : public StandardRNG<Eigen::VectorXd>
+    template <typename T>
+    class GaussianMixtureModel : public StandardRNG<Eigen::Matrix<T, Eigen::Dynamic, 1> >
     {
     private:
         
     protected:
-        std::vector<Gaussian*> gaussians;
-        UniformRNG<double> uniRNG;
-        double normalizationFactor;
+        std::vector<Gaussian<T>*> gaussians;
+        UniformRNG<T> uniRNG;
+        T normalizationFactor;
         
         void loadFromJsonValue(Json::Value& jsonValue);
         
@@ -234,7 +252,7 @@ namespace music
          * 
          * @return A list of the gaussian distributions that build the model.
          */
-        std::vector<Gaussian* > emAlg(const std::vector<Gaussian*>& init, const std::vector<Eigen::VectorXd>& data, int gaussianCount = 10, unsigned int maxIterations=50);
+        std::vector<Gaussian<T>* > emAlg(const std::vector<Gaussian<T>*>& init, const std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> >& data, int gaussianCount = 10, unsigned int maxIterations=50);
     public:
         /**
          * @brief Creates a new empty Gaussian Mixture Model.
@@ -247,7 +265,7 @@ namespace music
          * @param gaussianCount The count of gaussian distributions that will be used to model the data
          * 
          */
-        void trainGMM(const std::vector<Eigen::VectorXd>& data, int gaussianCount=10);
+        void trainGMM(const std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> >& data, int gaussianCount=10);
         /**
          * @brief Compare this gaussian mixture model with another one.
          * 
@@ -262,27 +280,27 @@ namespace music
          * 
          * @return A distance measure of the two gaussians.
          */
-        double compareTo(const GaussianMixtureModel& other);
+        T compareTo(const GaussianMixtureModel<T>& other);
         
         /**
          * @brief Returns the list of gaussian distributions of this model.
          * @return A list of gaussian distributions.
          */
-        std::vector<Gaussian*> getGaussians() const {return gaussians;}
+        std::vector<Gaussian<T>*> getGaussians() const {return gaussians;}
         
         /**
          * @brief Draw a random vector from the probability density that is
          *      represented by this GMM.
          * @return A random vector drawn from this probability density.
          */
-        Eigen::VectorXd rand();
+        Eigen::Matrix<T, Eigen::Dynamic, 1> rand();
         
         /**
          * @brief Computes the value of the probability density function
          *      represented by this GMM at the given position.
          * @return The value of the probability density at the given position
          */
-        double calculateValue(const Eigen::VectorXd& pos) const;
+        T calculateValue(const Eigen::Matrix<T, Eigen::Dynamic, 1>& pos) const;
         
         /**
          * @brief Create a JSON string that represents this model.
@@ -297,12 +315,14 @@ namespace music
          */
         void loadFromJSONString(const std::string& jsonString);
         
-        friend std::ostream& operator<<(std::ostream& os, const GaussianMixtureModel& model);
-        friend std::istream& operator>>(std::istream& is, GaussianMixtureModel& model);
+        template <typename S>
+        friend std::ostream& operator<<(std::ostream& os, const GaussianMixtureModel<S>& model);
+        template <typename S>
+        friend std::istream& operator>>(std::istream& is, GaussianMixtureModel<S>& model);
     };
     
-    std::ostream& operator<<(std::ostream& os, const GaussianMixtureModel& model);
-    std::istream& operator>>(std::istream& is, GaussianMixtureModel& model);
+    template <typename T> std::ostream& operator<<(std::ostream& os, const GaussianMixtureModel<T>& model);
+    template <typename T> std::istream& operator>>(std::istream& is, GaussianMixtureModel<T>& model);
 }
 
 #endif //GMM_HPP

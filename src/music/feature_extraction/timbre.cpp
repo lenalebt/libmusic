@@ -72,7 +72,7 @@ namespace music
         //then train the model
         model.trainGMM(data, modelSize);
     }
-    GaussianMixtureModel TimbreModel::getModel()
+    GaussianMixtureModel<double> TimbreModel::getModel()
     {
         return model;
     }

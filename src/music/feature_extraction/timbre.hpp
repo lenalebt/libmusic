@@ -45,11 +45,11 @@ namespace music
         
     protected:
         ConstantQTransformResult* transformResult;
-        GaussianMixtureModel model;
+        GaussianMixtureModel<double> model;
     public:
         TimbreModel(ConstantQTransformResult* transformResult);
         void calculateModel(int modelSize=5, double timeSliceSize=0.02);
-        GaussianMixtureModel getModel();
+        GaussianMixtureModel<double> getModel();
     };
 }
 #endif  //TIMBRE_HPP
