@@ -121,6 +121,8 @@ namespace music
         PerTimeSliceStatistics(ConstantQTransformResult* transformResult, double timeResolution=0.005);
         ~PerTimeSliceStatistics();
         
+        double getTimeResolution()      {return timeResolution;}
+        
         void calculateSum();
         /**
          * @brief Calculates the mean, maximum, minimum and sum values per bin.
