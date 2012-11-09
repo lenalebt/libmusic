@@ -247,6 +247,8 @@ namespace tests
         CHECK_EQ(cqt->getFFTLength(), 128);
         CHECK_EQ(cqt->getFFTHop(), 63);
         
+        std::cerr << "fKernel:" << *(cqt->getFKernel()) << std::endl;
+        
         return EXIT_SUCCESS;
     }
 }

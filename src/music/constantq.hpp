@@ -64,7 +64,7 @@ namespace music
          * @see \ref midinote_scale
          * @return the value of the constant Q transform at a given sample number
          */
-        std::complex<float> getNoteValueLinearInterpolation(uint64_t sampleNumber, int midiNoteNumber);
+        std::complex<float> getNoteValueLinearInterpolation(uint64_t sampleNumber, int midiNoteNumber) const;
         
         /**
          * @brief Returns the value of the constant Q transform at the given sample number
@@ -77,7 +77,7 @@ namespace music
          * @see \ref midinote_scale
          * @return the value of the constant Q transform at a given sample number
          */
-        std::complex<float> getNoteValueNoInterpolation(uint64_t sampleNumber, int midiNoteNumber);
+        std::complex<float> getNoteValueNoInterpolation(uint64_t sampleNumber, int midiNoteNumber) const;
         
         friend class ConstantQTransform;
     };
@@ -135,58 +135,58 @@ namespace music
          * @brief Returns the number of octaves that will be processed by this constant Q transform.
          * @return the number of octaves
          */
-        int getOctaveCount() {return octaveCount;}
+        int getOctaveCount() const {return octaveCount;}
         /**
          * @brief Returns the frequency of the lowest tone that will be processed by this transform.
          * @return the frequency of the lowest tone
          */
-        int getFMin() {return fMin;}
+        int getFMin() const {return fMin;}
         /**
          * @brief Returns the frequency of the lowest tone in the highest octave that will be processed by this transform.
          * @return the frequency of the lowest tone
          */
-        double getKernelFMin() {return kernelfMin;}
+        double getKernelFMin() const {return kernelfMin;}
         /**
          * @brief Returns the frequency of the highest tone that will be processed by this transform.
          * @return the frequency of the highest tone
          */
-        int getFMax() {return fMax;}
+        int getFMax() const {return fMax;}
         /**
          * @brief Returns the sampling frequency that can be processed by this transform.
          * @return the possible sampling frequency of the audio that will be processed.
          */
-        int getFs() {return fs;}
+        int getFs() const {return fs;}
         /**
          * @brief Returns the count of the frequency bins that will be created by this transform.
          * @return the count of the frequency bins per ocatve
          */
-        int getBinsPerOctave() {return binsPerOctave;}
+        int getBinsPerOctave() const {return binsPerOctave;}
         /**
          * @brief Returns the lowpass filter that is being used while transforming the input data.
          * @return the frequency of the lowest tone
          */
-        const musicaccess::IIRFilter* getLowpassFilter() {return lowpassFilter;}
+        const musicaccess::IIRFilter* getLowpassFilter() const {return lowpassFilter;}
         /**
          * @brief Returns the Q factor used in this transform.
          * @remarks don't confuse q and Q. They are different.
          * @return the Q factor
          */
-        double getQ() {return Q;}
+        double getQ() const {return Q;}
         /**
          * @brief Returns the Q scaling factor (q) used in this transform.
          * @remarks don't confuse q and Q. They are different.
          * @return the Q scaling factor q
          */
-        double getq() {return q;}
+        double getq() const {return q;}
         /**
          * @brief Returns the threshold at which values in the spectral kernel will be seen as zero in this transform.
          * @return the threshold of values being treated as zero.
          */
-        double getThreshold() {return threshold;}
+        double getThreshold() const {return threshold;}
         /**
          * @todo write description
          */
-        double getAtomHopFactor() {return atomHopFactor;}
+        double getAtomHopFactor() const {return atomHopFactor;}
         
         /**
          * @brief Returns the number of atoms per FFT frame.
@@ -195,13 +195,13 @@ namespace music
          * 
          * @return the number of atoms per FFT frame.
          */
-        int getAtomNr() {return atomNr;}
+        int getAtomNr() const {return atomNr;}
         
         /**
          * @brief Returns the length of the FFT to apply to the input data
          * @return the length of the FFT to apply to the input data. Is a power of 2.
          */
-        int getFFTLength() {return fftLen;}
+        int getFFTLength() const {return fftLen;}
         
         /**
          * @brief Returns the hop size for the FFTs on the input data.
@@ -210,7 +210,9 @@ namespace music
          * 
          * @return the hop size for the FFTs on the input data.
          */
-        int getFFTHop() {return fftHop;}
+        int getFFTHop() const {return fftHop;}
+        
+        const Eigen::SparseMatrix<std::complex<kiss_fft_scalar> >* getFKernel() const {return fKernel;}
         
         /**
          * @brief Creates the kernels for the Constant Q transform which can later be applied to many pieces of music.
