@@ -209,7 +209,7 @@ namespace music
         /**
          * @brief Reads the category IDs that belong to a given category name.
          * 
-         * @param[out] recordingIDs The IDs of the categories that are found. Empty, if no categories were found.
+         * @param[out] categoryIDs The IDs of the categories that are found. Empty, if no categories were found.
          * @param categoryName The name of the category. Will perform a pattern match.
          * 
          * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise

@@ -36,7 +36,7 @@
 #define CHECK(a)                if (!check_equality(LINESTR(a,true), a, true)) return EXIT_FAILURE;
 
 /**
- * @defgroup tests
+ * @defgroup tests Tests
  * @brief The testing module contains all tests.
  */
 

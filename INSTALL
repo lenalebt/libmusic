@@ -15,7 +15,7 @@ the docs, type
 make doc
 
 in the very same directory. You will find the docs in the api-doc/ 
-directory. There are two formats available, for the more commen HTML 
+directory. There are two formats available, for the more common HTML 
 version open the file api-doc/html/index.html .
 
 Installing for Cross-Compilation

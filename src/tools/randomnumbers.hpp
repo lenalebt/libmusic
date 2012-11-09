@@ -79,6 +79,9 @@ namespace music
          * 
          * @param rng The uniform random number generator which will be used to
          *      build the normal distribution. This object takes ownership of the rng!
+         *      The uniform random number generator is assumed to produce valus in [0,1[.
+         * @param mean The mean of the values produced by this random number generator
+         * @param variance The variance of the values produced by this random number generator
          */
         NormalRNG(UniformRNG<T>* rng, T mean, T variance) :
             storedval(0.0), rng(rng), mean(mean), variance(variance)
@@ -86,8 +89,22 @@ namespace music
             if ((rng == NULL) || (rng->getA() != -1) || (rng->getB() != 1))
                 rng = new UniformRNG<T>(-1, 1);
         }
+        /**
+         * @brief Construct a new random number generator with normally distributed samples.
+         * 
+         * This implementation uses a standard random number generator.
+         * 
+         * @param mean The mean of the values produced by this random number generator
+         * @param variance The variance of the values produced by this random number generator
+         */
         NormalRNG(T mean, T variance) :
             storedval(0.0), rng(new UniformRNG<T>(-1, 1)), mean(mean), variance(variance) {}
+        /**
+         * @brief Construct a new random number generator with normally distributed samples.
+         * 
+         * This implementation uses a standard random number generator and will produce
+         * values with zero mean and unit variance.
+         */
         NormalRNG() :
             storedval(0.0), rng(new UniformRNG<T>(-1, 1)), mean(0.0), variance(1.0) {}
         ~NormalRNG()    {delete rng;}
