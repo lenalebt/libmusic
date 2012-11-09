@@ -60,6 +60,7 @@ namespace music
         double preFactorWithoutWeights;
         NormalRNG<ScalarType>* rng;
         bool externalRNG;
+        Eigen::LLT<Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> > llt;
         
         /**
          * @brief Calculates the prefactor of the gaussian, which is used in
@@ -192,6 +193,7 @@ namespace music
         using Gaussian<ScalarType>::preFactorWithoutWeights;
         using Gaussian<ScalarType>::rng;
         using Gaussian<ScalarType>::weight;
+        using Gaussian<ScalarType>::llt;
         
         Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> fullCov;
         Eigen::LDLT<Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> > ldlt;
@@ -250,6 +252,7 @@ namespace music
         using Gaussian<ScalarType>::preFactorWithoutWeights;
         using Gaussian<ScalarType>::rng;
         using Gaussian<ScalarType>::weight;
+        using Gaussian<ScalarType>::llt;
         
         Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> diagCov;
         Eigen::LDLT<Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> > ldlt;
