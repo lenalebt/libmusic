@@ -60,10 +60,10 @@ FIND_PACKAGE(SQLITE3 REQUIRED)
 SET(
     music_SOURCES
     
-    #transformations
-    src/music/transformations/constantq.cpp
-    src/music/transformations/fft.cpp
-    src/music/transformations/dct.cpp
+    #transforms
+    src/music/transforms/constantq.cpp
+    src/music/transforms/fft.cpp
+    src/music/transforms/dct.cpp
     
     #feature extraction
     src/music/feature_extraction/bpm.cpp
@@ -106,10 +106,10 @@ SET(
     music_HEADERS
     src/music.hpp
     
-    #transformations
-    src/music/transformations/constantq.hpp
-    src/music/transformations/fft.hpp
-    src/music/transformations/dct.hpp
+    #transforms
+    src/music/transforms/constantq.hpp
+    src/music/transforms/fft.hpp
+    src/music/transforms/dct.hpp
     
     #feature extraction
     src/music/feature_extraction/bpm.hpp
@@ -179,7 +179,7 @@ INCLUDE_DIRECTORIES(
     src/tools
     src/tools/jsoncpp
     src/music
-    src/music/transformations
+    src/music/transforms
     src/music/feature_extraction
     src/music/database
     src/music/uihelper
@@ -335,9 +335,9 @@ FILE(GLOB music_special_headers "${CMAKE_CURRENT_SOURCE_DIR}/src/music/*.hpp")
 INSTALL (FILES ${music_special_headers}
     DESTINATION include/music
     )
-FILE(GLOB music_transformations_headers "${CMAKE_CURRENT_SOURCE_DIR}/src/music/transformations/*.hpp")
-INSTALL (FILES ${music_transformations_headers}
-    DESTINATION include/music/transformations
+FILE(GLOB music_transforms_headers "${CMAKE_CURRENT_SOURCE_DIR}/src/music/transforms/*.hpp")
+INSTALL (FILES ${music_transforms_headers}
+    DESTINATION include/music/transforms
     )
 FILE(GLOB music_database_headers "${CMAKE_CURRENT_SOURCE_DIR}/src/music/database/*.hpp")
 INSTALL (FILES ${music_database_headers}

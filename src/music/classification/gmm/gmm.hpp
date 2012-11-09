@@ -278,6 +278,13 @@ namespace music
         Eigen::VectorXd rand();
         
         /**
+         * @brief Computes the value of the probability density function
+         *      represented by this GMM at the given position.
+         * @return The value of the probability density at the given position
+         */
+        double calculateValue(const Eigen::VectorXd& pos) const;
+        
+        /**
          * @brief Create a JSON string that represents this model.
          * @return A JSON string representing this model.
          */

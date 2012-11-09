@@ -7,6 +7,18 @@
 namespace music
 {
     #define FFT_PREFACTOR_COUNT 12
+    /**
+     * @brief This class implements the Fast Fourier Transform.
+     * 
+     * This class actually is a wrapper for the kissfft library which
+     * implements the FFT.
+     * 
+     * @ingroup transforms
+     * @remarks Does not work in-place!
+     * 
+     * @author Lena Brueder
+     * @date 2012-08-29
+     */
     class FFT
     {
     private:

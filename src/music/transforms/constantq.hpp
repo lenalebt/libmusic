@@ -53,6 +53,7 @@ namespace music
      * to access the values.
      * 
      * @todo implement
+     * @ingroup transforms
      * 
      * @author Lena Brueder
      * @date 2012-06-12
