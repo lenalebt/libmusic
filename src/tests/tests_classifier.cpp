@@ -96,6 +96,20 @@ namespace tests
         CHECK_OP(c->classifyVector(trainingData[6].first), >=, 0.0);
         CHECK_OP(c->classifyVector(trainingData[7].first), >=, 0.0);
         
+        DEBUG_OUT("test classification. first: class 1.", 0);
+        for (int i=0; i<1000; i++)
+        {
+            vec2.setRandom();
+            vec2 += vec1;
+            CHECK_OP(c->classifyVector(vec2), <, 0.0);
+        }
+        DEBUG_OUT("test classification. second: class 2.", 0);
+        for (int i=0; i<1000; i++)
+        {
+            vec2.setRandom();
+            CHECK_OP(c->classifyVector(vec2), >=, 0.0);
+        }
+        
         ERROR_OUT("this test is not finished yet.", 0);
         return EXIT_FAILURE;
         
