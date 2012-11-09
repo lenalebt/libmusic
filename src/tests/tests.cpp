@@ -98,6 +98,13 @@ namespace tests
         CHECK_EQ(m2(0,1), -4.5);
         CHECK_EQ(m2(1,1), -0.25);
         
+        /*
+        Eigen::SparseMatrix<std::complex<float> > msp_cpx(3,3);
+        Eigen::Matrix<std::complex<float>, Eigen::Dynamic, 1 > m_cpx(3,3);
+        Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic > mres_cpx;
+        mres_cpx = m_cpx * msp_cpx;
+        */
+        
         return EXIT_SUCCESS;
     }
     
