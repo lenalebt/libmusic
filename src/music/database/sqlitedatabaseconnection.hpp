@@ -33,10 +33,10 @@ namespace music
         bool beginTransaction();
         bool endTransaction();
         
-        bool addRecording(Recording& recording);
-        bool addRecordingFeatures(RecordingFeatures& features);
+        bool addRecording(databaseentities::Recording& recording);
+        bool addRecordingFeatures(databaseentities::RecordingFeatures& features);
         
-        bool getRecordingByID(Recording& recording, bool readFeatures=false);
+        bool getRecordingByID(databaseentities::Recording& recording, bool readFeatures=false);
     private:
         
     protected:
