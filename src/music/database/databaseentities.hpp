@@ -13,30 +13,6 @@ namespace music
         typedef long id_datatype;
         
         /**
-         * @brief Objects of this class are database value objects for the chord feature.
-         * 
-         * 
-         * 
-         * @remarks Use this object to store data in a database.
-         * @todo interface is not stable yet
-         * 
-         * @ingroup database
-         * @author Lena Brueder
-         * @date 2012-07-17
-         */
-        class ChordFeature
-        {
-        private:
-            
-        protected:
-            Eigen::VectorXd chord;  //TODO: will be changed soon!
-            double starttime;
-            double endtime;
-        public:
-            
-        };
-        
-        /**
          * @brief Objects of this class are database value objects for the
          *      features of a recording
          *      that were extracted from the signal,
@@ -58,6 +34,7 @@ namespace music
             double tempo;
             double dynamicRange;
             std::string timbreModel;
+            std::string chordsModel;
         protected:
             
         public:
@@ -79,6 +56,9 @@ namespace music
             
             void setTimbreModel(const std::string& model) {this->timbreModel = model;}
             std::string getTimbreModel() const        {return timbreModel;}
+            
+            void setChordsModel(const std::string& model) {this->chordsModel = model;}
+            std::string getChordsModel() const        {return chordsModel;}
         };
         
         /**
@@ -142,6 +122,7 @@ namespace music
         private:
             id_datatype id;
             std::string timbreModel;
+            std::string chordsModel;
             std::string classifierDescription;
         protected:
             
@@ -152,6 +133,9 @@ namespace music
             
             void setTimbreModel(const std::string& model)   {this->timbreModel = model;}
             std::string getTimbreModel() const              {return timbreModel;}
+            
+            void setChordsModel(const std::string& model) {this->chordsModel = model;}
+            std::string getChordsModel() const        {return chordsModel;}
             
             void setClassifierDescription(const std::string& classifierDescription)
                                                             {this->classifierDescription = classifierDescription;}

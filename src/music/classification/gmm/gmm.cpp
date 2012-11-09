@@ -695,18 +695,17 @@ namespace music
     }
     
     template <typename ScalarType>
-    ScalarType GaussianMixtureModel<ScalarType>::compareTo(const GaussianMixtureModel<ScalarType>& other)
+    ScalarType GaussianMixtureModel<ScalarType>::compareTo(const GaussianMixtureModel<ScalarType>& other, int sampleCount)
     {
         //draw some samples from the one model and take a look at the pdf values of the other.
         double value = 0.0;
         double value2=0.0;
-        const int numValues = 100;
         
         UniformRNG<float> rng(0,1);
         Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> tmp;
         double tmpVal, tmp2Val;
         
-        for (int i=0; i<numValues; i++)
+        for (int i=0; i<sampleCount; i++)
         {
             
             /*
@@ -756,15 +755,15 @@ namespace music
             assert(value == value);
             assert(value2 == value2);
         }
-        assert(value2/numValues == value2/numValues);
-        //std::cerr << value2/numValues << std::endl;
-        return value2/numValues;
+        assert(value2/sampleCount == value2/sampleCount);
+        //std::cerr << value2/sampleCount << std::endl;
+        return value2/sampleCount;
         
         //get the mean of the pdf values. large values should mean "pdfs are similar",
         //and small values indicate that they are not equal.
-        for (int i=0; i<numValues; i++)
+        for (int i=0; i<sampleCount; i++)
             value += other.calculateValue(this->rand());
-        value /= numValues * normalizationFactor;
+        value /= sampleCount * normalizationFactor;
         return value;
     }
     

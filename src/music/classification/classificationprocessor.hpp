@@ -61,7 +61,7 @@ namespace music
         //recalculates the score for a single song (maybe better for debugging etc and may be used from the other function)
         bool recalculateCategoryMembershipScore(const databaseentities::Category& category, const databaseentities::Recording& recording);
         //called when a song is added to the db, most likely from the file preprocessor. will calculate all scores for the song for existing categories.
-        bool addRecording(const databaseentities::Recording&);
+        bool addRecording(const databaseentities::Recording& recording);
         //calls more or less the appropriate database function
         bool setRecordingCategoryExampleScore(const databaseentities::Recording& recording, const databaseentities::Category& category, double score, bool recalculateCategory_ = true);
     };
