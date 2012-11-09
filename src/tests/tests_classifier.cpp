@@ -18,7 +18,7 @@ namespace tests
     
     int testFisherLDA()
     {
-        music::FisherLDAClassifier* c = new music::FisherLDAClassifier(true);
+        music::FisherLDAClassifier<double>* c = new music::FisherLDAClassifier<double>(true);
         CHECK(c != NULL);
         
         DEBUG_OUT("testing with very simple vectors (covariance 0)...", 0);

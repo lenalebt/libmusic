@@ -14,44 +14,89 @@ namespace music
      * 
      * @remarks Make sure that your data can be linearly seperated before you apply this classifier.
      * @ingroup classification
-     * @todo Better documentation (class members are not documented yet)
+     * @todo Better documentation (some class members are not documented yet)
      * 
      * @author Lena Brueder
      * @date 2012-08-27
      */
-    class FisherLDAClassifier : public Classifier
+    template <typename ScalarType=double>
+    class FisherLDAClassifier : public Classifier<ScalarType>
     {
     private:
         bool applyPCA;  //apply PCA before doing LDA? Helps getting Sw invertible.
     protected:
-        Eigen::VectorXd mean1;
-        Eigen::VectorXd mean2;
-        Eigen::VectorXd mean;
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> mean1;
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> mean2;
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> mean;
         
-        Eigen::MatrixXd covariance1;
-        Eigen::MatrixXd covariance2;
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> covariance1;
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> covariance2;
         
-        Eigen::MatrixXd Sw;
-        Eigen::MatrixXd Sb;
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> Sw;
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> Sb;
         
-        Eigen::VectorXd w;      //normal vector of seperating hyperplane
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> w;      //normal vector of seperating hyperplane
         double w0;              //classification border on projected space
         
-        Eigen::MatrixXd reducedU;
-        Eigen::MatrixXd doPCA(const std::vector<std::pair<Eigen::VectorXd, double> >& trainingData);
-    public:
-        FisherLDAClassifier(bool applyPCA = false);
-        bool learnModel(const std::vector<std::pair<Eigen::VectorXd, double> >& trainingData, ProgressCallbackCaller* callback = NULL);
-        double classifyVector(const Eigen::VectorXd& vector);
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> reducedU;
         
-        const Eigen::VectorXd& getAllClassMean()            {return mean;}
-        const Eigen::VectorXd& getClass1Mean()              {return mean1;}
-        const Eigen::VectorXd& getClass2Mean()              {return mean2;}
-        const Eigen::MatrixXd& getClass1Covariance()        {return covariance1;}
-        const Eigen::MatrixXd& getClass2Covariance()        {return covariance2;}
-        const Eigen::VectorXd& getHyperplaneNormalVector()  {return w;}
-        const Eigen::MatrixXd& getSw()                      {return Sw;}
-        const Eigen::MatrixXd& getSb()                      {return Sb;}
+        /**
+         * @brief Performs a PCA (Principal Component Analysis) on the given data.
+         * 
+         * This algorithm tries to find the "principal components" of the
+         * data given. They are defined as the pairwise normal
+         * vectors with maximal variance
+         * when the data is projected on them. Taking the maximal variance
+         * leads to the minimal error.
+         * 
+         * @return The matrix U, containing the basis vectors of the subspace in which
+         *      the data is whitened.
+         */
+        Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> doPCA(const std::vector<std::pair<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>, double> >& trainingData);
+    public:
+        /**
+         * @brief Creates a new Fisher LDA (Linear Discriminant Analysis) classifier.
+         * @param applyPCA Determines if a principal component analysis
+         *      should be performed on the data before applying the
+         *      Fisher LDA. Sometimes, the results are better with PCA;
+         *      but sometimes they are worse. Depends on the problem.
+         */
+        FisherLDAClassifier(bool applyPCA = false);
+        bool learnModel(const std::vector<std::pair<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>, double> >& trainingData, ProgressCallbackCaller* callback = NULL);
+        double classifyVector(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& vector);
+        
+        /**
+         * @brief Return the mean of the data with which the model was formed.
+         * @return the mean of the data with which the model was formed.
+         */
+        const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& getAllClassMean()                  {return mean;}
+        /**
+         * @brief Return the mean of class 1.
+         * @return the mean of class 1.
+         */
+        const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& getClass1Mean()                    {return mean1;}
+        /**
+         * @brief Return the mean of class 2.
+         * @return the mean of class 2.
+         */
+        const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& getClass2Mean()                    {return mean2;}
+        /**
+         * @brief Return the covariance matrix of class 1.
+         * @return the covariance matrix of class 1.
+         */
+        const Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>& getClass1Covariance() {return covariance1;}
+        /**
+         * @brief Return the covariance matrix of class 2.
+         * @return the covariance matrix of class 2.
+         */
+        const Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>& getClass2Covariance() {return covariance2;}
+        /**
+         * @brief Return the normal vector of the class-separating hyperplane.
+         * @return the normal vector of the class-separating hyperplane
+         */
+        const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& getHyperplaneNormalVector()        {return w;}
+        const Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>& getSw()               {return Sw;}
+        const Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>& getSb()               {return Sb;}
     };
 }
 
