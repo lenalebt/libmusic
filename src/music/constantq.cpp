@@ -127,6 +127,8 @@ namespace music
                 fft.docFFT((kiss_fft_cpx*)(temporalKernel+k*atomHop), cqt->fftLen, (kiss_fft_cpx*)(spectralKernel+k*atomHop), fftlength);
                 assert(cqt->fftLen == fftlength);
             }
+            delete[] tmpTemporalKernel;
+            delete[] temporalKernel;
             
             //we have our spectral kernels now in spectralKernel. save it!
             for (int k=0; k<cqt->atomNr; k++)
@@ -137,19 +139,20 @@ namespace music
                 }
             }
             
-            delete[] temporalKernel;
             delete[] spectralKernel;
         }
         
+        //copy the data from our tmpFKernel to our sparse fKernel.
         cqt->fKernel = new Eigen::SparseMatrix<std::complex<kiss_fft_scalar> >(binsPerOctave * cqt->atomNr, cqt->fftLen);
         for (int i=0; i<binsPerOctave * cqt->atomNr; i++)
         {
             for (int j=0; j<cqt->fftLen; j++)
             {
                 if (abs((*tmpFKernel)(i,j)) >= threshold)
-                    cqt->fKernel->insert(i, j) = (*tmpFKernel)(i,j);
+                    cqt->fKernel->insert(i, j) = conj((*tmpFKernel)(i,j));
             }
         }
+        delete tmpFKernel;
         
         //should now be able to do some cqt.
         
