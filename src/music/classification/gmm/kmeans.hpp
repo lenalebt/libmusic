@@ -6,12 +6,13 @@
 
 namespace music
 {
+    template <typename T>
     class KMeans
     {
     private:
         
     protected:
-        std::vector<Eigen::VectorXd> means;
+        std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> > means;
     public:
         KMeans();
         /**
@@ -34,13 +35,16 @@ namespace music
          * @return If the algorithm finished by fulfilling the convergence criterion,
          *      or stopped by reaching the maximum number of iterations.
          */
-        bool trainKMeans(const std::vector<Eigen::VectorXd>& data, unsigned int meanCount=10, unsigned int maxIterations=500, const std::vector<Eigen::VectorXd>& init=std::vector<Eigen::VectorXd>());
+        bool trainKMeans(const std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> >& data, unsigned int meanCount=10, unsigned int maxIterations=500, const std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> >& init=std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> >());
+        
+        void getInitGuess(const std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> >& data, std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> >& initGuess);
+        
         /**
          * @brief Return the means found by the algorithm.
          * @remarks Will return an empty list if the algorithm has not been run beforehand.
          * @return the means found by the algorithm.
          */
-        std::vector<Eigen::VectorXd> getMeans() const       {return means;}
+        std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> > getMeans() const       {return means;}
     };
 }
 

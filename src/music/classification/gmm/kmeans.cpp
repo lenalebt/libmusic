@@ -5,13 +5,15 @@
 
 namespace music
 {
-    KMeans::KMeans() :
+    template<typename T>
+    KMeans<T>::KMeans() :
         means()
     {
         
     }
     
-    bool KMeans::trainKMeans(const std::vector<Eigen::VectorXd>& data, unsigned int meanCount, unsigned int maxIterations, const std::vector<Eigen::VectorXd>& init)
+    template <typename T>
+    bool KMeans<T>::trainKMeans(const std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> >& data, unsigned int meanCount, unsigned int maxIterations, const std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> >& init)
     {
         assert(data.size() > 0u);
         DEBUG_OUT("initialize k-means algorithm...", 20);
@@ -34,12 +36,13 @@ namespace music
         }
         
         //initialize assignments
-        int* assignments = new int[dataSize];
-        int* oldAssignments = new int[dataSize];
-        int* tmp = NULL;
+        unsigned char* assignments = new unsigned char[dataSize];
+        unsigned char* oldAssignments = new unsigned char[dataSize];
+        unsigned char* tmp = NULL;
         
-        int assignment;
+        unsigned char assignment;
         double minDistance, distance;
+        unsigned long assignmentChanges;
         
         std::vector<unsigned int> vectorCountInCluster(meanCount, 0);
         
@@ -51,16 +54,19 @@ namespace music
             iteration++;
             
             //will be set to "false" if convergence is not reached
-            converged = true;
+            //converged = true;
             
             DEBUG_OUT("setting assignments...", 25);
+            assignmentChanges = 0;
             for (unsigned int i=0; i<dataSize; i++)
             {
                 assignment = -1;
                 distance = minDistance = std::numeric_limits<double>::max();
                 for (unsigned int j=0; j<means.size(); j++)
                 {
-                    distance = (means[j] - data[i]).norm();
+                    //since we don't need the distance, but only the /smallest/ distance, we can omit the sqrt operation.
+                    //distance = (means[j] - data[i]).norm();
+                    distance = (means[j] - data[i]).array().square().sum();
                     if (distance < minDistance)
                     {
                         minDistance = distance;
@@ -71,14 +77,18 @@ namespace music
                 
                 //if "false" at one element, will be set to false in the end. if not: no change, convergence.
                 //TODO: this criterion does not help when oscillating.
-                converged = converged && (oldAssignments[i] == assignment);
+                //converged = converged && (oldAssignments[i] == assignment);
+                assignmentChanges += (oldAssignments[i] == assignment) ? 0 : 1;
             }
+            if (double(assignmentChanges) / double(dataSize) < 0.002)
+                converged = true;
+            DEBUG_VAR_OUT(assignmentChanges, 0);
             
             DEBUG_OUT("recalculating means...", 25);
             //first set means to zero...
             for (unsigned int i=0; i<meanCount; i++)
             {
-                means[i] = Eigen::VectorXd(dimension);
+                means[i] = Eigen::Matrix<T, Eigen::Dynamic, 1>(dimension);
                 means[i].setZero();
                 vectorCountInCluster[i] = 0;
             }
@@ -115,4 +125,13 @@ namespace music
         
         return converged;
     }
+    
+    template<typename T>
+    void KMeans<T>::getInitGuess(const std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> >& data, std::vector<Eigen::Matrix<T, Eigen::Dynamic, 1> >& initGuess)
+    {
+        
+    }
+    
+    template class KMeans<double>;
+    template class KMeans<float>;
 }
