@@ -631,6 +631,16 @@ namespace music
             
             gaussians.push_back(gauss);
         }
+        
+        //set normalization factor
+        double sumOfWeights = 0.0;
+        normalizationFactor = 0.0;
+        for (unsigned int g=0; g<gaussians.size(); g++)
+        {
+            sumOfWeights += gaussians[g]->getWeight();
+            normalizationFactor += gaussians[g]->calculateValue(gaussians[g]->getMean());
+        }
+        normalizationFactor /= gaussians.size();
     }
     
     template <typename ScalarType>
@@ -653,6 +663,7 @@ namespace music
     template <typename ScalarType>
     GaussianMixtureModel<ScalarType>* GaussianMixtureModel<ScalarType>::operator+(const GaussianMixtureModel<ScalarType>& other)
     {
+        //will take the gaussians of the two gmms and mix them.
         GaussianMixtureModel<ScalarType>* newgmm = NULL;
         std::vector<Gaussian<ScalarType>*> gaussians1 = this->getGaussians();
         std::vector<Gaussian<ScalarType>*> gaussians2 = other.getGaussians();
@@ -663,16 +674,59 @@ namespace music
         {
             fullCov |= !isDiagonal((*it)->getCovarianceMatrix());
         }
-        for (typename std::vector<Gaussian<ScalarType>*>::const_iterator it = gaussians2.begin(); it != gaussians1.end(); it++)
+        for (typename std::vector<Gaussian<ScalarType>*>::const_iterator it = gaussians2.begin(); it != gaussians2.end(); it++)
         {
             fullCov |= !isDiagonal((*it)->getCovarianceMatrix());
         }
         
+        //okay, two processes for different matricies...
         if (fullCov)
+        {
             newgmm = new GaussianMixtureModelFullCov<ScalarType>();
+            GaussianFullCov<ScalarType>* full = NULL;
+            for (typename std::vector<Gaussian<ScalarType>*>::const_iterator it = gaussians1.begin(); it != gaussians1.end(); it++)
+            {
+                full = new GaussianFullCov<ScalarType>((*it)->getWeight(), (*it)->getMean());
+                full->setCovarianceMatrix((*it)->getCovarianceMatrix());
+                newgmm->gaussians.push_back(full);
+            }
+            for (typename std::vector<Gaussian<ScalarType>*>::const_iterator it = gaussians2.begin(); it != gaussians2.end(); it++)
+            {
+                full = new GaussianFullCov<ScalarType>((*it)->getWeight(), (*it)->getMean());
+                full->setCovarianceMatrix((*it)->getCovarianceMatrix());
+                newgmm->gaussians.push_back(full);
+            }
+        }
         else
+        {
             newgmm = new GaussianMixtureModelDiagCov<ScalarType>();
+            GaussianDiagCov<ScalarType>* diag = NULL;
+            for (typename std::vector<Gaussian<ScalarType>*>::const_iterator it = gaussians1.begin(); it != gaussians1.end(); it++)
+            {
+                diag = new GaussianDiagCov<ScalarType>((*it)->getWeight(), (*it)->getMean());
+                diag->setCovarianceMatrix((*it)->getCovarianceMatrix());
+                newgmm->gaussians.push_back(diag);
+            }
+            for (typename std::vector<Gaussian<ScalarType>*>::const_iterator it = gaussians2.begin(); it != gaussians2.end(); it++)
+            {
+                diag = new GaussianDiagCov<ScalarType>((*it)->getWeight(), (*it)->getMean());
+                diag->setCovarianceMatrix((*it)->getCovarianceMatrix());
+                newgmm->gaussians.push_back(diag);
+            }
+        }
         
+        //set normalization factor
+        double sumOfWeights = 0.0;
+        newgmm->normalizationFactor = 0.0;
+        int gaussianCount = gaussians1.size()+gaussians2.size();
+        for (int g=0; g<gaussianCount; g++)
+        {
+            sumOfWeights += newgmm->gaussians[g]->getWeight();
+            newgmm->normalizationFactor += newgmm->gaussians[g]->calculateValue(newgmm->gaussians[g]->getMean());
+        }
+        newgmm->normalizationFactor /= gaussianCount;
+        
+        return newgmm;
     }
     
     template class GaussianFullCov<double>;
