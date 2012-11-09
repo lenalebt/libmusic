@@ -197,6 +197,9 @@ namespace music
     void GaussianMixtureModel<ScalarType>::trainGMM(const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, int gaussianCount)
     {
         //TODO: precompute good starting vectors.
+        for (unsigned int i=0; i<gaussians.size(); i++)
+            delete gaussians[i];
+        gaussians.clear();
         gaussians = this->emAlg(std::vector<Gaussian<ScalarType>*>(), data, gaussianCount, 10);
         //TODO: check result for being a local minimum
     }

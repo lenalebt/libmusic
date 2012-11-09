@@ -213,6 +213,8 @@ namespace music
         //now, database file is open.
         //IF NEEDED: may add extra open statements here (PRAGMA commands)
         
+        sqlite3_extended_result_codes(_db, 1);
+        
         return true;
     }
     
@@ -225,7 +227,7 @@ namespace music
         std::list<std::string> ctstatements;
         std::list<std::string> cistatements;
         
-        pragmas.push_back("PRAGMA foreign_keys = ON;");
+        //pragmas.push_back("PRAGMA foreign_keys = ON;");
         
         //create list of create table statements
         ctstatements.push_back("CREATE TABLE IF NOT EXISTS recording(recordingID INTEGER PRIMARY KEY, "
@@ -522,6 +524,7 @@ namespace music
             if (rc != SQLITE_OK)
             {
                 ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
+                ERROR_OUT(sqlite3_errmsg(_db), 10);
                 return false;
             }
         }

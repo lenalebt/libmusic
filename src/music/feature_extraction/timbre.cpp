@@ -154,7 +154,9 @@ namespace music
             callback->progress(0.8,  "calculating model 3");
         model->trainGMM(timbreVectors, modelSize);
         GaussianMixtureModel<kiss_fft_scalar>* tmpModel3 = model->clone();
+        
         delete model;
+        model = NULL;
         
         if (callback)
             callback->progress(0.95, "choose best model");
@@ -190,7 +192,6 @@ namespace music
                 delete tmpModel2;
             }
         }
-        
         
         if (callback)
             callback->progress(1.0, "finished");
