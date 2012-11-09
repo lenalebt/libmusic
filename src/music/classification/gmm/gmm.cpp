@@ -114,6 +114,7 @@ namespace music
         assert(this->rng != NULL);
         calculatePrefactor();
         ldlt.compute(diagCov.asDiagonal());
+        llt.compute(diagCov.asDiagonal());
     }
     
     template <typename ScalarType>
@@ -185,6 +186,7 @@ namespace music
         assert(this->rng != NULL);
         calculatePrefactor();
         ldlt.compute(fullCov);
+        llt.compute(fullCov);
     }
     
     /**
