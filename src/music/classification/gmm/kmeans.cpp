@@ -34,7 +34,10 @@ namespace music
         }
         
         //initialize assignments
-        std::vector<int> assignments(dataSize, -1);
+        int* assignments = new int[dataSize];
+        int* oldAssignments = new int[dataSize];
+        int* tmp = NULL;
+        
         int assignment;
         double minDistance, distance;
         
@@ -46,6 +49,9 @@ namespace music
         while (!converged && (iteration < maxIterations))
         {
             iteration++;
+            
+            //will be set to "false" if convergence is not reached
+            converged = true;
             
             DEBUG_OUT("setting assignments...", 25);
             for (unsigned int i=0; i<dataSize; i++)
@@ -62,6 +68,10 @@ namespace music
                     }
                 }
                 assignments[i] = assignment;
+                
+                //if "false" at one element, will be set to false in the end. if not: no change, convergence.
+                //TODO: this criterion does not help when oscillating.
+                converged = converged && (oldAssignments[i] == assignment);
             }
             
             DEBUG_OUT("recalculating means...", 25);
@@ -83,6 +93,12 @@ namespace music
             {
                 means[i] = means[i] / vectorCountInCluster[i];
             }
+            
+            //for determining convergence
+            tmp = oldAssignments;
+            oldAssignments = assignments;
+            assignments = tmp;
+            tmp = NULL;
         }
         
         if (converged)
@@ -93,5 +109,8 @@ namespace music
         {
             DEBUG_OUT("k-means stopped after " << iteration << " iterations.", 20);
         }
+        
+        delete[] assignments;
+        delete[] oldAssignments;
     }
 }
