@@ -243,7 +243,7 @@ namespace tests
         music::DCT dct;
         //music::FFT fft;
         
-        DEBUG_OUT("calculating the dct of a signal...", 0);
+        DEBUG_OUT("calculating the dct of a signal of length 128...", 0);
         
         kiss_fft_scalar* mem = new kiss_fft_scalar[130];
         kiss_fft_scalar* outmem = new kiss_fft_scalar[130];
@@ -263,6 +263,38 @@ namespace tests
         for(int i=0; i<128; i++)
         {
             std::cerr << outmem[i] << " ";
+        }
+        std::cerr << std::endl;
+        
+        DEBUG_OUT("calculating the dct of a signal of length 4...", 0);
+        mem[0] = 0.0;
+        mem[1] = 1.0;
+        mem[2] = 0.0;
+        mem[3] = -1.0;
+        
+        for(int i=0; i<4; i++)
+        {
+            std::cerr << mem[i] << " ";
+            outmem[i] = 0;
+        }
+        std::cerr << std::endl;
+        
+        dct.doDCT2(mem, 4, outmem);
+        
+        for(int i=0; i<4; i++)
+        {
+            std::cerr << outmem[i] << " ";
+        }
+        std::cerr << std::endl;
+        
+        for (int k=0; k<4; k++)
+        {
+            double sum=0.0;
+            for (int n=0; n<4; n++)
+            {
+                sum += mem[n] * cos(M_PI/4.0 * (double(n)+0.5) * double(k));
+            }
+            std::cerr << sum << " ";
         }
         std::cerr << std::endl;
         

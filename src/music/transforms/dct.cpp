@@ -7,6 +7,18 @@ namespace music
     
     void DCT::doDCT2(kiss_fft_scalar* timeData, int timeLength, kiss_fft_scalar* freqData)
     {
+        
+        for (int k=0; k<timeLength; k++)
+        {
+            double sum=0.0;
+            for (int n=0; n<timeLength; n++)
+            {
+                sum += timeData[n] * cos(M_PI/double(timeLength) * (double(n)+0.5) * double(k));
+            }
+            freqData[k] = sum;
+        }
+        //the following code contains some errors, but it is fast. has been replaced by the above slower version, which is accurate.
+        #if 0
         //taken from "Numerical Recipes, Third Edition"
         //imho, this code is veeeery ugly
         int n=timeLength;
@@ -45,6 +57,7 @@ namespace music
             freqData[i] = y1;
             freqData[i+1] = y2;
         }
+        
         sum = 0.5 * tmpData2[1];
         for (int i=n-1; i>0; i-=2)
         {
@@ -55,6 +68,7 @@ namespace music
         
         delete[] tmpData;
         delete[] tmpData2;
+        #endif
     }
     void DCT::doDCT1(kiss_fft_scalar* timeData, int timeLength, kiss_fft_scalar* freqData)
     {
