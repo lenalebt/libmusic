@@ -45,14 +45,14 @@ namespace music
         //this is what they use in the matlab implementation. Where went deltaOmega from eq.5 in the paper?
         cqt->Q = q/(std::pow(2.0, 1.0/binsPerOctave) - 1);
         //calculate the length of the largest atom in samples
-        cqt->nkMax = Q * double(fs) / double(fMin) + 0.5;   //+0.5 for rounding
+        cqt->nkMax = cqt->Q * double(fs) / double(fMin) + 0.5;   //+0.5 for rounding
         
         //calculate the length of the shortest atom in samples
-        int nkMin = Q * double(fs) / (double(fMin) * std::pow(2.0, double(binsPerOctave-1)/double(binsPerOctave)) + 0.5;    //+0.5 for rounding
+        int nkMin = cqt->Q * double(fs) / (double(fMin) * std::pow(2.0, double(binsPerOctave-1)/double(binsPerOctave))) + 0.5;    //+0.5 for rounding
         int atomHop = nkMin * atomHopFactor + 0.5;
         
         //TODO: Calculate spectral kernels for one octave
-        DynamicSparseMatrix tmpFKernel;     //Eigens DynamicSparseMatrix can be filled in an easier way than its SparseMatrix.
+        Eigen::DynamicSparseMatrix<std::complex<float> > tmpFKernel;     //Eigens DynamicSparseMatrix can be filled in an easier way than its SparseMatrix.
         //take a look at line 60 in genCQTkernel.m
         
         
