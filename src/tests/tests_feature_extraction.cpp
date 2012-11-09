@@ -823,11 +823,11 @@ namespace tests
             double time;
             std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > data;
             //for (double time=0.0; time<transformResult->getOriginalDuration(); time += 0.125/8)
-            for (int i=0; i<transformResult->getOriginalDuration() * 32; i++)
+            for (int i=0; i<transformResult->getOriginalDuration() * 100; i++)
             {
-                time = (1.0/32.0) * i;
+                time = (1.0/100.0) * i;
                 //DEBUG_VAR_OUT(time, 0);
-                Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> tmp = t.estimateTimbre(time, time + 0.02);
+                Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> tmp = t.estimateTimbre(time, time + 0.01);
                 //if (tmp.norm() > 0.1)
                 //    data.push_back(tmp.normalized());
                 if (tmp.size() > 1)

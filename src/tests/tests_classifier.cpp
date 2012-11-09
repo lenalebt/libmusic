@@ -209,7 +209,8 @@ namespace tests
         int dataCount=10000;
         int gaussianCount=3;
         
-        music::GaussianMixtureModelDiagCov<kiss_fft_scalar> gmm;
+        music::GaussianMixtureModelDiagCov<kiss_fft_scalar> gmm1;
+        music::GaussianMixtureModelDiagCov<kiss_fft_scalar> gmm2;
         music::KMeans<kiss_fft_scalar> kmeans;
         music::GaussianDiagCov<kiss_fft_scalar> gdc1(dimension);
         music::GaussianDiagCov<kiss_fft_scalar> gdc2(dimension);
@@ -264,14 +265,26 @@ namespace tests
         }
         */
         
-        
-        gmm.trainGMM(data, gaussianCount);
-        std::vector<music::Gaussian<kiss_fft_scalar>*> gaussians = gmm.getGaussians();
+        DEBUG_OUT("training GMM 1...", 10);
+        gmm1.trainGMM(data, gaussianCount);
+        DEBUG_OUT("training GMM 2...", 10);
+        gmm2.trainGMM(data, gaussianCount);
+        DEBUG_OUT("results of GMM 1:", 10);
+        std::vector<music::Gaussian<kiss_fft_scalar>*> gaussians = gmm1.getGaussians();
         for (typename std::vector<music::Gaussian<kiss_fft_scalar>*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
         {
             DEBUG_OUT("gaussian mean: " << (*it)->getMean(), 0);
             DEBUG_OUT("gaussian sigma: " << (*it)->getCovarianceMatrix(), 0);
         }
+        DEBUG_OUT("results of GMM 2:", 10);
+        gaussians = gmm2.getGaussians();
+        for (typename std::vector<music::Gaussian<kiss_fft_scalar>*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
+        {
+            DEBUG_OUT("gaussian mean: " << (*it)->getMean(), 0);
+            DEBUG_OUT("gaussian sigma: " << (*it)->getCovarianceMatrix(), 0);
+        }
+        DEBUG_VAR_OUT(gmm1.compareTo(gmm2), 0);
+        DEBUG_VAR_OUT(gmm2.compareTo(gmm1), 0);
         
         
         return EXIT_FAILURE;
