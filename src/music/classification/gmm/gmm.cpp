@@ -144,7 +144,7 @@ namespace music
                     int rank = 0;
                     for (int i=0; i<eigenvalues.size(); i++)
                     {
-                        if (eigenvalues[i] > 200.0*eigenvalues.size() * std::numeric_limits<kiss_fft_scalar>::epsilon())   //sum only nonzero eigenvalues. zero are values smaller than 2.0*dimension*machineepsilon
+                        if (eigenvalues[i] > 200.0*eigenvalues.size() * std::numeric_limits<kiss_fft_scalar>::epsilon())   //sum only nonzero eigenvalues. zero are values smaller than 200.0*dimension*machineepsilon
                         {
                             logPseudoDet += log(eigenvalues[i]);
                             rank++;

@@ -2,7 +2,7 @@
 #define GAUSSIAN_ONECLASS_HPP
 
 #include "classifier.hpp"
-#include "gmm.hpp"
+#include "gaussian.hpp"
 
 namespace music
 {
