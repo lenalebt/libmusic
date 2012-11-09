@@ -51,7 +51,7 @@ namespace music
         int octaveCount;    //how many octaves did we process?
         int maxOctave;      //highest octave
         //array of matricies. we have one matrix for every octave.
-        //the matricies are dense, with one row being an octave bin.    TODO: is that right?
+        //the matricies are dense, with one row being an octave bin.
         Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >** octaveMatrix;
     public:
         ~ConstantQTransformResult();
