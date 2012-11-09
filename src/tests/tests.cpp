@@ -231,8 +231,11 @@ namespace tests
         lowpassFilter = musicaccess::IIRFilter::createLowpassFilter(0.25);
         CHECK_OP(lowpassFilter, !=, NULL);
         
+        double q=1.0;
+        int bins=12;
+        
         DEBUG_OUT("creating constant q transform kernel...", 10);
-        cqt = music::ConstantQTransform::createTransform(lowpassFilter, 12, 25, 11025, 22050, 1.0, 0.0, 0.0005, 0.25);
+        cqt = music::ConstantQTransform::createTransform(lowpassFilter, bins, 25, 11025, 22050, q, 0.0, 0.0005, 0.25);
         CHECK_OP(cqt, !=, NULL);
         CHECK_OP(cqt->window<float>(20, 10), !=, 0.0);
         CHECK_EQ(cqt->log2(2), 1);
@@ -240,22 +243,44 @@ namespace tests
         CHECK_EQ(cqt->log2(32), 5);
         CHECK_EQ(cqt->log2(256), 8);
         
-        CHECK_EQ(cqt->getBinsPerOctave(), 12);
-        CHECK_EQ(cqt->getFMax(), 10548.081821211835631);
-        //fMin will be recalculated
-        CHECK_EQ(cqt->getFMin(), 21.826764464562739);
-        CHECK_EQ(cqt->getKernelFMin(), 5587.651702928061241);
-        CHECK_EQ(cqt->getFs(), 22050);
-        CHECK_OP(cqt->getLowpassFilter(), !=, NULL);
-        CHECK_EQ(cqt->getOctaveCount(), 9);
-        CHECK_EQ(cqt->getq(), 1.0);
-        CHECK_EQ(cqt->getQ(), 16.817153745105756);
-        CHECK_EQ(cqt->getThreshold(), 0.0005);
-        CHECK_EQ(cqt->getAtomHopFactor(), 0.25);
-        CHECK_EQ(cqt->getAtomNr(), 7);
-        CHECK_EQ(cqt->getFFTLength(), 128);
-        CHECK_EQ(cqt->getFFTHop(), 63);
-        CHECK_EQ(cqt->getTranspose(), 0.0);
+        if (cqt->getq() == 1.0)
+        {
+            CHECK_EQ(cqt->getBinsPerOctave(), 12);
+            CHECK_EQ(cqt->getFMax(), 10548.081821211835631);
+            //fMin will be recalculated
+            CHECK_EQ(cqt->getFMin(), 21.826764464562739);
+            CHECK_EQ(cqt->getKernelFMin(), 5587.651702928061241);
+            CHECK_EQ(cqt->getFs(), 22050);
+            CHECK_OP(cqt->getLowpassFilter(), !=, NULL);
+            CHECK_EQ(cqt->getOctaveCount(), 9);
+            CHECK_EQ(cqt->getq(), 1.0);
+            CHECK_EQ(cqt->getQ(), 16.817153745105756);
+            CHECK_EQ(cqt->getThreshold(), 0.0005);
+            CHECK_EQ(cqt->getAtomHopFactor(), 0.25);
+            CHECK_EQ(cqt->getAtomNr(), 7);
+            CHECK_EQ(cqt->getFFTLength(), 128);
+            CHECK_EQ(cqt->getFFTHop(), 63);
+            CHECK_EQ(cqt->getTranspose(), 0.0);
+        }
+        else
+        {
+            CHECK_EQ(cqt->getBinsPerOctave(), 12);
+            CHECK_EQ(cqt->getFMax(), 10548.081821211835631);
+            //fMin will be recalculated
+            CHECK_EQ(cqt->getFMin(), 21.826764464562739);
+            CHECK_EQ(cqt->getKernelFMin(), 5587.651702928061241);
+            CHECK_EQ(cqt->getFs(), 22050);
+            CHECK_OP(cqt->getLowpassFilter(), !=, NULL);
+            CHECK_EQ(cqt->getOctaveCount(), 9);
+            CHECK_EQ(cqt->getq(), 2.0);
+            CHECK_EQ(cqt->getQ(), 2*16.817153745105756);
+            CHECK_EQ(cqt->getThreshold(), 0.0005);
+            CHECK_EQ(cqt->getAtomHopFactor(), 0.25);
+            CHECK_EQ(cqt->getAtomNr(), 7);
+            CHECK_EQ(cqt->getFFTLength(), 256);
+            CHECK_EQ(cqt->getFFTHop(), 126);
+            CHECK_EQ(cqt->getTranspose(), 0.0);
+        }
         
         //std::cerr << "fKernel:" << *(cqt->getFKernel()) << std::endl;
         
@@ -265,33 +290,41 @@ namespace tests
         CHECK(file.isFileOpen());
         
         float* buffer = NULL;
-        buffer = new float[1424384+2];
+        buffer = new float[file.getSampleCount()];
         CHECK(buffer != NULL);
         
-        CHECK_EQ_TYPE(file.readSamples(buffer, file.getSampleCount()), file.getSampleCount(), unsigned int);
+        int sampleCount = file.readSamples(buffer, file.getSampleCount());
+        //estimated size might not be accurate!
+        CHECK_OP(sampleCount, >=, 0.9*file.getSampleCount());
+        CHECK_OP(sampleCount, <=, 1.1*file.getSampleCount());
         
-        DEBUG_OUT("checking bounds of input data...", 0)
+        DEBUG_OUT("checking bounds of input data...", 0);
         for (int i=0; i<file.getSampleCount(); i++)
         {
             if ((buffer[i] > 1.0) || (buffer[i] < -1.0))
             {
-                CHECK(/*values out of bounds!*/ false);
+                DEBUG_OUT("input data buffer[" << i << "]: " << buffer[i], 0);
+                CHECK_OP(buffer[i], <, 1.0);
+                CHECK_OP(buffer[i], >, -1.0);
             }
         }
         
+        
         musicaccess::Resampler22kHzMono resampler;
-        int sampleCount = file.getSampleCount();
+        //int sampleCount = file.getSampleCount();
         DEBUG_OUT("resampling input file...", 10);
         resampler.resample(file.getSampleRate(), &buffer, sampleCount, file.getChannelCount());
         
         CHECK_OP(sampleCount, <, file.getSampleCount());
         
-        DEBUG_OUT("checking bounds of resampled data...", 0)
+        DEBUG_OUT("checking bounds of resampled data...", 0);
         for (int i=0; i<sampleCount; i++)
         {
             if ((buffer[i] > 1.0) || (buffer[i] < -1.0))
             {
-                CHECK(/*values out of bounds!*/ false);
+                DEBUG_OUT("resampled data buffer[" << i << "]: " << buffer[i], 0);
+                CHECK_OP(buffer[i], <, 1.0);
+                CHECK_OP(buffer[i], >, -1.0);
             }
         }
         
@@ -300,7 +333,7 @@ namespace tests
         CHECK(transformResult != NULL);
         
         CHECK_EQ(transformResult->getOriginalDuration(), 16.149433106575962);
-        /*
+        
         DEBUG_OUT("saving absolute values of the cqt transform result to file \"octaves.dat\"", 10);
         std::ofstream outstr("octaves.dat");
         for (int octave=transformResult->getOctaveCount()-1; octave>=0; octave--)
@@ -314,7 +347,68 @@ namespace tests
                 }
                 outstr << std::endl;
             }
-        }*/
+        }
+        
+        delete transformResult;
+        //delete[] buffer;
+        delete cqt;
+        delete lowpassFilter;
+        return EXIT_SUCCESS;
+    }
+    int applyConstantQ(std::string filename, std::string bins, std::string q)
+    {
+        music::ConstantQTransform* cqt = NULL;
+        musicaccess::IIRFilter* lowpassFilter = NULL;
+        
+        lowpassFilter = musicaccess::IIRFilter::createLowpassFilter(0.25);
+        CHECK_OP(lowpassFilter, !=, NULL);
+        
+        double q_fact=2.0;
+        int binsPerOctave=24;
+        
+        DEBUG_OUT("creating constant q transform kernel...", 10);
+        cqt = music::ConstantQTransform::createTransform(lowpassFilter, binsPerOctave, 25, 11025, 22050, q_fact, 0.0, 0.0005, 0.25);
+        CHECK_OP(cqt, !=, NULL);
+        
+        musicaccess::SoundFile file;
+        CHECK(!file.isFileOpen());
+        CHECK(file.open(filename, true));
+        CHECK(file.isFileOpen());
+        
+        float* buffer = NULL;
+        buffer = new float[file.getSampleCount()];
+        CHECK(buffer != NULL);
+        
+        int sampleCount = file.readSamples(buffer, file.getSampleCount());
+        //estimated size might not be accurate!
+        CHECK_OP(sampleCount, >=, 0.9*file.getSampleCount());
+        CHECK_OP(sampleCount, <=, 1.1*file.getSampleCount());
+        
+        musicaccess::Resampler22kHzMono resampler;
+        //int sampleCount = file.getSampleCount();
+        DEBUG_OUT("resampling input file...", 10);
+        resampler.resample(file.getSampleRate(), &buffer, sampleCount, file.getChannelCount());
+        
+        CHECK_OP(sampleCount, <, file.getSampleCount());
+        
+        DEBUG_OUT("applying constant q transform...", 10);
+        music::ConstantQTransformResult* transformResult = cqt->apply(buffer, sampleCount);
+        CHECK(transformResult != NULL);
+        
+        DEBUG_OUT("saving absolute values of the cqt transform result to file \"octaves.dat\"", 10);
+        std::ofstream outstr("octaves.dat");
+        for (int octave=transformResult->getOctaveCount()-1; octave>=0; octave--)
+        {
+            for (int bin=transformResult->getBinsPerOctave()-1; bin >= 0; bin--)
+            {
+                for (int i=0; i < 100*transformResult->getOriginalDuration(); i++)
+                {
+                    double time = 0.01 * i;
+                    outstr << abs(transformResult->getNoteValueNoInterpolation(time, octave, bin)) << " ";
+                }
+                outstr << std::endl;
+            }
+        }
         
         delete transformResult;
         //delete[] buffer;

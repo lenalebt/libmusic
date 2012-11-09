@@ -383,11 +383,15 @@ namespace music
     
     std::complex<float> ConstantQTransformResult::getNoteValueNoInterpolation(float time, int octave, int bin) const
     {
-        //int bin = (maxBinMidiNote - midiNoteNumber);
-        int pos = octaveMatrix[octave]->cols() * (time/originalDuration);
-        return (*octaveMatrix[octave])(bin, pos);
+        if (time <= 0.0f)
+            return std::complex<float>(0.0f, 0.0f);
         
-        //return std::complex<float>(0.0f, 0.0f);
+        int pos = (octaveMatrix[octave]->cols()+1) * (time/originalDuration);
+        
+        if (pos >= octaveMatrix[octave]->cols())
+            return std::complex<float>(0.0f, 0.0f);
+        
+        return (*octaveMatrix[octave])(bin, pos);
     }
     std::complex<float> ConstantQTransformResult::getNoteValueLinearInterpolation(float time, int octave, int bin) const
     {
