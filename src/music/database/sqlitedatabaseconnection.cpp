@@ -333,25 +333,57 @@ namespace music
     bool SQLiteDatabaseConnection::addOrGetGenre(id_datatype& id, std::string genreName)
     {
         int rc;
-        if (_saveGenreStatement == NULL)
-        {
-            rc = sqlite3_prepare_v2(_db, "INSERT INTO genre VALUES(@genreID, @genreName);", -1, &_saveGenreStatement, NULL);
-            if (rc != SQLITE_OK)
-            {
-                ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
-                return false;
-            }
-        }
         
         //first take a look if the genre can be found, so we don't need to save it another time
-        id_datatype genreID = getGenreIDByName(genreName);
-        if (genreID != -1)
+        id_datatype genreID;
+        bool success = getGenreIDByName(genreName, genreID);
+        //could not read data. error!
+        if (!success)
         {
+            ERROR_OUT("could not read genre id.", 10);
+            return false;
+        }
+        
+        if (genreID != -1)
+        {   //found entry. take this one!
             id = genreID;
             return true;
         }
+        else
+        {   //did not find entry. create a new one!
+            if (_saveGenreStatement == NULL)
+            {
+                rc = sqlite3_prepare_v2(_db, "INSERT INTO genre VALUES(@genreID, @genreName);", -1, &_saveGenreStatement, NULL);
+                if (rc != SQLITE_OK)
+                {
+                    ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
+                    return false;
+                }
+            }
+            
+            //bind parameters
+            sqlite3_bind_null(_saveGenreStatement, 1);
+            sqlite3_bind_text(_saveGenreStatement, 2, genreName.c_str(), -1, SQLITE_TRANSIENT);
+            
+            rc = sqlite3_step(_saveGenreStatement);
+            if (rc != SQLITE_DONE)
+            {
+                ERROR_OUT("Failed to execute statement. Resultcode: " << rc, 10);
+                return false;
+            }
+            
+            rc = sqlite3_reset(_saveGenreStatement);
+            if (rc != SQLITE_OK)
+            {
+                ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
+                return false;
+            }
+            
+            id = getLastInsertRowID();
+            return true;
+        }
         
-        return false;
+        return true;
     }
     
     bool SQLiteDatabaseConnection::addOrGetAlbum(id_datatype& id, std::string albumName)
@@ -412,7 +444,7 @@ namespace music
         
         return true;
     }
-     SQLiteDatabaseConnection::getAlbumIDByName(std::string albumName, SQLiteDatabaseConnection::id_datatype albumID)
+    bool SQLiteDatabaseConnection::getAlbumIDByName(std::string albumName, SQLiteDatabaseConnection::id_datatype& albumID)
     {
         albumID = -1;
         int rc;
@@ -459,7 +491,7 @@ namespace music
         
         return true;
     }
-    SQLiteDatabaseConnection::getArtistIDByName(std::string artistName, SQLiteDatabaseConnection::id_datatype)
+    bool SQLiteDatabaseConnection::getArtistIDByName(std::string artistName, SQLiteDatabaseConnection::id_datatype& artistID)
     {
         artistID = -1;
         int rc;
