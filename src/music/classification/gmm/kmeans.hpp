@@ -16,7 +16,7 @@ namespace music
      * It is possible to provide the algorithm with some guesses of initial
      * vectors, but you don't have to provide them. If you don't, random
      * data vectors will be chosen. You may also try to find better guesses
-     * by feeding the output of getInitGuess() into trainKMeans(). Doing so
+     * by feeding the output of calculateInitGuess() into trainKMeans(). Doing so
      * leads to the k-means++-algorithm.
      * 
      * @tparam ScalarType Sets the type of the scalars of the vectors used.
@@ -82,7 +82,7 @@ namespace music
          * @param[out] initGuess The initial guesses will be given back in this vector.
          * @param meanCount The number of clusters, or means.
          */
-        void getInitGuess(const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& initGuess, unsigned int meanCount=10);
+        void calculateInitGuess(const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& initGuess, unsigned int meanCount=10);
         
         /**
          * @brief Return the means found by the algorithm.

@@ -133,7 +133,7 @@ namespace music
     }
     
     template<typename ScalarType, typename AssignmentType>
-    void KMeans<ScalarType, AssignmentType>::getInitGuess(const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& initGuess, unsigned int meanCount)
+    void KMeans<ScalarType, AssignmentType>::calculateInitGuess(const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& initGuess, unsigned int meanCount)
     {
         assert(meanCount > 0u);
         assert(data.size() > 0u);
