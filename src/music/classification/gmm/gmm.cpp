@@ -22,6 +22,10 @@ namespace music
     {
         //TODO
     }
+    double GaussianDiagCov::calculateValueWithoutWeights(const Eigen::VectorXd& dataVector)
+    {
+        //TODO
+    }
     double GaussianDiagCov::calculateNoMeanValue(const Eigen::VectorXd& dataVector)
     {
         //TODO
@@ -35,11 +39,11 @@ namespace music
     void GaussianFullCov::calculatePrefactor()
     {
         preFactor = weight * 1.0/(pow(2*M_PI, fullCov.rows()/2.0) * sqrt(fullCov.determinant()));
+        preFactorWithoutWeights = 1.0/(pow(2*M_PI, fullCov.rows()/2.0) * sqrt(fullCov.determinant()));
     }
     void GaussianFullCov::setCovarianceMatrix(const Eigen::MatrixXd& fullCov)
     {
         assert(fullCov.rows() == mean.size());
-        //calculate inverse and determinant, as we need it many times
         this->fullCov = fullCov;
         ldlt.compute(fullCov);
         
@@ -52,6 +56,14 @@ namespace music
         Eigen::VectorXd dist2 = dist;
         ldlt.solve(dist2);
         return preFactor * std::exp(-0.5 * (dist.transpose() * dist2)(0));
+    }
+    double GaussianFullCov::calculateValueWithoutWeights(const Eigen::VectorXd& dataVector)
+    {
+        assert(dataVector.size() == mean.size());
+        Eigen::VectorXd dist = dataVector - mean;
+        Eigen::VectorXd dist2 = dist;
+        ldlt.solve(dist2);
+        return preFactorWithoutWeights * std::exp(-0.5 * (dist.transpose() * dist2)(0));
     }
     double GaussianFullCov::calculateNoMeanValue(const Eigen::VectorXd& dataVector)
     {
@@ -126,7 +138,7 @@ namespace music
                 for (unsigned int i=0; i < dataSize; i++)
                 {
                     //calculate probability (non-normalized)
-                    p(i,g) = gaussians[g]->calculateValue(data[i]);
+                    p(i,g) = gaussians[g]->calculateValueWithoutWeights(data[i]);
                 }
             }
             for (unsigned int i=0; i<dataSize; i++)
