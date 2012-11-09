@@ -74,7 +74,7 @@ namespace music
         
         double timeResolution;
     public:
-        PerTimeSliceStatistics(ConstantQTransformResult* transformResult, double timeResolution);
+        PerTimeSliceStatistics(ConstantQTransformResult* transformResult, double timeResolution=0.005);
         
         void calculateSum();
         /**
