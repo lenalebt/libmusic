@@ -1,6 +1,8 @@
 #include "bpm.hpp"
 #include "debug.hpp"
 
+#include "feature_extraction_helper.hpp"
+
 #include <fstream>
 #include <algorithm>
 
@@ -13,8 +15,155 @@ namespace music
     
     void BPMEstimator::estimateBPM(ConstantQTransformResult* transformResult)
     {
-        estimateBPM3(transformResult);
+        estimateBPM4(transformResult);
     }
+    
+    void BPMEstimator::estimateBPM4(ConstantQTransformResult* transformResult)
+    {
+        DEBUG_OUT("estimating tempo of song...", 10);
+        
+        DEBUG_OUT("sum all bins per time slice...", 15);
+        //taking 5ms slices, summing values
+        double timeSliceLength = 1.0/100.0;
+        
+        //PerTimeSliceStatistics timeSliceStatistics(transformResult, timeSliceLength);
+        //timeSliceStatistics.calculateSum(0.0, transformResult->getOriginalDuration());
+        
+        int maxDuration = transformResult->getOriginalDuration()*(1.0/timeSliceLength);
+        DEBUG_OUT("maxDuration: " << maxDuration, 25);
+        Eigen::VectorXf sumVec(maxDuration);
+        for (int i=0; i < maxDuration; i++)
+        {
+            double sum=0.0;
+            for (int octave=0; octave<transformResult->getOctaveCount(); octave++)
+            {
+                //sum only higher octaves?
+                for (int bin=0; bin<transformResult->getBinsPerOctave(); bin++)
+                {
+                    sum += std::abs(transformResult->getNoteValueNoInterpolation(i*timeSliceLength, octave, bin));
+                }
+            }
+            sumVec[i] = sum;
+        }
+        
+        #if DEBUG_LEVEL>=25
+            std::ofstream outstr2("sumVec.dat");
+            for (int i=1; i<sumVec.size(); i++)
+            {
+                outstr2 << sumVec[i];
+                outstr2 << std::endl;
+            }
+        #endif
+        
+        DEBUG_OUT("building derivation of sum vector...", 15);
+        //6 seconds maximum shift
+        int maxCorrShift=std::min(int(6.0/timeSliceLength), maxDuration-1);
+        Eigen::VectorXf derivSum(maxDuration-1);
+        for (int shift=0; shift<maxDuration-1; shift++)
+        {
+            derivSum[shift] = sumVec[shift+1] - sumVec[shift];
+        }
+        
+        #if DEBUG_LEVEL>=25
+            std::ofstream outstr3("derivSum.dat");
+            for (int i=1; i<derivSum.size(); i++)
+            {
+                outstr3 << derivSum[i];
+                outstr3 << std::endl;
+            }
+        #endif
+        
+        
+        DEBUG_OUT("calculating auto correlation of derivation vector...", 15);
+        Eigen::VectorXf autoCorr(maxCorrShift);
+        for (int shift=0; shift<maxCorrShift; shift++)
+        {
+            double corr=0.0;
+            for (int i=0; i<derivSum.size(); i++)
+            {
+                int shiftPos = i + shift;
+                corr += derivSum[i] * ((shiftPos < derivSum.size()) ? derivSum[shiftPos] : 0.0);
+            }
+            autoCorr[shift] = corr;
+        }
+        
+        #if DEBUG_LEVEL>=25
+            std::ofstream outstr4("autoCorr.dat");
+            for (int i=1; i<autoCorr.size(); i++)
+            {
+                outstr4 << autoCorr[i];
+                outstr4 << std::endl;
+            }
+        #endif
+        
+        
+        DEBUG_OUT("looking for maxima...", 15);
+        std::vector<int> maxCorrPos;
+        {
+            DEBUG_OUT("calculate mean...", 20);
+            double mean=0.0;
+            for (int i=0; i<autoCorr.size(); i++)
+            {
+                mean += autoCorr[i];
+            }
+            mean /= autoCorr.size();
+            
+            DEBUG_OUT("calculate variance...", 20);
+            double variance=0.0;
+            for (int i=0; i<autoCorr.size(); i++)
+            {
+                double val = autoCorr[i] - mean;
+                variance += val*val;
+            }
+            variance /= autoCorr.size();
+            double standardDerivation = sqrt(variance);
+            
+            DEBUG_OUT("build barrier breaker list...", 20);
+            double barrierVal = mean + standardDerivation;
+            int lastAddedPosition = -10000;
+            for (int i=0; i<autoCorr.size(); i++)
+            {
+                if ((i-lastAddedPosition) > 0.1/timeSliceLength)
+                {
+                    if (autoCorr[i] > barrierVal)
+                        maxCorrPos.push_back(lastAddedPosition=i);
+                }
+            }
+        }
+        
+        DEBUG_OUT("calculating beat lengths...", 15);
+        std::vector<int> diffPosVector;
+        {
+            double bpmMean = 0.0;
+            int oldVal = *maxCorrPos.begin();
+            for (std::vector<int>::iterator it = maxCorrPos.begin()+1; it != maxCorrPos.end(); it++)
+            {
+                int val = *it - oldVal;
+                diffPosVector.push_back(val);
+                DEBUG_OUT("beat length bpm: " << 60.0/(double(val)*timeSliceLength), 30);
+                bpmMean += val;
+                
+                oldVal = *it;
+            }
+            this->bpmMean = 60.0/(bpmMean / diffPosVector.size()*timeSliceLength);
+            //sorting vector to get the median
+            std::sort(diffPosVector.begin(), diffPosVector.end());
+        }
+        
+        while (this->bpmMean > 250)
+            this->bpmMean /= 2.0;
+        
+        this->bpmMedian = 60.0/(double(diffPosVector[diffPosVector.size()/2])*timeSliceLength);
+        
+        this->bpmVariance = 0.0;
+        for (std::vector<int>::iterator it = diffPosVector.begin(); it != diffPosVector.end(); it++)
+        {
+            double val = 60.0/(double(*it)*timeSliceLength) - bpmMean;
+            this->bpmVariance += val*val;
+        }
+        this->bpmVariance /= diffPosVector.size();
+    }
+    
     void BPMEstimator::estimateBPM3(ConstantQTransformResult* transformResult)
     {
         DEBUG_OUT("estimating tempo of song...", 10);
@@ -162,6 +311,8 @@ namespace music
             int maxValPos=-1;
             for (int i=3; i>-2; i--)
             {
+                if (std::pow(2.0, i)*peakPos > peakCorr.size())
+                    continue;
                 aVal = peakCorr[std::pow(2.0, i)*peakPos];
                 if (aVal > maxVal)
                 {

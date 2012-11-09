@@ -468,12 +468,9 @@ namespace tests
         files.push("testdata/metronom-80.mp3");    //80bpm
         minBPMs.push(75);
         maxBPMs.push(85);
-        
-        
         files.push("testdata/metronom-180.mp3");    //180bpm
         minBPMs.push(175);
         maxBPMs.push(185);
-        
         files.push("testdata/drums-80-4_4-8th_hihat.mp3");    //80bpm
         minBPMs.push(75);
         maxBPMs.push(85);
@@ -548,13 +545,13 @@ namespace tests
             
             double bpmMean = bpmEst.getBPMMean();
             DEBUG_OUT("BPM mean is " << bpmMean, 10);
-            //CHECK_OP(bpmMean, >, minBPM);
-            //CHECK_OP(bpmMean, <, maxBPM);
+            CHECK_OP(bpmMean, >, minBPM);
+            CHECK_OP(bpmMean, <, maxBPM);
             
             double bpmMedian = bpmEst.getBPMMedian();
             DEBUG_OUT("BPM median is " << bpmMedian, 10);
-            //CHECK_OP(bpmMedian, >, minBPM);
-            //CHECK_OP(bpmMedian, <, maxBPM);
+            CHECK_OP(bpmMedian, >, minBPM);
+            CHECK_OP(bpmMedian, <, maxBPM);
             
             
             delete transformResult;
@@ -740,8 +737,8 @@ namespace tests
         
         musicaccess::SoundFile file;
         CHECK(!file.isFileOpen());
-        //CHECK(file.open("./testdata/major-c-keyboard.mp3", true));
-        CHECK(file.open("./sonne.mp3", true));
+        CHECK(file.open("./testdata/major-d-guitar.mp3", true));
+        //CHECK(file.open("./sonne.mp3", true));
         CHECK(file.isFileOpen());
         
         float* buffer = NULL;
