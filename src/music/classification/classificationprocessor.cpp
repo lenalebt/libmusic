@@ -1,6 +1,7 @@
 #include "classificationprocessor.hpp"
 
 #include "classificationcategory.hpp"
+#include "gaussian_oneclass.hpp"
 #include "debug.hpp"
 
 namespace music
@@ -45,6 +46,12 @@ namespace music
         if (callback)
             callback->progress(0.05, "loading timbre and chroma models...");
         
+        
+        GaussianMixtureModel<kiss_fft_scalar>* categoryPositiveTimbreModel = NULL;
+        GaussianMixtureModel<kiss_fft_scalar>* categoryPositiveChromaModel = NULL;
+        GaussianMixtureModel<kiss_fft_scalar>* categoryNegativeTimbreModel = NULL;
+        GaussianMixtureModel<kiss_fft_scalar>* categoryNegativeChromaModel = NULL;
+        
         //for positives: load timbre & chroma models
         std::vector<GaussianMixtureModel<kiss_fft_scalar>*> positiveTimbreModels;
         std::vector<GaussianMixtureModel<kiss_fft_scalar>*> positiveChromaModels;
@@ -86,9 +93,10 @@ namespace music
         //combine positive timbre models
         if (positiveTimbreModels.size() != 0)
         {
-            if (cat.calculateTimbreModel(positiveTimbreModels, categoryTimbreModelSize, categoryTimbrePerSongSampleCount))
+            if (cat.calculatePositiveTimbreModel(positiveTimbreModels, categoryTimbreModelSize, categoryTimbrePerSongSampleCount))
             {
-                category.getCategoryDescription()->setPositiveTimbreModel(cat.getTimbreModel()->toJSONString());
+                category.getCategoryDescription()->setPositiveTimbreModel(cat.getPositiveTimbreModel()->toJSONString());
+                categoryPositiveTimbreModel = cat.getPositiveTimbreModel()->clone();
             }
             else
             {
@@ -103,9 +111,10 @@ namespace music
         //combine negative timbre models
         if (negativeTimbreModels.size() != 0)
         {
-            if (cat.calculateTimbreModel(negativeTimbreModels, categoryTimbreModelSize, categoryTimbrePerSongSampleCount))
+            if (cat.calculatePositiveTimbreModel(negativeTimbreModels, categoryTimbreModelSize, categoryTimbrePerSongSampleCount))
             {
-                category.getCategoryDescription()->setNegativeTimbreModel(cat.getTimbreModel()->toJSONString());
+                category.getCategoryDescription()->setNegativeTimbreModel(cat.getPositiveTimbreModel()->toJSONString());
+                categoryNegativeTimbreModel = cat.getPositiveTimbreModel()->clone();
             }
             else
             {
@@ -124,9 +133,10 @@ namespace music
         //combine positive chroma models
         if (positiveChromaModels.size() != 0)
         {
-            if (cat.calculateChromaModel(positiveChromaModels, categoryChromaModelSize, categoryChromaPerSongSampleCount))
+            if (cat.calculateNegativeChromaModel(positiveChromaModels, categoryChromaModelSize, categoryChromaPerSongSampleCount))
             {
-                category.getCategoryDescription()->setPositiveChromaModel(cat.getChromaModel()->toJSONString());
+                category.getCategoryDescription()->setPositiveChromaModel(cat.getNegativeChromaModel()->toJSONString());
+                categoryPositiveChromaModel = cat.getNegativeChromaModel()->clone();
             }
             else
             {
@@ -142,9 +152,10 @@ namespace music
         //combine negative chroma models
         if (negativeChromaModels.size() != 0)
         {
-            if (cat.calculateChromaModel(negativeChromaModels, categoryChromaModelSize, categoryChromaPerSongSampleCount))
+            if (cat.calculateNegativeChromaModel(negativeChromaModels, categoryChromaModelSize, categoryChromaPerSongSampleCount))
             {
-                category.getCategoryDescription()->setNegativeChromaModel(cat.getChromaModel()->toJSONString());
+                category.getCategoryDescription()->setNegativeChromaModel(cat.getNegativeChromaModel()->toJSONString());
+                categoryNegativeChromaModel = cat.getNegativeChromaModel()->clone();
             }
             else
             {
@@ -158,7 +169,21 @@ namespace music
         }
         
         //up to here: combined the timbres of category example positives to a new model for the category.
-        //negatives are not used here!
+        //now: build model of category when timbre and chroma was applied.
+        //first: create vectors
+        
+        //positive
+        
+        
+        
+        //negative
+        
+        
+        //then: learn models
+        GaussianOneClassClassifier positiveClassifier;
+        GaussianOneClassClassifier negativeClassifier;
+        
+        //positiveClassifier.learnModel();
         
         //TODO: erweitern auf allgemeine classifier etc.
         
@@ -192,6 +217,11 @@ namespace music
         {
             delete *it;
         }
+        
+        delete categoryPositiveTimbreModel;
+        delete categoryPositiveChromaModel;
+        delete categoryNegativeTimbreModel;
+        delete categoryNegativeChromaModel;
         
         if (callback)
             callback->progress(0.98, "saving results to database");
