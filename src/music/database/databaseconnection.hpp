@@ -177,6 +177,18 @@ namespace music
         virtual bool getRecordingIDsByProperties(std::vector<databaseentities::id_datatype>& recordingIDs, const std::string& artist, const std::string& title, const std::string& album)=0;
         
         /**
+         * @brief Reads all recording IDs from the database.
+         * 
+         * @param recordingIDs The IDs of the recordings. The vector is empty if nothing matches.
+         * @param minID The minimum recordingID that should be found. Should
+         *      be used in combination with limit to find all recordings.
+         *      This ID is included in the results, if it is found.
+         * @param limit The maximum number of elements that will be given back.
+         * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
+         */
+        virtual bool getRecordingIDs(std::vector<databaseentities::id_datatype>& recordingIDs, databaseentities::id_datatype minID=0, unsigned int limit = 10000)=0;
+        
+        /**
          * @brief Updates a recording in the database by giving the id.
          * 
          * @param[in,out] recording Will read the id from this parameter, as well as all other data.
