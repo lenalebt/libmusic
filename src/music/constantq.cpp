@@ -148,7 +148,7 @@ namespace music
         }
         
         //copy the data from our tmpFKernel to our sparse fKernel.
-        cqt->fKernel = new Eigen::SparseMatrix<std::complex<float> >(cqt->fftLen, binsPerOctave * cqt->atomNr);
+        cqt->fKernel = new Eigen::SparseMatrix<std::complex<float> >(binsPerOctave * cqt->atomNr, cqt->fftLen);
         for (int i=0; i<binsPerOctave * cqt->atomNr; i++)
         {
             for (int j=0; j<cqt->fftLen; j++)
@@ -157,7 +157,7 @@ namespace music
                 {
                     std::complex<kiss_fft_scalar> value = (*tmpFKernel)(j,i);
                     value /= cqt->fftLen;
-                    cqt->fKernel->insert(j, i) = std::conj(value);
+                    cqt->fKernel->insert(i, j) = std::conj(value);
                 }
             }
         }
@@ -206,6 +206,7 @@ namespace music
         
         float* data = buffer;
         float* fftSourceData=NULL;
+        //used to calculate the fft with zero padding
         float* fftSourceDataZeroPadMemory=NULL;
         fftSourceDataZeroPadMemory = new float[fftLen];
         assert(fftSourceDataZeroPadMemory != NULL);
@@ -229,15 +230,17 @@ namespace music
             
             //TODO: need to set the sizes of the matrix correctly
             octaveResult = NULL;
-            octaveResult = new Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >(binsPerOctave, (sampleCount/overlap + 1) * atomNr);
+            octaveResult = new Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >(binsPerOctave, ((sampleCount+2*zeroPadding)/fftHop + 1) * atomNr);
             assert(octaveResult != NULL);
             
-            std::cerr << "binsPerOctave=" << binsPerOctave << ", otherSize=" << (sampleCount/overlap + 1) * atomNr << std::endl;
+            std::cerr << "binsPerOctave=" << binsPerOctave << ", length=" << ((sampleCount+2*zeroPadding)/fftHop) * atomNr << std::endl;
             
+            int windowNumber=0;
             //shift our window a bit. window has overlap.
-            for (int position=-zeroPadding; position < sampleCount + zeroPadding ;position+=overlap)
+            for (int position=-zeroPadding; position < sampleCount + zeroPadding ;position+=fftHop)
             {
-                std::cerr << "position:" << position << std::endl;
+                //std::cerr << "position:" << position << std::endl;
+                //std::cerr << "windowNumber:" << windowNumber << std::endl;
                 
                 if (position<0)
                 {   //zero-padding necessary, front
@@ -245,7 +248,6 @@ namespace music
                     //Fill array, zero-pad it as necessary (->beginning).
                     for (int i=position; i<position+fftLen; i++)
                     {
-                        std::cerr << i-position;
                         if (i<0)
                             fftSourceData[i-position] = 0.0;
                         else
@@ -286,22 +288,24 @@ namespace music
                 Eigen::Map<Eigen::Matrix<std::complex<float>, Eigen::Dynamic, 1> > fftDataMap(fftData, fftLen);
                 
                 //Calculate the transform: apply fKernel to fftData.
-                resultMatrix = fftDataMap * *fKernel;
+                resultMatrix = *fKernel * fftDataMap;
+                //we get a matrix with (octaveCount*atomNr) x (1) elements.
                 
-                //std::cerr << resultMatrix.rows() << " " << resultMatrix.cols() << std::endl;
+                //std::cerr << "result(" << resultMatrix.rows() << ", " << resultMatrix.cols() << ")" << std::endl;
                 
                 //std::cerr << "reorder now..." << std::endl;
                 //TODO:reorder the result matrix, save data
                 for (int bin=0; bin<binsPerOctave; bin++)
                 {
-                    for (int i = 0; i < fftLen * atomNr; i++)
+                    for (int i = 0; i < atomNr; i++)
                     {
-                        /*std::cerr << "(bin*atomNr + i%atomNr=" << bin*atomNr + i%atomNr <<
-                            ", i/atomNr=" << i/atomNr << ")" << std::endl;*/
-                        (*octaveResult)(bin, i) = resultMatrix(i/atomNr, bin*atomNr + i%atomNr);
+                        //std::cerr << "(bin*atomNr + i%atomNr=" << bin*atomNr + i%atomNr <<
+                        //    ", i/atomNr=" << i/atomNr << ")" << std::endl;
+                        (*octaveResult)(bin, windowNumber*atomNr + i) = resultMatrix(bin*atomNr + i, 0);
                     }
                 }
                 //std::cerr << "reordered." << std::endl;
+                windowNumber++;
             }
             
             transformResult->octaveMatrix[octave] = octaveResult;
