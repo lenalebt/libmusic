@@ -258,6 +258,17 @@ ADD_TEST(kmeans                    "musictests" "kmeans")
 ADD_TEST(rng                       "musictests" "rng")
 ADD_TEST(preprocessfiles           "musictests" "preprocessfiles" "./testdata/")
 
+SET_TESTS_PROPERTIES(dct                     PROPERTIES DEPENDS fft)
+SET_TESTS_PROPERTIES(kmeans                  PROPERTIES DEPENDS rng)
+SET_TESTS_PROPERTIES(gmm                     PROPERTIES DEPENDS kmeans)
+SET_TESTS_PROPERTIES(estimatebpm             PROPERTIES DEPENDS constantq)
+SET_TESTS_PROPERTIES(estimatechords          PROPERTIES DEPENDS constantq)
+SET_TESTS_PROPERTIES(estimatetimbre          PROPERTIES DEPENDS "constantq;gmm")
+SET_TESTS_PROPERTIES(calculatedynamicrange   PROPERTIES DEPENDS constantq)
+SET_TESTS_PROPERTIES(perbinstatistics        PROPERTIES DEPENDS constantq)
+SET_TESTS_PROPERTIES(pertimeslicestatistics  PROPERTIES DEPENDS constantq)
+SET_TESTS_PROPERTIES(preprocessfiles         PROPERTIES DEPENDS "estimatebpm;estimatechords;estimatetimbre;calculatedynamicrange;perbinstatistics;pertimeslicestatistics")
+
 ADD_EXECUTABLE(musictests
     ${music_TEST_SOURCES}
     )
