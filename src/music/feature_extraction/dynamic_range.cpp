@@ -67,5 +67,8 @@ namespace music
         }
         loudnessVariance    /= sumVec.size();
         loudnessRMSVariance /= sumVec.size();
+        
+        loudnessMean = 1.0 - loudnessMean;
+        loudnessRMS = 1.0 - loudnessRMS;
     }
 }
