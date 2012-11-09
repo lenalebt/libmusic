@@ -183,20 +183,44 @@ namespace music
         //TODO: need update for category description.
         
         /** 
-         *  @todo documentation
+         * @brief Reads the score of a recording with which probability it belongs to a category.
+         * 
+         * @param recordingID The ID of the recording
+         * @param categoryID The ID of the category
+         * @param[out] score The score of the relation. This is an output-only parameter.
+         * 
+         * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
          */
         virtual bool getRecordingToCategoryScore(databaseentities::id_datatype recordingID, databaseentities::id_datatype categoryID, double& score)=0;
         /** 
-         *  @todo documentation
+         * @brief Updates the score of a recording for a category. If the score did not already exist, it creates the entry.
+         * 
+         * @param recordingID The ID of the recording
+         * @param categoryID The ID of the category
+         * @param score The score of the relation.
          */
         virtual bool updateRecordingToCategoryScore(databaseentities::id_datatype recordingID, databaseentities::id_datatype categoryID, double score)=0;
         /** 
-         *  @todo documentation
+         * @brief Reads the score of a recording, if it is an example for a category (score 100%), or a counter-example (score 0%).
+         *
+         * @param categoryID The ID of the category
+         * @param recordingID The ID of the recording
+         * @param[out] score The score of the relation. This is an output-only parameter.
+         *
+         * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
          */
         virtual bool getCategoryExampleScore(databaseentities::id_datatype categoryID, databaseentities::id_datatype recordingID, double& score)=0;
         /** 
-         *  @todo documentation
-         *  @todo need to recalculate category description if this happens
+         * @todo need to recalculate category description if this happens
+         * 
+         * @brief Updates the score of a recording as example. If the score did not already exist, it creates the entry.
+         * 
+         * If this happens, all scores of recordings belonging to a category need to be recalculated,
+         * and the classifier needs to be retrained.
+         * 
+         * @param categoryID The ID of the category
+         * @param recordingID The ID of the recording
+         * @param score The score of the relation.
          */
         virtual bool updateCategoryExampleScore(databaseentities::id_datatype categoryID, databaseentities::id_datatype recordingID, double score)=0;
     };
