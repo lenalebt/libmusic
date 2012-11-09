@@ -1,22 +1,49 @@
 #ifndef SQLITEDATABASECONNECTION_HPP
 #define SQLITEDATABASECONNECTION_HPP
 
+#include "databaseconnection.hpp"
 #include <sqlite3.h>
 
-class SQLiteDatabaseConnection : public DatabaseConnection
+namespace music
 {
-private:
-    
-protected:
-    bool _dbOpen;
-    
-    bool createTables();
-public:
-    virtual bool open(std::string dbConnectionString)=0;
-    virtual bool close()=0;
-    virtual bool isDBOpen()=0;
-    virtual bool beginTransaction()=0;
-    virtual bool endTransaction()=0;
-};
-
+    /**
+     * @brief SQLite implementation of the database connection.
+     * 
+     * This implementation uses SQLite as database backend.
+     * SQLite is a fast and small SQL database designed for embedded
+     * devices, but it also performs good in other environments. It uses
+     * files as backend and is not divided into client and server.
+     * 
+     * @todo implement
+     * 
+     * @author Lena Brueder
+     * @date 2012-07-16
+     */
+    class SQLiteDatabaseConnection : public DatabaseConnection
+    {
+    private:
+        
+    protected:
+        bool _dbOpen;
+        sqlite3* _db;
+        
+        /**
+         * @brief Creates the needed tables in the database file.
+         * 
+         * This function is to be called upon the creation of a new database.
+         * 
+         * @return if the operation failed.
+         */
+        bool createTables();
+        bool execCreateTableStatement(std::string statement);
+    public:
+        SQLiteDatabaseConnection();
+        ~SQLiteDatabaseConnection();
+        bool open(std::string dbConnectionString);
+        bool close();
+        bool isDBOpen();
+        bool beginTransaction();
+        bool endTransaction();
+    };
+}
 #endif //SQLITEDATABASECONNECTION_HPP

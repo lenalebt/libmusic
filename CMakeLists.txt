@@ -181,6 +181,7 @@ ADD_LIBRARY(
 #tell the linker which libs need to be linked
 TARGET_LINK_LIBRARIES(music
     ${MUSICACCESS_LIBRARIES}
+    ${SQLITE3_LIBRARIES}
     )
 
 #add unit tests here
@@ -204,10 +205,7 @@ SET_TARGET_PROPERTIES(musictests PROPERTIES COMPILE_FLAGS -DBUILD_TESTS)
 #tell the linker which libs need to be linked
 TARGET_LINK_LIBRARIES(musictests
     ${MUSICACCESS_LIBRARIES}
-    )
-#tell the linker which libs need to be linked
-TARGET_LINK_LIBRARIES(musictests
-    
+    ${SQLITE3_LIBRARIES}
     )
 #use "make test" to start all tests.
 
