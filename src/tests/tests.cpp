@@ -168,6 +168,9 @@ namespace tests
                 }
             }
             CHECK_EQ(largestPosition, *it);
+            
+            fft.doFFT(largemem, 64, largeoutmem, freqLength);
+            CHECK_EQ(freqLength, 33);
         }
         
         return EXIT_SUCCESS;
@@ -182,7 +185,7 @@ namespace tests
         
         cqt = music::ConstantQTransform::createTransform(lowpassFilter, 12, 50, 11025, 22050, 1.0, 0.0005, 0.25);
         CHECK_OP(cqt, !=, NULL);
-        CHECK_OP(cqt->window(20, 10), !=, 0.0);
+        CHECK_OP(cqt->window<float>(20, 10), !=, 0.0);
         CHECK_EQ(cqt->log2(2), 1);
         CHECK_EQ(cqt->log2(16), 4);
         CHECK_EQ(cqt->log2(32), 5);
@@ -192,6 +195,7 @@ namespace tests
         CHECK_EQ(cqt->getFMax(), 11025);
         //fMin will be recalculated
         CHECK_EQ(cqt->getFMin(), 45);
+        CHECK_EQ(cqt->getKernelFMin(), 5840.290307655615834);
         CHECK_EQ(cqt->getFs(), 22050);
         CHECK_OP(cqt->getLowpassFilter(), !=, NULL);
         CHECK_EQ(cqt->getOctaveCount(), 8);
