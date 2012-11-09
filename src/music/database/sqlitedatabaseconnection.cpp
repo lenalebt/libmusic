@@ -170,7 +170,7 @@ namespace music
         //create list of create table statements
         ctstatements.push_back("CREATE TABLE IF NOT EXISTS recording(recordingID INTEGER PRIMARY KEY, "
             "artistID INTEGER, title TEXT, albumID INTEGER, tracknr INTEGER, "
-            "filename TEXT, genreID INTEGER, featuresID INTEGER, "
+            "filename TEXT, genreID INTEGER, featuresID INTEGER NOT NULL, "
             "FOREIGN KEY(artistID)   REFERENCES artist(artistID),"
             "FOREIGN KEY(albumID)    REFERENCES album(albumID),"
             "FOREIGN KEY(genreID)    REFERENCES genre(genreID),"
@@ -181,8 +181,10 @@ namespace music
         ctstatements.push_back("CREATE TABLE IF NOT EXISTS album(albumID INTEGER PRIMARY KEY, albumName TEXT UNIQUE);");
         ctstatements.push_back("CREATE TABLE IF NOT EXISTS artist(artistID INTEGER PRIMARY KEY, artistName TEXT UNIQUE);");
         
-        ctstatements.push_back("CREATE TABLE IF NOT EXISTS features(featuresID INTEGER PRIMARY KEY, length REAL,"
-            " tempo REAL, dynamicrange REAL, timbreID INTEGER NOT NULL, chordsID INTEGER NOT NULL,"
+        ctstatements.push_back("CREATE TABLE IF NOT EXISTS features(featuresID INTEGER PRIMARY KEY, length REAL, "
+            "tempo REAL, dynamicrange REAL, "
+            "timbreID INTEGER, "   //TODO: NOT NULL
+            "chordsID INTEGER, "   //TODO: NOT NULL
             "FOREIGN KEY(timbreID)  REFERENCES timbre(timbreID),"
             "FOREIGN KEY(chordsID)  REFERENCES chords(chordsID)"    //TODO: add more elements
             ");");
@@ -383,16 +385,18 @@ namespace music
         }
         DEBUG_OUT("genre, album and artist saved.", 40);
         
-        //TODO: save features, if applicable
-        if (recording.getRecordingFeatures() != NULL)
+        if (recording.getRecordingFeatures() == NULL)
         {
-            addRecordingFeatures(*(recording.getRecordingFeatures()));
-            featuresID = recording.getRecordingFeatures()->getID();
+            recording.setRecordingFeatures(new databaseentities::RecordingFeatures());
+            recording.getRecordingFeatures()->setID(-1);
         }
-        else
+        success = addRecordingFeatures(*(recording.getRecordingFeatures()));
+        if (!success)
         {
-            featuresID = -1;
+            ERROR_OUT("Failed to save recording features.", 10);
+            return false;
         }
+        featuresID = recording.getRecordingFeatures()->getID();
         
         sqlite3_bind_null( _saveRecordingStatement, 1);
         sqlite3_bind_int64(_saveRecordingStatement, 2, artistID);
@@ -401,10 +405,7 @@ namespace music
         sqlite3_bind_int(  _saveRecordingStatement, 5, recording.getTrackNumber());
         sqlite3_bind_text( _saveRecordingStatement, 6, recording.getFilename().c_str(), -1, SQLITE_TRANSIENT);
         sqlite3_bind_int64(_saveRecordingStatement, 7, genreID);
-        if (featuresID == -1)
-            sqlite3_bind_null( _saveRecordingStatement, 8);
-        else
-            sqlite3_bind_int64(_saveRecordingStatement, 8, featuresID);
+        sqlite3_bind_int64(_saveRecordingStatement, 8, featuresID);
         
         rc = sqlite3_step(_saveRecordingStatement);
         if (rc != SQLITE_DONE)
@@ -424,9 +425,44 @@ namespace music
         return true;
     }
     
-    bool SQLiteDatabaseConnection::addRecordingFeatures(databaseentities::RecordingFeatures& recording)
+    bool SQLiteDatabaseConnection::addRecordingFeatures(databaseentities::RecordingFeatures& recordingFeatures)
     {
-        return false;
+        int rc;
+        
+        if (_saveRecordingFeaturesStatement == NULL)
+        {
+            rc = sqlite3_prepare_v2(_db, "INSERT INTO features VALUES(@featuresID, @length, @tempo, @dynamicrange, @timbreID, @chordsID);", -1, &_saveRecordingFeaturesStatement, NULL);
+            if (rc != SQLITE_OK)
+            {
+                ERROR_OUT("Failed to prepare statement. Resultcode: " << rc, 10);
+                return false;
+            }
+        }
+        
+        //bind parameters
+        sqlite3_bind_null(_saveRecordingFeaturesStatement, 1);
+        sqlite3_bind_double(_saveRecordingFeaturesStatement, 2, recordingFeatures.getLength());
+        sqlite3_bind_double(_saveRecordingFeaturesStatement, 3, recordingFeatures.getTempo());
+        sqlite3_bind_double(_saveRecordingFeaturesStatement, 4, recordingFeatures.getDynamicRange());
+        sqlite3_bind_null(_saveRecordingFeaturesStatement, 5);
+        sqlite3_bind_null(_saveRecordingFeaturesStatement, 6);
+        
+        rc = sqlite3_step(_saveRecordingFeaturesStatement);
+        if (rc != SQLITE_DONE)
+        {
+            ERROR_OUT("Failed to execute statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        rc = sqlite3_reset(_saveRecordingFeaturesStatement);
+        if (rc != SQLITE_OK)
+        {
+            ERROR_OUT("Failed to reset statement. Resultcode: " << rc, 10);
+            return false;
+        }
+        
+        recordingFeatures.setID(getLastInsertRowID());
+        return true;
     }
     
     bool SQLiteDatabaseConnection::addOrGetGenre(databaseentities::id_datatype& id, std::string genreName)

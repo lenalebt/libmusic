@@ -51,18 +51,18 @@ namespace tests
             {
                 DEBUG_OUT("adding file to database: \"" << filename << "\"", 15);
                 music::databaseentities::Recording* recording = new music::databaseentities::Recording(filename);
-                recording->setGenre("unknownGenre");
+                recording->setAlbum("unknownAlbum");
                 
                 if (contains(filename, "chord"))
-                    recording->setAlbum("chord");
+                    recording->setGenre("chord");
                 else if (contains(filename, "rhythm"))
-                    recording->setAlbum("rhythm");
+                    recording->setGenre("rhythm");
                 else if (contains(filename, "mixture"))
-                    recording->setAlbum("mixture");
+                    recording->setGenre("mixture");
                 else if (contains(filename, "instrument"))
-                    recording->setAlbum("instrument");
+                    recording->setGenre("instrument");
                 else
-                    recording->setAlbum("unknown");
+                    recording->setGenre("unknown");
                 
                 recording->setArtist("unknownArtist");
                 recording->setTrackNumber(17);
@@ -79,21 +79,21 @@ namespace tests
                 
                 CHECK(conn->getRecordingByID(*recording));
                 
-                CHECK_OP(recording->getGenre(), ==, std::string("unknownGenre"));
+                CHECK_OP(recording->getAlbum(), ==, std::string("unknownAlbum"));
                 
                 //The semicolons are missing because of the definition of the macro CHECK_OP
                 //which has a block inside. Placing a semicolon here leads to compile-time
                 //errors.
                 if (contains(filename, "chord"))
-                    CHECK_OP(recording->getAlbum(), ==, std::string("chord"))
+                    CHECK_OP(recording->getGenre(), ==, std::string("chord"))
                 else if (contains(filename, "rhythm"))
-                    CHECK_OP(recording->getAlbum(), ==, std::string("rhythm"))
+                    CHECK_OP(recording->getGenre(), ==, std::string("rhythm"))
                 else if (contains(filename, "mixture"))
-                    CHECK_OP(recording->getAlbum(), ==, std::string("mixture"))
+                    CHECK_OP(recording->getGenre(), ==, std::string("mixture"))
                 else if (contains(filename, "instrument"))
-                    CHECK_OP(recording->getAlbum(), ==, std::string("instrument"))
+                    CHECK_OP(recording->getGenre(), ==, std::string("instrument"))
                 else
-                    CHECK_OP(recording->getAlbum(), ==, std::string("unknown"))
+                    CHECK_OP(recording->getGenre(), ==, std::string("unknown"))
                 
                 CHECK_OP(recording->getArtist(), ==, std::string("unknownArtist"));
                 CHECK_OP(recording->getFilename(), ==, filename);
