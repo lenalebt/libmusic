@@ -24,7 +24,7 @@ namespace music
         //called when a song is added to the db, most likely from the file preprocessor. will calculate all scores for the song for existing categories.
         bool addRecording(const databaseentities::Recording&);
         //calls more or less the appropriate database function
-        bool setRecordingCategoryExampleScore(const databaseentities::Recording& recording, const databaseentitie::Category& category, double score, bool recalculateCategory_ = true);
+        bool setRecordingCategoryExampleScore(const databaseentities::Recording& recording, const databaseentities::Category& category, double score, bool recalculateCategory_ = true);
     };
 }
 #endif //CLASSIFICATIONPROCESSOR_HPP

@@ -9,7 +9,7 @@ namespace music
         
     public:
         
-    }
+    };
 }
 
 #endif //CLASSIFICATION_CATEGORY_HPP
