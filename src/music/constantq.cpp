@@ -9,4 +9,10 @@ namespace music
     {
         return NULL;
     }
+    
+    void apply(uint16_t* buffer, int sampleCount)
+    {
+        //TODO: Map buffer to a Eigen vector via Map<>, see
+        // http://eigen.tuxfamily.org/dox/TutorialMapClass.html
+    }
 }
