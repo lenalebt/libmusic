@@ -490,7 +490,7 @@ namespace music
         
         return (*octaveMatrix[octave])(bin, pos);
     }
-    std::complex<float> ConstantQTransformResult::getNoteValueMean(float time, int octave, int bin, float preDuration) const
+    float ConstantQTransformResult::getNoteValueMean(float time, int octave, int bin, float preDuration) const
     {
         if (time <= 0.0f)
             return 0.0f;
@@ -527,11 +527,13 @@ namespace music
         
         assert(pos < octaveMatrix[octave]->cols());
         
-        for (int i=prePos; i<=pos)
+        for (int i=prePos; i<=pos; i++)
         {
-            mean += (*octaveMatrix[octave])(bin, i);
+            mean += std::abs((*octaveMatrix[octave])(bin, i));
         }
-        mean /= pos-prePos;
+        
+        if (pos != prePos)
+            mean /= pos-prePos;
         
         return mean;
     }

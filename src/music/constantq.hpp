@@ -127,7 +127,7 @@ namespace music
          * @return the value of the constant Q transform at a given sample number
          * @todo description does not match function parameters
          */
-        float getNoteValueMean(float time, int octave, int bin, float preDuration) const;
+        float getNoteValueMean(float time, int octave, int bin, float preDuration=0.01) const;
         
         double getOriginalDuration() const {return originalDuration;}
         int getOctaveCount() const {return octaveCount;}

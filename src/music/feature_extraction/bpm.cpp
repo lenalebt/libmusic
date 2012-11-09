@@ -15,8 +15,8 @@ namespace music
     
     void BPMEstimator::estimateBPM(ConstantQTransformResult* transformResult)
     {
-        //estimateBPM1(transformResult);
-        estimateBPM5(transformResult);
+        estimateBPM1(transformResult);
+        //estimateBPM5(transformResult);
     }
     
     void BPMEstimator::estimateBPM5(ConstantQTransformResult* transformResult)
@@ -38,12 +38,27 @@ namespace music
         assert(timeSliceStatistics.getSumVector() != NULL);
         
         int maxDuration = timeSliceStatistics.getSumVector()->size();
+        Eigen::VectorXd sumVec = *timeSliceStatistics.getSumVector();
+        
+        //TODO: low-pass-filter sumVec (moving average, 5 values)
+        double hist[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+        int histPos=0;
+        for (int i=0; i<sumVec.size(); i++)
+        {
+            hist[histPos]=sumVec[i];
+            
+            sumVec[i] = (hist[0] + hist[1] + hist[2] + hist[3] + hist[4]) / 5.0;
+            //sumVec[i] = (hist[0] + hist[1] + hist[2] + hist[3] + hist[4] + hist[5] + hist[6] + hist[7] + hist[8] + hist[9]) / 10.0;
+            
+            histPos = (histPos + 1) % 5;
+            //histPos = (histPos + 1) % 10;
+        }
         
         #if DEBUG_LEVEL>=25
             std::ofstream outstr2("sumVec.dat");
-            for (int i=1; i<timeSliceStatistics.getSumVector()->size(); i++)
+            for (int i=1; i<sumVec.size(); i++)
             {
-                outstr2 << (*timeSliceStatistics.getSumVector())[i];
+                outstr2 << sumVec[i];
                 outstr2 << std::endl;
             }
         #endif
@@ -54,7 +69,7 @@ namespace music
         Eigen::VectorXf derivSum(maxDuration-1);
         for (int shift=0; shift<maxDuration-1; shift++)
         {
-            derivSum[shift] = (*timeSliceStatistics.getSumVector())[shift+1] - (*timeSliceStatistics.getSumVector())[shift];
+            derivSum[shift] = sumVec[shift+1] - sumVec[shift];
         }
         
         #if DEBUG_LEVEL>=25
@@ -91,13 +106,16 @@ namespace music
         
         
         DEBUG_OUT("looking for maxima...", 15);
-        std::vector<int> maxCorrPos;
+        std::vector<float> maxCorrPos;
         {
             DEBUG_OUT("calculate mean...", 20);
             double mean=0.0;
+            double maxVal = -std::numeric_limits<double>::max();
             for (int i=0; i<autoCorr.size(); i++)
             {
                 mean += autoCorr[i];
+                if ((i>20) && (autoCorr[i] > maxVal))
+                    maxVal = autoCorr[i];
             }
             mean /= autoCorr.size();
             
@@ -113,27 +131,41 @@ namespace music
             
             DEBUG_OUT("build barrier breaker list...", 20);
             double barrierVal = mean + standardDerivation;
+            barrierVal = (barrierVal > 0.8*maxVal) ? 0.8*maxVal : barrierVal;
+            DEBUG_OUT("barrier value: " << barrierVal, 30);
             int lastAddedPosition = -10000;
-            for (int i=0; i<autoCorr.size(); i++)
+            int risePos=-1;
+            for (int i=1; i<autoCorr.size()-1; i++)
             {
                 if ((i-lastAddedPosition) > 0.2/timeSliceLength)
                 {
-                    if (autoCorr[i] > barrierVal)
-                        maxCorrPos.push_back(lastAddedPosition=i);
+                    if ((risePos < 0) && (autoCorr[i] > barrierVal) && (autoCorr[i] - autoCorr[i-1] > 0))   //rise
+                    {
+                        std::cerr << "rise " << std::endl;
+                        risePos = i;
+                    }
+                    else if ((risePos >= 0) && (autoCorr[i] < barrierVal) && (autoCorr[i+1] - autoCorr[i] < 0))   //fall
+                    {
+                        std::cerr << "fall " << std::endl;
+                        maxCorrPos.push_back(lastAddedPosition = risePos+(float(i-risePos)/2.0));
+                        std::cerr << lastAddedPosition << std::endl;
+                        risePos=-1;
+                    }
                 }
             }
         }
         
         DEBUG_OUT("calculating beat lengths...", 15);
-        std::vector<int> diffPosVector;
+        std::vector<float> diffPosVector;
         {
             double bpmMean = 0.0;
-            int oldVal = *maxCorrPos.begin();
-            for (std::vector<int>::iterator it = maxCorrPos.begin()+1; it != maxCorrPos.end(); it++)
+            float oldVal = *maxCorrPos.begin();
+            for (std::vector<float>::iterator it = maxCorrPos.begin()+1; it != maxCorrPos.end(); it++)
             {
-                int val = *it - oldVal;
+                float val = *it - oldVal;
                 diffPosVector.push_back(val);
                 DEBUG_OUT("beat length bpm: " << 60.0/(double(val)*timeSliceLength), 30);
+                DEBUG_OUT("val: " << double(val), 30);
                 bpmMean += val;
                 
                 oldVal = *it;
@@ -149,12 +181,33 @@ namespace music
         this->bpmMedian = 60.0/(double(diffPosVector[diffPosVector.size()/2])*timeSliceLength);
         
         this->bpmVariance = 0.0;
-        for (std::vector<int>::iterator it = diffPosVector.begin(); it != diffPosVector.end(); it++)
+        for (std::vector<float>::iterator it = diffPosVector.begin(); it != diffPosVector.end(); it++)
         {
             double val = 60.0/(double(*it)*timeSliceLength) - bpmMean;
             this->bpmVariance += val*val;
         }
         this->bpmVariance /= diffPosVector.size();
+        
+        DEBUG_OUT("cancel out outliers...", 15);
+        double stdDeriv = sqrt(this->bpmVariance);
+        double newMean = 0.0;
+        std::vector<int> newDiffPosVector;
+        double newVariance = 0.0;
+        for (std::vector<float>::iterator it = diffPosVector.begin(); it != diffPosVector.end(); it++)
+        {
+            double val = 60.0/(double(*it)*timeSliceLength) - bpmMean;
+            std::cerr << val << "; " << stdDeriv << std::endl;
+            if (fabs(val) > stdDeriv + 5)
+            {
+                DEBUG_OUT("cancel out " << *it, 20);
+            }
+            else
+            {
+                newMean += *it;
+                newDiffPosVector.push_back(*it);
+            }
+        }
+        this->bpmMean = 60.0/(newMean / newDiffPosVector.size()*timeSliceLength);
     }
     
     void BPMEstimator::estimateBPM2(ConstantQTransformResult* transformResult)
