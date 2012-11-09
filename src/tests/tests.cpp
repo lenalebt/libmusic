@@ -459,6 +459,28 @@ namespace tests
         std::queue<std::string> files;
         std::queue<double> minBPMs;
         std::queue<double> maxBPMs;
+        files.push("testdata/metronom-80.mp3");    //80bpm
+        minBPMs.push(75);
+        maxBPMs.push(85);
+        files.push("testdata/metronom-180.mp3");    //180bpm
+        minBPMs.push(175);
+        maxBPMs.push(185);
+        files.push("testdata/drums-80-4_4-8th_hihat.mp3");    //80bpm
+        minBPMs.push(75);
+        maxBPMs.push(85);
+        files.push("testdata/drums-100-4_4-8th_hihat.mp3");    //100bpm
+        minBPMs.push(95);
+        maxBPMs.push(105);
+        files.push("testdata/drums-180-4_4-8th_hihat.mp3");    //180bpm
+        minBPMs.push(175);
+        maxBPMs.push(185);
+        files.push("testdata/drums-200-4_4-8th_hihat.mp3");    //200bpm
+        minBPMs.push(195);
+        maxBPMs.push(205);
+        files.push("testdata/drums-80-4_4-16th_hihat.mp3");    //80bpm
+        minBPMs.push(75);
+        maxBPMs.push(85);
+
         files.push("testdata/test.mp3");    //92bpm
         minBPMs.push(90);
         maxBPMs.push(96);
