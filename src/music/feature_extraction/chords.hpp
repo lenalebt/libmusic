@@ -2,6 +2,10 @@
 #define CHORDS_HPP
 
 #include <string>
+#include "constantq.hpp"
+#include <ostream>
+
+#include <Eigen/Dense>
 
 namespace music
 {
@@ -10,12 +14,15 @@ namespace music
     class Chord
     {
     private:
-        bool note[12];  //if a note is within this chord, or not
+        Eigen::VectorXd chord;  //if a note is within this chord, or not
     protected:
         
     public:
         std::string getChordAsString();
         bool hasNote(int note);
+        
+        friend std::ostream& operator<<(std::ostream& os, const Chord& chord);
+        friend class ChordEstimator;
     };
 
     class ChordEstimator
@@ -29,5 +36,7 @@ namespace music
         ChordEstimator(ConstantQTransformResult* transformResult, double timeResolution = 0.005);
         Chord* estimateChord(double fromTime, double toTime);
     };
+    
+    std::ostream& operator<<(std::ostream& os, const Chord& chord);
 }
 #endif  //CHORDS_HPP

@@ -19,7 +19,6 @@
 #define FLOAT_EQUALITY_BARRIER  10e-5
 #define TEST_PASSED_MSG_WIDTH 80
 
-
 /**
  * @ingroup tests
  * @brief testing functions will be put in this namespace.

@@ -12,6 +12,7 @@
 #include "feature_extraction_helper.hpp"
 
 #include "bpm.hpp"
+#include "chords.hpp"
 
 #include <list>
 #include <limits>
@@ -717,6 +718,59 @@ namespace tests
         CHECK_EQ((*perTimeSliceStatistics.getMinVector())(500), 0.000052119550674);
         CHECK_EQ((*perTimeSliceStatistics.getVarianceVector())(500), 0.006538470780168);
         CHECK_EQ((*perTimeSliceStatistics.getSumVector())(500), 4.737457221319346);
+        
+        return EXIT_SUCCESS;
+    }
+    
+    int testEstimateChords()
+    {
+        DEBUG_OUT("testing statistics per time slice (max, min, mean, variance, sum).", 10);
+        
+        music::ConstantQTransform* cqt = NULL;
+        musicaccess::IIRFilter* lowpassFilter = NULL;
+        
+        lowpassFilter = musicaccess::IIRFilter::createLowpassFilter(0.25);
+        CHECK_OP(lowpassFilter, !=, NULL);
+        
+        double q=1.0;
+        int bins=12;
+        
+        DEBUG_OUT("creating constant q transform kernel...", 15);
+        cqt = music::ConstantQTransform::createTransform(lowpassFilter, bins, 25, 11025, 22050, q, 0.0, 0.0005, 0.25);
+        
+        musicaccess::SoundFile file;
+        CHECK(!file.isFileOpen());
+        //CHECK(file.open("./testdata/test.mp3", true));
+        CHECK(file.open("./imagine.mp3", true));
+        CHECK(file.isFileOpen());
+        
+        float* buffer = NULL;
+        buffer = new float[file.getSampleCount()];
+        CHECK(buffer != NULL);
+        
+        int sampleCount = file.readSamples(buffer, file.getSampleCount());
+        //estimated size might not be accurate!
+        CHECK_OP(sampleCount, >=, 0.9*file.getSampleCount());
+        CHECK_OP(sampleCount, <=, 1.1*file.getSampleCount());
+        
+        musicaccess::Resampler22kHzMono resampler;
+        //int sampleCount = file.getSampleCount();
+        DEBUG_OUT("resampling input file...", 15);
+        resampler.resample(file.getSampleRate(), &buffer, sampleCount, file.getChannelCount());
+        
+        CHECK_OP(sampleCount, <, file.getSampleCount());
+        
+        DEBUG_OUT("applying constant q transform...", 15);
+        music::ConstantQTransformResult* transformResult = cqt->apply(buffer, sampleCount);
+        CHECK(transformResult != NULL);
+        
+        music::ChordEstimator chordEstimator(transformResult);
+        for (double time=0.0; time<20.0; time += 0.5)
+        {
+            music::Chord* chord = chordEstimator.estimateChord(time, time + 0.5);
+        
+            DEBUG_OUT("chord at time " << time << ":" << std::endl << *chord, 10);
+        }
         
         return EXIT_SUCCESS;
     }
