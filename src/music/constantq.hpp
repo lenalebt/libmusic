@@ -9,6 +9,7 @@
 #include <complex>
 #define EIGEN_YES_I_KNOW_SPARSE_MODULE_IS_NOT_STABLE_YET
 #include <Eigen/Sparse>
+#include <Eigen/Dense>
 
 /**
  * @page midinote_scale Midi note scale
@@ -48,10 +49,10 @@ namespace music
     {
     private:
         int octaveCount;    //how many octaves did we process?
-        int minOctave;      //first Octave
+        int maxOctave;      //highest octave Octave
         //array of matricies. we have one matrix for every octave.
         //the matricies are dense, with one row being an octave bin.    TODO: is that right?
-        Eigen::Matrix<std::complex<float> >* octaveMatrix;
+        Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >* octaveMatrix;
     public:
         /**
          * @brief Returns the value of the constant Q transform at the given sample number
@@ -102,6 +103,8 @@ namespace music
         double Q;
         double threshold;
         double atomHopFactor;
+        int fftHop;
+        int fftLen;
         
         int nkMax;      //length of the largest atom in samples
         
@@ -177,6 +180,21 @@ namespace music
          * @todo write description
          */
         double getAtomHopFactor() {return atomHopFactor;}
+        
+        /**
+         * @brief Returns the length of the FFT to apply to the input data
+         * @return the length of the FFT to apply to the input data. Is a power of 2.
+         */
+        int getFFTLength() {return fftLen;}
+        
+        /**
+         * @brief Returns the hop size for the FFTs on the input data.
+         * 
+         * Use this value to shift your FFT windows on the input data.
+         * 
+         * @return the hop size for the FFTs on the input data.
+         */
+        int getFFTHop() {return fftHop;}
         
         /**
          * @brief Creates the kernels for the Constant Q transform which can later be applied to many pieces of music.
