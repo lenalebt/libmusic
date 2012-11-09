@@ -335,6 +335,10 @@ FILE(GLOB music_special_headers "${CMAKE_CURRENT_SOURCE_DIR}/src/music/*.hpp")
 INSTALL (FILES ${music_special_headers}
     DESTINATION include/music
     )
+FILE(GLOB music_transformations_headers "${CMAKE_CURRENT_SOURCE_DIR}/src/music/transformations/*.hpp")
+INSTALL (FILES ${music_transformations_headers}
+    DESTINATION include/music/transformations
+    )
 FILE(GLOB music_database_headers "${CMAKE_CURRENT_SOURCE_DIR}/src/music/database/*.hpp")
 INSTALL (FILES ${music_database_headers}
     DESTINATION include/music/database
