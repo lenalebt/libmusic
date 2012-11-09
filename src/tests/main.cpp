@@ -49,6 +49,8 @@ int main(int argc, char *argv[])
         return tests::testPerBinStatistics();
     else if (testname == "pertimeslicestatistics")
         return tests::testPerTimeSliceStatistics();
+    else if (testname == "fisherlda")
+        return tests::testFisherLDA();
     else if (testname == "preprocessfiles")
     {
         std::string path;
