@@ -171,6 +171,7 @@ INCLUDE_DIRECTORIES(
     src/music/database
     src/music/uihelper
     src/music/classification
+    src/music/classification/gmm
     src/tests
     src/kissfft
     src/kissfft/tools
@@ -233,6 +234,7 @@ ADD_TEST(calculatedynamicrange     "musictests" "calculatedynamicrange")
 ADD_TEST(perbinstatistics          "musictests" "perbinstatistics")
 ADD_TEST(pertimeslicestatistics    "musictests" "pertimeslicestatistics")
 ADD_TEST(fisherlda                 "musictests" "fisherlda")
+ADD_TEST(gmm                       "musictests" "gmm")
 ADD_TEST(preprocessfiles           "musictests" "preprocessfiles" "./testdata/")
 
 ADD_EXECUTABLE(musictests
