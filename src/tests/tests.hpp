@@ -10,6 +10,7 @@ namespace tests
     int testFFT();
     int testConstantQ();
     int applyConstantQ(std::string filename, std::string bins, std::string q);
+    int testEstimateBPM();
 }
 
 #endif //TESTS_HPP

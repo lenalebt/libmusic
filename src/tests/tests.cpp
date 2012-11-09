@@ -10,11 +10,14 @@
 #include "constantq.hpp"
 #include "fft.hpp"
 
+#include "bpm.hpp"
+
 #include <list>
 #include <limits>
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <queue>
 
 namespace tests
 {
@@ -358,12 +361,6 @@ namespace tests
         return EXIT_SUCCESS;
     }
     
-    template <typename T> int sgn(T val)
-    {
-        return (T(0) < val) - (val < T(0));
-    }
-
-    
     int applyConstantQ(std::string filename, std::string bins, std::string q)
     {
         music::ConstantQTransform* cqt = NULL;
@@ -436,150 +433,72 @@ namespace tests
             }
         }
         
-        DEBUG_OUT("estimating tempo of song...", 10);
-        int maxDuration = transformResult->getOriginalDuration()*200;
-        Eigen::VectorXf sumVec(maxDuration);
-        for (int i=0; i < maxDuration; i++)
-        {
-            double sum=0.0;
-            for (int octave=0; octave<transformResult->getOctaveCount(); octave++)
-            {
-                if ((octave >= 0) && (octave<5))
-                    continue;
-                for (int bin=0; bin<transformResult->getBinsPerOctave(); bin++)
-                {
-                    sum += std::abs(transformResult->getNoteValueNoInterpolation(i*0.005, octave, bin));
-                }
-            }
-            sumVec[i] = sum;
-        }
-        /*
-        Eigen::VectorXf sumVec2(maxDuration);
-        for (int i=0; i < maxDuration; i++)
-        {
-            double sum=0.0;
-            for (int j=0; j<5; j++)
-            {
-                sum += (i-j>=0) ? sumVec[i-j] : 0.0;
-            }
-            sum/=6;
-            sumVec2[i] = sum;
-        }
-        sumVec = sumVec2;
-        */
-        
-        DEBUG_OUT("estimating tempo for whole song...", 10);
-        {
-            DEBUG_OUT("calculating auto correlation of sum vector...", 15);
-            Eigen::VectorXf autoCorr(6000);
-            for (int shift=0; shift<6000; shift++)
-            {
-                double corr=0.0;
-                
-                for (int i=0; i<sumVec.rows(); i++)
-                {
-                    int shiftPos = i + shift;
-                    corr += sumVec[i] * ((shiftPos >= sumVec.rows()) ? 0.0 : sumVec[shiftPos]);
-                }
-                autoCorr[shift] = corr;
-                //std::cerr << corr << std::endl;
-            }
-            
-            DEBUG_OUT("building derivation of cross correlation...", 15);
-            Eigen::VectorXf derivCorr(5999);
-            for (int shift=0; shift<5999; shift++)
-            {
-                derivCorr[shift] = autoCorr[shift+1] - autoCorr[shift];
-                //std::cerr << derivCorr[shift] << std::endl;
-            }
-            
-            DEBUG_OUT("looking for maxima...", 15);
-            std::vector<int> maxCorrPos;
-            for (int shift=1; shift<5998; shift++)
-            {
-                if ((sgn(derivCorr[shift]) == +1) && (sgn(derivCorr[shift-1]) == -1))
-                {   //change of sign in derivative from positive to negative! found max.
-                    maxCorrPos.push_back(shift);
-                }
-            }
-            
-            std::vector<int> diffPosVector;
-            DEBUG_OUT("calculating BPM mean and variance...", 15);
-            double bpmMean = 30.0/(double(maxCorrPos[maxCorrPos.size()-1])/maxCorrPos.size()*0.005);
-            double bpmMedian=0.0;
-            double bpmVariance=0.0;
-            DEBUG_OUT("BPM mean: " << bpmMean, 15);
-            
-            int oldVal = *maxCorrPos.begin();
-            for (std::vector<int>::iterator it = maxCorrPos.begin()+1; it != maxCorrPos.end(); it++)
-            {
-                double val = 30.0/(double(*it - oldVal)*0.005) - bpmMean;
-                bpmVariance += val*val;
-                diffPosVector.push_back(*it - oldVal);
-                //std::cerr << *it - oldVal << std::endl;
-                oldVal = *it;
-                //DEBUG_OUT("max found at " << *it, 30);
-            }
-            
-            std::sort(diffPosVector.begin(), diffPosVector.end());
-            bpmMedian = 30.0/(diffPosVector[diffPosVector.size()/2]*0.005);
-            DEBUG_OUT("BPM median: " << bpmMedian, 15);
-            
-            bpmVariance /= maxCorrPos.size();
-            DEBUG_OUT("BPM variance: " << bpmVariance, 15);
-        }
-        
-        DEBUG_OUT("estimating tempo for parts of the song...", 10);
-        for (int pos=0; pos<transformResult->getOriginalDuration()*100-2000; pos+=1000)
-        {   //shift 10 seconds...
-            Eigen::VectorXf autoCorr(2000);
-            for (int shift=0; shift<2000; shift++)
-            {
-                double corr=0.0;
-                
-                for (int i=pos; i<pos+2000; i++)
-                {
-                    int shiftPos = i + shift;
-                    corr += sumVec[i] * ((shiftPos >= sumVec.rows()) ? 0.0 : sumVec[shiftPos]);
-                }
-                autoCorr[shift] = corr;
-                //std::cerr << corr << std::endl;
-            }
-            
-            Eigen::VectorXf derivCorr(1999);
-            for (int shift=0; shift<1999; shift++)
-            {
-                derivCorr[shift] = autoCorr[shift+1] - autoCorr[shift];
-                //std::cerr << derivCorr[shift] << std::endl;
-            }
-            
-            std::vector<int> maxCorrPos;
-            for (int shift=1; shift<1998; shift++)
-            {
-                if ((sgn(derivCorr[shift]) == +1) && (sgn(derivCorr[shift-1]) == -1))
-                {   //change of sign in derivative from positive to negative! found max.
-                    maxCorrPos.push_back(shift);
-                }
-            }
-            double bpmMean = 30.0/(double(maxCorrPos[maxCorrPos.size()-1])/maxCorrPos.size()*0.005);
-            double bpmVariance=0.0;
-            DEBUG_OUT("BPM mean: " << bpmMean, 15);
-            
-            int oldVal = *maxCorrPos.begin();
-            for (std::vector<int>::iterator it = maxCorrPos.begin()+1; it != maxCorrPos.end(); it++)
-            {
-                double val = 30.0/(double(*it - oldVal)*0.005) - bpmMean;
-                bpmVariance += val*val;
-                oldVal = *it;
-            }
-            bpmVariance /= maxCorrPos.size();
-            DEBUG_OUT("BPM variance: " << bpmVariance, 15);
-        }
-        
-        DEBUG_OUT("TODO: cancel out outliers, without them, estimation should be good.", 15);
-        
         delete transformResult;
         //delete[] buffer;
+        delete cqt;
+        delete lowpassFilter;
+        
+        return EXIT_SUCCESS;
+    }
+    
+    int testEstimateBPM()
+    {
+        music::ConstantQTransform* cqt = NULL;
+        musicaccess::IIRFilter* lowpassFilter = NULL;
+        
+        lowpassFilter = musicaccess::IIRFilter::createLowpassFilter(0.25);
+        CHECK_OP(lowpassFilter, !=, NULL);
+        
+        double q_fact=2.0;
+        int binsPerOctave=12;
+        
+        DEBUG_OUT("creating constant q transform kernel with q=" << q_fact << " and binsPerOctave=" << binsPerOctave << "...", 10);
+        cqt = music::ConstantQTransform::createTransform(lowpassFilter, binsPerOctave, 25, 11025, 22050, q_fact, 0.0, 0.0005, 0.25);
+        CHECK_OP(cqt, !=, NULL);
+        
+        std::queue<std::string> files;
+        files.push("testdata/test.mp3");
+        
+        while (!files.empty())
+        {
+            std::string filename = files.front();
+            files.pop();
+            
+            musicaccess::SoundFile file;
+            CHECK(!file.isFileOpen());
+            CHECK(file.open(filename, true));
+            CHECK(file.isFileOpen());
+            
+            float* buffer = NULL;
+            buffer = new float[file.getSampleCount()];
+            CHECK(buffer != NULL);
+            
+            int sampleCount = file.readSamples(buffer, file.getSampleCount());
+            //estimated size might not be accurate!
+            CHECK_OP(sampleCount, >=, 0.9*file.getSampleCount());
+            CHECK_OP(sampleCount, <=, 1.1*file.getSampleCount());
+            
+            musicaccess::Resampler22kHzMono resampler;
+            DEBUG_OUT("resampling input file...", 10);
+            resampler.resample(file.getSampleRate(), &buffer, sampleCount, file.getChannelCount());
+            
+            CHECK_OP(sampleCount, <, file.getSampleCount());
+            
+            DEBUG_OUT("applying constant q transform...", 10);
+            music::ConstantQTransformResult* transformResult = cqt->apply(buffer, sampleCount);
+            CHECK(transformResult != NULL);
+            
+            music::BPMEstimator bpmEst;
+            double bpm = bpmEst.estimateBPM(transformResult);
+            DEBUG_OUT("bpm is " << bpm, 10);
+            CHECK_OP(bpm, >, 90);
+            CHECK_OP(bpm, <, 95);
+            
+            
+            delete transformResult;
+            //delete[] buffer;
+        }
+        
         delete cqt;
         delete lowpassFilter;
         
