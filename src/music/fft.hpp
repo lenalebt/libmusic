@@ -6,13 +6,14 @@
 
 namespace music
 {
+    #define FFT_PREFACTOR_COUNT 12
     class FFT
     {
     private:
-        kiss_fftr_cfg rCfg[12];
-        kiss_fft_cfg  cCfg[12];
-        kiss_fftr_cfg riCfg[12];
-        kiss_fft_cfg  ciCfg[12];
+        kiss_fftr_cfg rCfg[FFT_PREFACTOR_COUNT];
+        kiss_fft_cfg  cCfg[FFT_PREFACTOR_COUNT];
+        kiss_fftr_cfg riCfg[FFT_PREFACTOR_COUNT];
+        kiss_fft_cfg  ciCfg[FFT_PREFACTOR_COUNT];
     public:
         FFT();
         ~FFT();
@@ -66,7 +67,10 @@ namespace music
     protected:
         
     public:
-        void doDCT(float* timeData, int timeLength, float* freqData);
+        DCT();
+        ~DCT();
+        void doDCT1(float* timeData, int timeLength, float* freqData);
+        void doDCT2(float* timeData, int timeLength, float* freqData);
     };
 }
 

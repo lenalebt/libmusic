@@ -244,25 +244,29 @@ namespace tests
         
         DEBUG_OUT("calculating the dct of a signal...", 0);
         
-        float mem[129];
-        float outmem[129];
+        float* mem = new float[130];
+        float* outmem = new float[130];
         
-        for(int i=0; i<129; i++)
+        for(int i=0; i<128; i++)
         {
-            mem[i] = cos(2*2*M_PI*i/128.0);
+            mem[i] = cos(1*2*M_PI*i/128.0);
             std::cerr << mem[i] << " ";
+            outmem[i] = 0;
         }
         std::cerr << std::endl;
         
-        dct.doDCT(mem, 129, outmem);
+        dct.doDCT2(mem, 128, outmem);
         //int freqLen;
         //fft.doFFT(mem, 128, (kiss_fft_cpx*)outmem, freqLen);
         
-        for(int i=0; i<129; i++)
+        for(int i=0; i<128; i++)
         {
             std::cerr << outmem[i] << " ";
         }
         std::cerr << std::endl;
+        
+        delete[] mem;
+        delete[] outmem;
         
         return EXIT_SUCCESS;
     }

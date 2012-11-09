@@ -5,7 +5,7 @@ namespace music
 {
     FFT::FFT()
     {
-        for (int i=0; i<12; i++)
+        for (int i=0; i<FFT_PREFACTOR_COUNT; i++)
         {
             int timeLength = 1 << (i+1);
             //init kissfft
@@ -15,11 +15,13 @@ namespace music
             //init inverse kissfft
             riCfg[i] = kiss_fftr_alloc(timeLength, 1, NULL, NULL);
             ciCfg[i] = kiss_fft_alloc(timeLength, 1, NULL, NULL);
+            
+            //DEBUG_OUT(rCfg << " " << rCfg[0] << " " << rCfg[1], 10);
         }
     }
     FFT::~FFT()
     {
-        for (int i=0; i<12; i++)
+        for (int i=0; i<FFT_PREFACTOR_COUNT; i++)
         {
             free(rCfg[i]);
             free(cCfg[i]);
@@ -35,7 +37,7 @@ namespace music
         
         //choose the right cfg
         int i=0;
-        for (i=0; i<12; i++)
+        for (i=0; i<FFT_PREFACTOR_COUNT; i++)
         {
             if (timeLength & 2)
                 break;
@@ -51,7 +53,7 @@ namespace music
         
         //choose the right cfg
         int i=0;
-        for (i=0; i<12; i++)
+        for (i=0; i<FFT_PREFACTOR_COUNT; i++)
         {
             if (timeLength & 2)
                 break;
@@ -65,7 +67,7 @@ namespace music
     {
         //choose the right cfg
         int i=0;
-        for (i=0; i<12; i++)
+        for (i=0; i<FFT_PREFACTOR_COUNT; i++)
         {
             if (timeLength & 2)
                 break;
@@ -81,7 +83,7 @@ namespace music
     {
         //choose the right cfg
         int i=0;
-        for (i=0; i<12; i++)
+        for (i=0; i<FFT_PREFACTOR_COUNT; i++)
         {
             if (timeLength & 2)
                 break;
@@ -93,8 +95,61 @@ namespace music
     }
     */
     
-    void DCT::doDCT(float* timeData, int timeLength, float* freqData)
+    void DCT::doDCT2(float* timeData, int timeLength, float* freqData)
     {
+        //taken from "Numerical Recipes, Third Edition"
+        //imho, this code is veeeery ugly
+        int n=timeLength;
+        int freqLength;
+        
+        double sum, sum1, y1, y2, theta, wi=0.0, wi1, wpi, wpr, wr=1.0, wr1, wtemp;
+        float* tmpData = new float[n];      //TODO: These two memory allocations are not inherently needed
+        float* tmpData2 = new float[n+2];   //but I don't know for the moment how to fix it without affecting
+                                            //too many other parts of the software.
+        
+        theta = 0.5*M_PI/n;
+        wr1 = cos(theta);
+        wi1 = sin(theta);
+        wpr = -2.0 * wi1*wi1;
+        wpi = sin(2.0 * theta);
+        
+        for (int i=0; i<n/2; i++)
+        {
+            y1 = 0.5 * (timeData[i] + timeData[n-1-i]);
+            y2 = wi1 * (timeData[i] - timeData[n-1-i]);
+            tmpData[i] =        y1 + y2;
+            tmpData[n-1-i] =    y1 - y2;
+            wr1 = (wtemp=wr1)*wpr - wi1*wpi + wr1;
+            wi1 = wi1*wpr + wtemp*wpi + wi1;
+        }
+        
+        fft.doFFT(tmpData, n, (kiss_fft_cpx*)tmpData2, freqLength);
+        
+        freqData[0] = tmpData2[0];
+        for (int i=2; i<n; i+=2)
+        {
+            wr = (wtemp=wr)*wpr - wi*wpi + wr;
+            wi = wi*wpr + wtemp*wpi + wi;
+            y1 = tmpData2[i]*wr - tmpData2[i+1]*wi;
+            y2 = tmpData2[i+1]*wr + tmpData2[i]*wi;
+            freqData[i] = y1;
+            freqData[i+1] = y2;
+        }
+        sum = 0.5 * tmpData2[1];
+        for (int i=n-1; i>0; i-=2)
+        {
+            sum1 = sum;
+            sum += freqData[i];
+            freqData[i] = sum1;
+        }
+        
+        delete[] tmpData;
+        delete[] tmpData2;
+    }
+    void DCT::doDCT1(float* timeData, int timeLength, float* freqData)
+    {
+        //taken from "Numerical Recipes, Third Edition"
+        //imho, this code is veeeery ugly
         int n=timeLength-1;
         int freqLength;
         
@@ -162,6 +217,15 @@ namespace music
             freqData[j] = sum;
         }
         
-        delete tmpData;
+        delete[] tmpData;
+    }
+    
+    DCT::DCT() : fft()
+    {
+        
+    }
+    DCT::~DCT()
+    {
+        
     }
 }
