@@ -66,6 +66,12 @@ namespace music
          */
         virtual bool endTransaction()=0;
         
+        /**
+         * @brief Tells the database to rollback the last open transaction. Automatically ends the transaction.
+         * @return <code>true</code> if the operation succeeded, <code>false</code> otherwise
+         */
+        virtual bool rollbackTransaction()=0;
+        
         virtual ~DatabaseConnection() {}
         
         /**
