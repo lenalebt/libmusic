@@ -9,9 +9,13 @@
 #include "randomnumbers.hpp"
 
 #include <fstream>
+#include <vector>
 
 namespace tests
 {
+    //template <typename ScalarType>
+    //int GMMHelper(const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& mu1, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& mu2, GaussianMixtureModel<ScalarType>& gmm, GaussianMixtureModel<ScalarType>& gmm2, GaussianMixtureModel<ScalarType>& gmm3, GaussianMixtureModel<ScalarType>& gmm4);
+    
     int testFisherLDA()
     {
         music::FisherLDAClassifier* c = new music::FisherLDAClassifier(true);
@@ -108,61 +112,10 @@ namespace tests
         return EXIT_SUCCESS;
     }
     
-    int testGMM()
+    template <typename ScalarType> 
+    int GMMHelper(std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& mu1, Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& mu2, music::GaussianMixtureModel<ScalarType>& gmm, music::GaussianMixtureModel<ScalarType>& gmm2, music::GaussianMixtureModel<ScalarType>& gmm3, music::GaussianMixtureModel<ScalarType>& gmm4)
     {
-        DEBUG_OUT("running test for gaussian mixture models...", 0);
-        music::GaussianMixtureModelFullCov<double> gmm;
-        srand(time(NULL));
-        
-        //create data. don't have a generator for multivariate gaussian values, just taking equally distributed data (uncorrelated)
-        //set these values to change how much data will be generated, and how many dimensions you have
-        int dimension = 8;
-        int dataCount = 10000;
-        
-        Eigen::VectorXd dataVector(dimension);
-        std::vector<Eigen::VectorXd> data;
-        
-        DEBUG_OUT("adding " << dataCount << " data vectors...", 0);
-        //calc mu1 and mu2...
-        Eigen::VectorXd mu1(dimension);
-        Eigen::VectorXd mu2(dimension);
-        for (int j=0; j<dimension; j++)
-        {
-            mu1[j] = -0.5 + double(rand() % 1000) / 1000.0;
-            mu2[j] = 3.0 - 0.5 + double(rand() % 1000) / 1000.0;
-        }
-        DEBUG_OUT("mu1 = " << mu1, 0);
-        DEBUG_OUT("mu2 = " << mu2, 0);
-        
-        //distribution 1
-        DEBUG_OUT(dataCount / 4 << " for distribution 1...", 0);
-        Eigen::VectorXd meanVec = Eigen::VectorXd::Zero(dimension);
-        Eigen::VectorXd varVec = Eigen::VectorXd::Zero(dimension);
-        for (int i=0; i<dataCount/4; i++)
-        {
-            for (int j=0; j<dimension; j++)
-                dataVector[j] = -0.5 + double(rand() % 1000) / 1000.0;
-            meanVec = meanVec + dataVector + mu1;
-            varVec = varVec + (dataVector).array().pow(2.0).matrix();
-            data.push_back(dataVector + mu1);
-        }
-        DEBUG_OUT("mean of distribution 1 = " << meanVec / (dataCount/4), 0);
-        DEBUG_OUT("estimated variance of distribution 1 = " << varVec / (dataCount/4), 0);
-        
-        meanVec = Eigen::VectorXd::Zero(dimension);
-        varVec = Eigen::VectorXd::Zero(dimension);
-        //distribution 2
-        DEBUG_OUT(3*dataCount / 4 << " for distribution 2...", 0);
-        for (int i=dataCount/4; i<dataCount; i++)
-        {
-            for (int j=0; j<dimension; j++)
-                dataVector[j] = -1.0 + double(rand() % 2000) / 1000.0;
-            meanVec = meanVec + dataVector + mu2;
-            varVec = varVec + (dataVector).array().pow(2.0).matrix();
-            data.push_back(dataVector + mu2);
-        }
-        DEBUG_OUT("mean of distribution 2 = " << meanVec / (3*dataCount/4), 0);
-        DEBUG_OUT("estimated variance of distribution 2 = " << varVec / (3*dataCount/4), 0);
+        int dataCount = data.size();
         
         //train GMM with data
         DEBUG_OUT("training gmm...", 0);
@@ -170,9 +123,9 @@ namespace tests
         DEBUG_OUT("training done.", 0);
         
         //test if the GMM converged the right way, or not. test data.
-        std::vector<music::Gaussian<double>*> gaussians = gmm.getGaussians();
+        std::vector<music::Gaussian<ScalarType>*> gaussians = gmm.getGaussians();
         
-        for (std::vector<music::Gaussian<double>*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
+        for (typename std::vector<music::Gaussian<ScalarType>*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
         {
             DEBUG_OUT("gaussian mean: " << (*it)->getMean(), 0);
             DEBUG_OUT("gaussian sigma: " << (*it)->getCovarianceMatrix(), 0);
@@ -206,7 +159,7 @@ namespace tests
         //test if the GMM converged the right way, or not. test data.
         gaussians = gmm.getGaussians();
         
-        for (std::vector<music::Gaussian<double>*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
+        for (typename std::vector<music::Gaussian<ScalarType>*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
         {
             DEBUG_OUT("gaussian mean: " << (*it)->getMean(), 0);
             DEBUG_OUT("gaussian sigma: " << (*it)->getCovarianceMatrix(), 0);
@@ -219,12 +172,11 @@ namespace tests
         DEBUG_OUT("Model as JSON from string: " << gmmJSON, 0);
         
         DEBUG_OUT("loading model from JSON string...", 0);
-        music::GaussianMixtureModelFullCov<double> gmm2;
         gmm2.loadFromJSONString(gmmJSON);
         
         gaussians = gmm2.getGaussians();
         
-        for (std::vector<music::Gaussian<double>*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
+        for (typename std::vector<music::Gaussian<ScalarType>*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
         {
             DEBUG_OUT("gaussian mean: " << (*it)->getMean(), 0);
             DEBUG_OUT("gaussian sigma: " << (*it)->getCovarianceMatrix(), 0);
@@ -232,9 +184,7 @@ namespace tests
             CHECK( (((**it).getMean() - mu1).norm() / mu1.norm() < 10e-1) || (((**it).getMean() - mu2).norm() / mu2.norm() < 10e-1));
         }
         
-        music::GaussianMixtureModelFullCov<double> gmm3;
         gmm3.trainGMM(data, 5);
-        music::GaussianMixtureModelFullCov<double> gmm4;
         gmm4.trainGMM(data, 10);
         
         /*
@@ -251,6 +201,143 @@ namespace tests
         DEBUG_VAR_OUT(gmm4.compareTo(gmm), 0);
         
         return EXIT_SUCCESS;
+    }
+    
+    int testGMM()
+    {
+        DEBUG_OUT("running test for gaussian mixture models...", 0);
+        music::GaussianMixtureModelFullCov<double> fullgmmd;
+        music::GaussianMixtureModelFullCov<double> fullgmmd2;
+        music::GaussianMixtureModelFullCov<double> fullgmmd3;
+        music::GaussianMixtureModelFullCov<double> fullgmmd4;
+        music::GaussianMixtureModelFullCov<float>  fullgmmf;
+        music::GaussianMixtureModelFullCov<float>  fullgmmf2;
+        music::GaussianMixtureModelFullCov<float>  fullgmmf3;
+        music::GaussianMixtureModelFullCov<float>  fullgmmf4;
+        music::GaussianMixtureModelDiagCov<double> diaggmmd;
+        music::GaussianMixtureModelDiagCov<double> diaggmmd2;
+        music::GaussianMixtureModelDiagCov<double> diaggmmd3;
+        music::GaussianMixtureModelDiagCov<double> diaggmmd4;
+        music::GaussianMixtureModelDiagCov<float>  diaggmmf;
+        music::GaussianMixtureModelDiagCov<float>  diaggmmf2;
+        music::GaussianMixtureModelDiagCov<float>  diaggmmf3;
+        music::GaussianMixtureModelDiagCov<float>  diaggmmf4;
+        srand(time(NULL));
+        
+        //create data. don't have a generator for multivariate gaussian values, just taking equally distributed data (uncorrelated)
+        //set these values to change how much data will be generated, and how many dimensions you have
+        int dimension = 8;
+        int dataCount = 10000;
+        
+        Eigen::Matrix<double, Eigen::Dynamic, 1> dataVectord(dimension);
+        Eigen::Matrix<float , Eigen::Dynamic, 1> dataVectorf(dimension);
+        std::vector<Eigen::Matrix<double, Eigen::Dynamic, 1> > datad;
+        std::vector<Eigen::Matrix<float , Eigen::Dynamic, 1> > dataf;
+        
+        DEBUG_OUT("adding " << dataCount << " data vectors...", 0);
+        //calc mu1 and mu2...
+        Eigen::Matrix<double, Eigen::Dynamic, 1> mu1d(dimension);
+        Eigen::Matrix<double, Eigen::Dynamic, 1> mu2d(dimension);
+        Eigen::Matrix<float , Eigen::Dynamic, 1> mu1f(dimension);
+        Eigen::Matrix<float , Eigen::Dynamic, 1> mu2f(dimension);
+        for (int j=0; j<dimension; j++)
+        {
+            mu1d[j] = -0.5 + double(rand() % 1000) / 1000.0;
+            mu2d[j] = 3.0 - 0.5 + double(rand() % 1000) / 1000.0;
+            mu1f[j] = mu1d[j];
+            mu2f[j] = mu2d[j];
+        }
+        DEBUG_OUT("mu1d = " << mu1d, 0);
+        DEBUG_OUT("mu2d = " << mu2d, 0);
+        DEBUG_OUT("mu1f = " << mu1f, 0);
+        DEBUG_OUT("mu2fff " << mu2f, 0);
+        
+        //distribution 1
+        DEBUG_OUT(dataCount / 4 << " for distribution 1...", 0);
+        Eigen::Matrix<double, Eigen::Dynamic, 1> meanVecd = Eigen::Matrix<double, Eigen::Dynamic, 1>::Zero(dimension);
+        Eigen::Matrix<double, Eigen::Dynamic, 1> varVecd  = Eigen::Matrix<double, Eigen::Dynamic, 1>::Zero(dimension);
+        Eigen::Matrix<float , Eigen::Dynamic, 1> meanVecf = Eigen::Matrix<float , Eigen::Dynamic, 1>::Zero(dimension);
+        Eigen::Matrix<float , Eigen::Dynamic, 1> varVecf  = Eigen::Matrix<float , Eigen::Dynamic, 1>::Zero(dimension);
+        for (int i=0; i<dataCount/4; i++)
+        {
+            for (int j=0; j<dimension; j++)
+            {
+                dataVectord[j] = -0.5 + double(rand() % 1000) / 1000.0;
+                dataVectorf[j] = dataVectord[j];
+            }
+            meanVecd = meanVecd + dataVectord + mu1d;
+            varVecd = varVecd + (dataVectord).array().pow(2.0).matrix();
+            datad.push_back(dataVectord + mu1d);
+            
+            meanVecf = meanVecf + dataVectorf + mu1f;
+            varVecf = varVecf + (dataVectorf).array().pow(2.0).matrix();
+            dataf.push_back(dataVectorf + mu1f);
+        }
+        DEBUG_OUT("mean of distribution 1d = " << meanVecd / (dataCount/4), 0);
+        DEBUG_OUT("estimated variance of distribution 1d = " << varVecd / (dataCount/4), 0);
+        DEBUG_OUT("mean of distribution 1f = " << meanVecf / (dataCount/4), 0);
+        DEBUG_OUT("estimated variance of distribution 1f = " << varVecf / (dataCount/4), 0);
+        
+        meanVecd = Eigen::Matrix<double, Eigen::Dynamic, 1>::Zero(dimension);
+        varVecd  = Eigen::Matrix<double, Eigen::Dynamic, 1>::Zero(dimension);
+        meanVecf = Eigen::Matrix<float , Eigen::Dynamic, 1>::Zero(dimension);
+        varVecf  = Eigen::Matrix<float , Eigen::Dynamic, 1>::Zero(dimension);
+        //distribution 2
+        DEBUG_OUT(3*dataCount / 4 << " for distribution 2...", 0);
+        for (int i=dataCount/4; i<dataCount; i++)
+        {
+            for (int j=0; j<dimension; j++)
+            {
+                dataVectord[j] = -1.0 + double(rand() % 2000) / 1000.0;
+                dataVectorf[j] = dataVectord[j];
+            }
+            meanVecd = meanVecd + dataVectord + mu2d;
+            varVecd = varVecd + (dataVectord).array().pow(2.0).matrix();
+            datad.push_back(dataVectord + mu2d);
+            
+            meanVecf = meanVecf + dataVectorf + mu2f;
+            varVecf = varVecf + (dataVectorf).array().pow(2.0).matrix();
+            dataf.push_back(dataVectorf + mu2f);
+        }
+        DEBUG_OUT("mean of distribution 2d = " << meanVecd / (3*dataCount/4), 0);
+        DEBUG_OUT("estimated variance of distribution 2d = " << varVecd / (3*dataCount/4), 0);
+        DEBUG_OUT("mean of distribution 2f = " << meanVecf / (3*dataCount/4), 0);
+        DEBUG_OUT("estimated variance of distribution 2f = " << varVecf / (3*dataCount/4), 0);
+        
+        
+        std::vector<Eigen::Matrix<double, Eigen::Dynamic, 1> > datadcopy = datad;
+        std::vector<Eigen::Matrix<float , Eigen::Dynamic, 1> > datafcopy = dataf;
+        
+        Eigen::Matrix<double, Eigen::Dynamic, 1> mu1dcopy = mu1d;
+        Eigen::Matrix<double, Eigen::Dynamic, 1> mu2dcopy = mu2d;
+        Eigen::Matrix<float , Eigen::Dynamic, 1> mu1fcopy = mu1f;
+        Eigen::Matrix<float , Eigen::Dynamic, 1> mu2fcopy = mu2f;
+        
+        int retVal = 0;
+        DEBUG_OUT("running test for GMMs with double and full covariance matricies...", 10);
+        retVal += GMMHelper<double>(datadcopy, mu1dcopy, mu2dcopy, fullgmmd, fullgmmd2, fullgmmd3, fullgmmd4);
+        CHECK_EQ(retVal, 0);
+        DEBUG_OUT("running test for GMMs with float and full covariance matricies...", 10);
+        retVal += GMMHelper<float> (datafcopy, mu1fcopy, mu2fcopy, fullgmmf, fullgmmf2, fullgmmf3, fullgmmf4);
+        CHECK_EQ(retVal, 0);
+        
+        datadcopy = datad;
+        datafcopy = dataf;
+        
+        mu1dcopy = mu1d;
+        mu2dcopy = mu2d;
+        mu1fcopy = mu1f;
+        mu2fcopy = mu2f;
+        
+        DEBUG_OUT("running test for GMMs with double and diagonal covariance matricies...", 10);
+        retVal += GMMHelper<double>(datadcopy, mu1dcopy, mu2dcopy, diaggmmd, diaggmmd2, diaggmmd3, diaggmmd4);
+        CHECK_EQ(retVal, 0);
+        DEBUG_OUT("running test for GMMs with float and diagonal covariance matricies...", 10);
+        retVal += GMMHelper<float> (datafcopy, mu1fcopy, mu2fcopy, diaggmmf, diaggmmf2, diaggmmf3, diaggmmf4);
+        CHECK_EQ(retVal, 0);
+        DEBUG_OUT("test finished.", 10);
+        
+        return retVal;
     }
     int testKMeans()
     {
