@@ -30,16 +30,19 @@
     #endif
 #endif
 
-#if defined __FILE__ && defined __LINE__
-    #define DEBUG_OUT_NOENDL_LEVEL(str,level)   if (DEBUG_LEVEL >= level)   \
-                                                {                           \
-                                                    std::cerr << tests::basename(std::string(QUOTEME(__FILE__))) << ":" << QUOTEME(__LINE__) << ": " << str;            \
-                                                }                           \
-                                    
+#ifndef NDEBUG
+    #if defined __FILE__ && defined __LINE__
+        #define DEBUG_OUT_NOENDL_LEVEL(str,level)   if (DEBUG_LEVEL >= level)   \
+                                                    {                           \
+                                                        std::cerr << tests::basename(std::string(QUOTEME(__FILE__))) << ":" << QUOTEME(__LINE__) << ": " << str;            \
+                                                    }                           \
+                                        
+    #else
+        #define DEBUG_OUT_NOENDL_LEVEL(str,level)   std::cerr << str;
+    #endif
 #else
-    #define DEBUG_OUT_NOENDL_LEVEL(str)   std::cerr << str;
+    #define DEBUG_OUT_NOENDL_LEVEL(str,level)     ;
 #endif
-
 #define DEBUG_OUT_NOENDL(str,level) DEBUG_OUT_NOENDL_LEVEL(str, level)
 #define DEBUG_OUT(str,level)        DEBUG_OUT_NOENDL(str << std::endl, level)
 
