@@ -209,24 +209,24 @@ namespace tests
         int dataCount=50000;
         int gaussianCount=3;
         
-        music::GaussianMixtureModelFullCov<double> gmm;
-        music::KMeans<double> kmeans;
-        music::GaussianDiagCov<double> gdc1(dimension);
-        music::GaussianDiagCov<double> gdc2(dimension);
-        music::GaussianDiagCov<double> gdc3(dimension);
+        music::GaussianMixtureModelFullCov<kiss_fft_scalar> gmm;
+        music::KMeans<kiss_fft_scalar> kmeans;
+        music::GaussianDiagCov<kiss_fft_scalar> gdc1(dimension);
+        music::GaussianDiagCov<kiss_fft_scalar> gdc2(dimension);
+        music::GaussianDiagCov<kiss_fft_scalar> gdc3(dimension);
         
         //generate data
-        Eigen::VectorXd mu1(dimension);
-        Eigen::VectorXd mu2(dimension);
-        Eigen::VectorXd mu3(dimension);
+        Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> mu1(dimension);
+        Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> mu2(dimension);
+        Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> mu3(dimension);
         
         mu1 << 500, -500, 200, 150,  100, 50, 1, 20;
         mu2 << 100,  100, 900, 190,  -60, 90, 8, 10;
         mu3 << 800,-1000,-300,  50, -100,-50, 5, 30;
         
-        Eigen::VectorXd cov1(dimension);
-        Eigen::VectorXd cov2(dimension);
-        Eigen::VectorXd cov3(dimension);
+        Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> cov1(dimension);
+        Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> cov2(dimension);
+        Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> cov3(dimension);
         
         cov1 << 500,   2000, 200, 150,  100, 50, 1, 20;
         cov2 << 1000,  1000, 900, 190,   60, 90, 8, 10;
@@ -240,7 +240,7 @@ namespace tests
         gdc3.setCovarianceMatrix(cov3.asDiagonal());
         
         
-        std::vector<Eigen::VectorXd> data;
+        std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > data;
         for (int i=0; i<dataCount/3; i++)
         {
             data.push_back(gdc1.rand());
@@ -266,8 +266,8 @@ namespace tests
         
         
         gmm.trainGMM(data, gaussianCount);
-        std::vector<music::Gaussian<double>*> gaussians = gmm.getGaussians();
-        for (typename std::vector<music::Gaussian<double>*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
+        std::vector<music::Gaussian<kiss_fft_scalar>*> gaussians = gmm.getGaussians();
+        for (typename std::vector<music::Gaussian<kiss_fft_scalar>*>::iterator it = gaussians.begin(); it != gaussians.end(); it++)
         {
             DEBUG_OUT("gaussian mean: " << (*it)->getMean(), 0);
             DEBUG_OUT("gaussian sigma: " << (*it)->getCovarianceMatrix(), 0);
