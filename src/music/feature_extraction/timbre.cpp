@@ -50,14 +50,26 @@ namespace music
     }
     
     TimbreModel::TimbreModel(ConstantQTransformResult* transformResult) :
-        transformResult(transformResult)
+        transformResult(transformResult), model(NULL)
     {
         
+    }
+    TimbreModel::~TimbreModel()
+    {
+        if (model)
+            delete model;
     }
     void TimbreModel::calculateModel(int modelSize, double timeSliceSize)
     {
         assert(modelSize > 0);
         assert(timeSliceSize > 0.0);
+        
+        if (model)
+        {
+            delete model;
+            model = NULL;
+        }
+        model = new GaussianMixtureModelFullCov<double>();
         
         //first get data vectors
         TimbreEstimator tEst(transformResult);
@@ -70,9 +82,9 @@ namespace music
         }
         
         //then train the model
-        model.trainGMM(data, modelSize);
+        model->trainGMM(data, modelSize);
     }
-    GaussianMixtureModel<double> TimbreModel::getModel()
+    GaussianMixtureModel<double>* TimbreModel::getModel()
     {
         return model;
     }

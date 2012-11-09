@@ -225,13 +225,13 @@ namespace music
      * @author Lena Brueder
      * @date 2012-08-27
      */
-    template <typename ScalarType=double, typename GaussianType=music::GaussianFullCov<ScalarType> >
+    template <typename ScalarType=double>
     class GaussianMixtureModel : public StandardRNG<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >
     {
     private:
         
     protected:
-        std::vector<GaussianType*> gaussians;
+        std::vector<Gaussian<ScalarType>*> gaussians;
         UniformRNG<ScalarType> uniRNG;
         ScalarType normalizationFactor;
         
@@ -252,7 +252,7 @@ namespace music
          * 
          * @return A list of the gaussian distributions that build the model.
          */
-        std::vector<GaussianType* > emAlg(const std::vector<GaussianType*>& init, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, int gaussianCount = 10, unsigned int maxIterations=50);
+        virtual std::vector<Gaussian<ScalarType>* > emAlg(const std::vector<Gaussian<ScalarType>*>& init, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, int gaussianCount = 10, unsigned int maxIterations=50)=0;
     public:
         /**
          * @brief Creates a new empty Gaussian Mixture Model.
@@ -280,13 +280,13 @@ namespace music
          * 
          * @return A distance measure of the two gaussians.
          */
-        ScalarType compareTo(const GaussianMixtureModel<ScalarType, GaussianType>& other);
+        ScalarType compareTo(const GaussianMixtureModel<ScalarType>& other);
         
         /**
          * @brief Returns the list of gaussian distributions of this model.
          * @return A list of gaussian distributions.
          */
-        std::vector<GaussianType*> getGaussians() const {return gaussians;}
+        std::vector<Gaussian<ScalarType>*> getGaussians() const {return gaussians;}
         
         /**
          * @brief Draw a random vector from the probability density that is
@@ -315,14 +315,53 @@ namespace music
          */
         void loadFromJSONString(const std::string& jsonString);
         
-        template <typename S, typename G>
-        friend std::ostream& operator<<(std::ostream& os, const GaussianMixtureModel<S, G>& model);
-        template <typename S, typename G>
-        friend std::istream& operator>>(std::istream& is, GaussianMixtureModel<S, G>& model);
+        template <typename S>
+        friend std::ostream& operator<<(std::ostream& os, const GaussianMixtureModel<S>& model);
+        template <typename S>
+        friend std::istream& operator>>(std::istream& is, GaussianMixtureModel<S>& model);
+    };
+    /*template <typename ScalarType> class GaussianMixtureModel<ScalarType, GaussianFullCov<ScalarType> >;
+    template <typename ScalarType> class GaussianMixtureModel<ScalarType, GaussianDiagCov<ScalarType> >;*/
+    
+    template <typename ScalarType>
+    class GaussianMixtureModelFullCov : public GaussianMixtureModel<ScalarType>
+    {
+        protected:
+            using GaussianMixtureModel<ScalarType>::gaussians;
+            using GaussianMixtureModel<ScalarType>::uniRNG;
+            using GaussianMixtureModel<ScalarType>::normalizationFactor;
+            
+            std::vector<Gaussian<ScalarType>* > emAlg(const std::vector<Gaussian<ScalarType>*>& init, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, int gaussianCount = 10, unsigned int maxIterations=50);
+    };
+    template <typename ScalarType>
+    class GaussianMixtureModelDiagCov : public GaussianMixtureModel<ScalarType>
+    {
+        protected:
+            using GaussianMixtureModel<ScalarType>::gaussians;
+            using GaussianMixtureModel<ScalarType>::uniRNG;
+            using GaussianMixtureModel<ScalarType>::normalizationFactor;
+            
+            std::vector<Gaussian<ScalarType>* > emAlg(const std::vector<Gaussian<ScalarType>*>& init, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, int gaussianCount = 10, unsigned int maxIterations=50);
     };
     
-    template <typename ScalarType, typename GaussianType> std::ostream& operator<<(std::ostream& os, const GaussianMixtureModel<ScalarType, GaussianType>& model);
-    template <typename ScalarType, typename GaussianType> std::istream& operator>>(std::istream& is, GaussianMixtureModel<ScalarType, GaussianType>& model);
+    template <typename ScalarType> bool isDiagonal(const Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic>& matrix, double nondiagonalAbsMax=10e-13)
+    {
+        assert (matrix.cols() == matrix.rows());    //supposed to be run on diagonal matricies.
+        
+        bool retVal=true;
+        for (int i=0; i<matrix.rows(); i++)
+        {
+            //don't look at elements above and on the diagonal
+            for (int j=i+1; j<matrix.cols(); j++)
+            {
+                retVal |= matrix(i, j) < nondiagonalAbsMax;
+            }
+        }
+        return retVal;
+    }
+    
+    template <typename ScalarType> std::ostream& operator<<(std::ostream& os, const GaussianMixtureModel<ScalarType>& model);
+    template <typename ScalarType> std::istream& operator>>(std::istream& is, GaussianMixtureModel<ScalarType>& model);
 }
 
 #endif //GMM_HPP
