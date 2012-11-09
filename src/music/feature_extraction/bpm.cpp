@@ -10,7 +10,7 @@ namespace music
     
     void BPMEstimator::estimateBPM(ConstantQTransformResult* transformResult)
     {
-        estimateBPM1(transformResult);
+        estimateBPM3(transformResult);
     }
     void BPMEstimator::estimateBPM3(ConstantQTransformResult* transformResult)
     {
@@ -43,29 +43,29 @@ namespace music
             */
         }
         
-        DEBUG_OUT("calculating auto correlation of sum vector...", 15);
+        DEBUG_OUT("building derivation of sum vector...", 15);
         int maxCorrShift=6000;
+        Eigen::VectorXf derivSum(maxCorrShift-1);
+        for (int shift=0; shift<maxCorrShift-1; shift++)
+        {
+            derivSum[shift] = sumVec[shift+1] - sumVec[shift];
+        }
+        
+        DEBUG_OUT("calculating auto correlation of derivation vector...", 15);
         Eigen::VectorXf autoCorr(maxCorrShift);
         for (int shift=0; shift<maxCorrShift; shift++)
         {
             double corr=0.0;
-            for (int i=0; i<sumVec.rows(); i++)
+            for (int i=0; i<derivSum.size(); i++)
             {
                 int shiftPos = i + shift;
-                corr += sumVec[i] * ((shiftPos < sumVec.rows()) ? sumVec[shiftPos] : 0.0);
-                //corr += pow(sumVec[i] - ((shiftPos < sumVec.rows()) ? sumVec[shiftPos] : 0.0), 2.0);
+                corr += derivSum[i] * ((shiftPos < derivSum.size()) ? derivSum[shiftPos] : 0.0);
             }
             autoCorr[shift] = corr;
-            //std::cerr << corr << std::endl; 
+            //std::cerr << corr << std::endl;
         }
         
-        DEBUG_OUT("building derivation of auto correlation...", 15);
-        Eigen::VectorXf derivCorr(maxCorrShift-1);
-        for (int shift=0; shift<maxCorrShift-1; shift++)
-        {
-            derivCorr[shift] = autoCorr[shift+1] - autoCorr[shift];
-        }
-        
+        /*
         DEBUG_OUT("looking for maxima...", 15);
         std::vector<int> maxCorrPos;
         int oldVal=0;
@@ -102,6 +102,7 @@ namespace music
             this->bpmVariance += val*val;
         }
         this->bpmVariance /= diffPosVector.size();
+        * */
     }
     
     void BPMEstimator::estimateBPM1(ConstantQTransformResult* transformResult)
