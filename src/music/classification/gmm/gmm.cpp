@@ -11,6 +11,8 @@ namespace music
     Gaussian<ScalarType>::Gaussian(unsigned int dimension, NormalRNG<ScalarType>* rng) :
         weight(1.0), mean(dimension), preFactor(), rng(rng), externalRNG(rng!=NULL)
     {
+        mean.setZero();
+        
         if (!this->rng)
             this->rng = new NormalRNG<ScalarType>();
     }
@@ -98,6 +100,7 @@ namespace music
         Gaussian<ScalarType>(dimension, rng)
     {
         assert(this->rng != NULL);
+        diagCov.setOnes();
         calculatePrefactor();
     }
     template <typename ScalarType>
@@ -105,6 +108,7 @@ namespace music
         Gaussian<ScalarType>(weight, mean, rng), diagCov(mean.size())
     {
         assert(this->rng != NULL);
+        diagCov.setOnes();
         calculatePrefactor();
     }
     template <typename ScalarType>
@@ -170,6 +174,7 @@ namespace music
         Gaussian<ScalarType>(dimension, rng), fullCov(dimension, dimension), ldlt()
     {
         assert(this->rng != NULL);
+        fullCov = Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>::Ones(dimension).asDiagonal();
         calculatePrefactor();
     }
     template <typename ScalarType>
@@ -177,6 +182,7 @@ namespace music
         Gaussian<ScalarType>(weight, mean, rng), fullCov(mean.size(), mean.size())
     {
         assert(this->rng != NULL);
+        fullCov = Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>::Ones(mean.size()).asDiagonal();
         calculatePrefactor();
     }
     template <typename ScalarType>
@@ -208,6 +214,8 @@ namespace music
      * @bug This function does not work properly when you give it just a few data vectors.
      *      Seems to be a problem with linear dependent rows, as the covariance matricies are ill-conditioned
      *      (condition > 1e8).
+     * @bug covariance matricies get singular if there are less than <code>dimension</code>
+     *      vectors in one class
      */
     template <typename ScalarType>
     std::vector<Gaussian<ScalarType>*> GaussianMixtureModelFullCov<ScalarType>::emAlg(const std::vector<Gaussian<ScalarType>*>& init, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, unsigned int gaussianCount, unsigned int maxIterations, double initVariance, double minVariance)
@@ -295,6 +303,8 @@ namespace music
                     }
                 }
                 
+                //DEBUG_VAR_OUT(fullCovs[g], 0);
+                
                 Eigen::LDLT<Eigen::Matrix<ScalarType, Eigen::Dynamic, Eigen::Dynamic> > ldlt(fullCovs[g]);
                 //fullCovs[g].prod() is equal to its determinant for diagonal matricies.
                 //double factor = 1.0/(pow(2*M_PI, dimension/2.0) * sqrt(fullCovs[g].template cast<double>().determinant()));
@@ -370,6 +380,7 @@ namespace music
                     sigma.noalias() += (p(i,g) * (dist * dist.transpose()));
                 }
                 sigma = sigma / (dataSize * prob(g));
+                //DEBUG_VAR_OUT(sigma, 0);
                 
                 means[g] = mu;
                 fullCovs[g] = sigma;
@@ -906,10 +917,15 @@ namespace music
     template <typename ScalarType>
     GaussianMixtureModel<ScalarType>* GaussianMixtureModel<ScalarType>::loadFromJSONString(const std::string& jsonString)
     {
-        Json::Value root;
-        Json::Reader reader;
-        reader.parse(jsonString, root, false);
-        return loadFromJsonValue(root);
+        if (jsonString != "")
+        {
+            Json::Value root;
+            Json::Reader reader;
+            reader.parse(jsonString, root, false);
+            return loadFromJsonValue(root);
+        }
+        else
+            return NULL;
     }
     template <typename ScalarType>
     GaussianMixtureModel<ScalarType>* GaussianMixtureModel<ScalarType>::loadFromJsonValue(Json::Value& jsonValue)

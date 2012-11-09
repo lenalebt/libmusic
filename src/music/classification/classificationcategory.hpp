@@ -33,6 +33,7 @@ namespace music
         GaussianMixtureModel<kiss_fft_scalar>* getTimbreModel() {return timbreModel;}
         bool calculateChromaModel(std::vector<GaussianMixtureModel<kiss_fft_scalar>*> components, unsigned int gaussianCount = 8, unsigned int samplesPerGMM = 10000, ProgressCallbackCaller* callback = NULL);
         GaussianMixtureModel<kiss_fft_scalar>* getChromaModel() {return chromaModel;}
+        
     };
 }
 

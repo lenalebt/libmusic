@@ -23,7 +23,7 @@ namespace music
      * @date 2012-08-27
      */
     template <typename ScalarType=double>
-    class FisherLDAClassifier : public Classifier<ScalarType>
+    class FisherLDAClassifier : public TwoClassClassifier<ScalarType>
     {
     private:
         bool applyPCA;  //apply PCA before doing LDA? Helps getting Sw invertible.
