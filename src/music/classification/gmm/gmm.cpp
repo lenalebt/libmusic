@@ -673,7 +673,7 @@ namespace music
         //draw some samples from the one model and take a look at the pdf values of the other.
         double value = 0.0;
         double value2=0.0;
-        const int numValues = 50;
+        const int numValues = 100;
         
         UniformRNG<float> rng(0,1);
         Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> tmp;
