@@ -54,7 +54,6 @@ namespace music
      * selected sample number. There are some different possibilities
      * to access the values.
      * 
-     * @todo implement
      * @ingroup transforms
      * 
      * @author Lena Brueder
@@ -94,10 +93,9 @@ namespace music
          * 
          * 
          * @param time the time in seconds
-         * @param octave
-         * @param bin
+         * @param octave the octave you want to see
+         * @param bin the bin within the octave
          * @return the value of the constant Q transform at a given sample number
-         * @todo description does not match function parameters
          * @todo timing is not right: lower octaves get squeezed (they are too short)
          */
         std::complex<float> getNoteValueLinearInterpolation(float time, int octave, int bin) const;
@@ -109,10 +107,9 @@ namespace music
          * It just takes the value of the transform that is before the given time value.
          * 
          * @param time the time in seconds
-         * @param octave
-         * @param bin
+         * @param octave the octave you want to see
+         * @param bin the bin within the octave
          * @return the value of the constant Q transform at a given sample number
-         * @todo description does not match function parameters
          */
         std::complex<float> getNoteValueNoInterpolation(float time, int octave, int bin) const;
         
@@ -123,23 +120,38 @@ namespace music
          * Calculates the mean of a time slot and returns that.
          * 
          * @param time the time in seconds
-         * @param octave
-         * @param bin
+         * @param octave the octave you want to see
+         * @param bin the bin within the octave
          * @param preDuration The time before the moment given in <code>time</code> that will be taken into account
          *      when calculating the mean.
          * @return the value of the constant Q transform at a given sample number
-         * @todo description does not match function parameters
          */
         float getNoteValueMean(float time, int octave, int bin, float preDuration=0.01) const;
         
+        /**
+         * @brief Returns the original duration of the piece of music.
+         * @return the original duration
+         */
         double getOriginalDuration() const {return originalDuration;}
+        /**
+         * @brief Returns the number of octaves in this transform result
+         * @return the number of octaves
+         */
         int getOctaveCount() const {return octaveCount;}
+        /**
+         * @brief Returns the number of bins per octave.
+         * @return the number of bins per octave
+         */
         int getBinsPerOctave() const {return binsPerOctave;}
         
+        /** @todo documentation*/
         double getBinMax(int octave, int bin) const;
+        /** @todo documentation*/
         double getBinMin(int octave, int bin) const;
+        /** @todo documentation*/
         double getBinMean(int octave, int bin) const;
         
+        /** @todo documentation*/
         const Eigen::Matrix<std::complex<float>, Eigen::Dynamic, Eigen::Dynamic >* getOctaveMatrix(int octave) const;
         
         friend class ConstantQTransform;
@@ -150,9 +162,8 @@ namespace music
      *  to an input signal.
      * 
      * 
-     * 
-     * @todo unstable, api is subject to change.
-     * @todo implementation is not ready yet.
+     * @todo documentation
+     * @ingroup transforms
      * 
      * @author Lena Brueder
      * @date 2012-06-12

@@ -68,6 +68,7 @@ namespace music
     public:
         Gaussian(unsigned int dimension);
         Gaussian(ScalarType weight, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& mean);
+        Gaussian(const Gaussian<ScalarType>& other);
         /**
          * @brief Calculate the value of the gaussian distribution at the given position.
          * @return The value of the pdf at the given position.
@@ -164,6 +165,8 @@ namespace music
         void calculatePrefactor();
     public:
         GaussianFullCov(unsigned int dimension);
+        GaussianFullCov(ScalarType weight, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& mean);
+        GaussianFullCov(const GaussianFullCov<ScalarType>& other);
         ScalarType calculateValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector);
         ScalarType calculateValueWithoutWeights(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector);
         ScalarType calculateNoMeanValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector);
@@ -200,6 +203,8 @@ namespace music
         void calculatePrefactor();
     public:
         GaussianDiagCov(unsigned int dimension);
+        GaussianDiagCov(ScalarType weight, const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& mean);
+        GaussianDiagCov(const GaussianDiagCov<ScalarType>& other);
         ScalarType calculateValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector);
         ScalarType calculateValueWithoutWeights(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector);
         ScalarType calculateNoMeanValue(const Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>& dataVector);
@@ -370,6 +375,8 @@ namespace music
          */
         void loadFromJSONString(const std::string& jsonString);
         
+        GaussianMixtureModel<ScalarType>* operator+(const GaussianMixtureModel<ScalarType>& other);
+        
         template <typename S>
         friend std::ostream& operator<<(std::ostream& os, const GaussianMixtureModel<S>& model);
         template <typename S>
@@ -387,6 +394,7 @@ namespace music
             using GaussianMixtureModel<ScalarType>::normalizationFactor;
             
             std::vector<Gaussian<ScalarType>* > emAlg(const std::vector<Gaussian<ScalarType>*>& init, const std::vector<Eigen::Matrix<ScalarType, Eigen::Dynamic, 1> >& data, int gaussianCount = 10, unsigned int maxIterations=50);
+            
     };
     template <typename ScalarType>
     class GaussianMixtureModelDiagCov : public GaussianMixtureModel<ScalarType>
