@@ -6,6 +6,8 @@
 #include <Eigen/Cholesky>
 
 #include "randomnumbers.hpp"
+#include <iostream>
+#include "json/json.h"
 
 namespace music
 {
@@ -174,16 +176,16 @@ namespace music
         
     protected:
         Eigen::VectorXd diagCov;
-        Eigen::VectorXd diagCovInverse;
-        double diagCovDeterminant;
+        Eigen::LDLT<Eigen::MatrixXd> ldlt;
         
         void calculatePrefactor();
     public:
+        GaussianDiagCov(unsigned int dimension);
         double calculateValue(const Eigen::VectorXd& dataVector);
         double calculateValueWithoutWeights(const Eigen::VectorXd& dataVector);
         double calculateNoMeanValue(const Eigen::VectorXd& dataVector);
         Eigen::MatrixXd getCovarianceMatrix()   {return diagCov.asDiagonal();}
-        void setCovarianceMatrix(const Eigen::MatrixXd& matrix) {this->diagCov = matrix.diagonal();}
+        void setCovarianceMatrix(const Eigen::MatrixXd& matrix);
         
         Eigen::VectorXd rand();
     };
@@ -213,6 +215,8 @@ namespace music
     protected:
         std::vector<Gaussian*> gaussians;
         UniformRNG<double> uniRNG;
+        
+        void loadFromJsonValue(Json::Value& jsonValue);
         
         /**
          * @brief Starts the expectation-maximization algorithm (EM algorithm) for
@@ -284,8 +288,14 @@ namespace music
          * @todo Describe the structure of the JSON string
          * 
          */
-        void loadFromJSONString(std::string jsonString);
+        void loadFromJSONString(const std::string& jsonString);
+        
+        friend std::ostream& operator<<(std::ostream& os, const GaussianMixtureModel& model);
+        friend std::istream& operator>>(std::istream& is, GaussianMixtureModel& model);
     };
+    
+    std::ostream& operator<<(std::ostream& os, const GaussianMixtureModel& model);
+    std::istream& operator>>(std::istream& is, GaussianMixtureModel& model);
 }
 
 #endif //GMM_HPP

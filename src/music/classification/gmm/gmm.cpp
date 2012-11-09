@@ -4,6 +4,8 @@
 #include <assert.h>
 #include "debug.hpp"
 
+#include <sstream>
+
 namespace music
 {
     Gaussian::Gaussian(unsigned int dimension) :
@@ -20,19 +22,53 @@ namespace music
     
     double GaussianDiagCov::calculateValue(const Eigen::VectorXd& dataVector)
     {
-        //TODO
+        assert(dataVector.size() == mean.size());
+        Eigen::VectorXd dist = dataVector - mean;
+        Eigen::VectorXd dist2 = dist;
+        ldlt.solve(dist2);
+        return preFactor * std::exp(-0.5 * (dist.transpose() * dist2)(0));
     }
     double GaussianDiagCov::calculateValueWithoutWeights(const Eigen::VectorXd& dataVector)
     {
-        //TODO
+        assert(dataVector.size() == mean.size());
+        Eigen::VectorXd dist = dataVector - mean;
+        Eigen::VectorXd dist2 = dist;
+        ldlt.solve(dist2);
+        return preFactorWithoutWeights * std::exp(-0.5 * (dist.transpose() * dist2)(0));
     }
     double GaussianDiagCov::calculateNoMeanValue(const Eigen::VectorXd& dataVector)
     {
-        //TODO
+        assert(dataVector.size() == mean.size());
+        Eigen::VectorXd vec2 = dataVector;
+        ldlt.solve(vec2);
+        return preFactor * std::exp(-0.5 * (dataVector.transpose() * vec2)(0));
     }
     Eigen::VectorXd GaussianDiagCov::rand()
     {
-        //TODO
+        assert(mean.size() > 0);
+        Eigen::LDLT<Eigen::MatrixXd> ldlt(diagCov.asDiagonal());
+        Eigen::VectorXd y(mean.size());
+        for (int i=0; i<mean.size(); i++)
+            y[i] = rng->rand();
+        return ldlt.matrixL() * y + mean;
+    }
+    void GaussianDiagCov::calculatePrefactor()
+    {
+        preFactor = weight * 1.0/(pow(2*M_PI, diagCov.size()/2.0) * sqrt(diagCov.prod()));
+        preFactorWithoutWeights = 1.0/(pow(2*M_PI, diagCov.size()/2.0) * sqrt(diagCov.prod()));
+    }
+    void GaussianDiagCov::setCovarianceMatrix(const Eigen::MatrixXd& fullCov)
+    {
+        assert(fullCov.rows() == mean.size());
+        this->diagCov = fullCov.diagonal();
+        ldlt.compute(diagCov.asDiagonal());
+        
+        calculatePrefactor();
+    }
+    GaussianDiagCov::GaussianDiagCov(unsigned int dimension) :
+        Gaussian(dimension)
+    {
+        
     }
     
     
@@ -207,7 +243,7 @@ namespace music
     {
         double sumOfWeights=0.0;
         double randomNumber = uniRNG.rand();
-        for (int i=0; i<gaussians.size(); i++)
+        for (unsigned int i=0; i<gaussians.size(); i++)
         {
             sumOfWeights += gaussians[i]->getWeight();
             if (sumOfWeights > randomNumber)
@@ -218,5 +254,139 @@ namespace music
         uniRNG(0.0, 1.0)
     {
         
+    }
+    
+    std::string GaussianMixtureModel::toJSONString()
+    {
+        std::stringstream stream;
+        stream << *this;
+        return stream.str();
+    }
+    
+    void GaussianMixtureModel::loadFromJSONString(const std::string& jsonString)
+    {
+        Json::Value root;
+        Json::Reader reader;
+        reader.parse(jsonString, root, false);
+        loadFromJsonValue(root);
+    }
+    void GaussianMixtureModel::loadFromJsonValue(Json::Value& jsonValue)
+    {
+        //first: empty list of old gaussians.
+        for (unsigned int g=0; g<gaussians.size(); g++)
+            delete gaussians[g];
+        gaussians.clear();
+        
+        //read gaussians from json input.
+        for (unsigned int g=0; g<jsonValue.size(); g++)
+        {
+            //first init variables and read dimensionality
+            Gaussian* gauss=NULL;
+            int dimension=jsonValue[g]["mean"].size();
+            bool varianceIsFull;
+            if (jsonValue[g]["mean"].size() == jsonValue[g]["covariance"].size())
+            {
+                gauss = new GaussianDiagCov(dimension);
+                varianceIsFull = false;
+            }
+            else
+            {
+                gauss = new GaussianFullCov(dimension);
+                varianceIsFull = true;
+            }
+            
+            //read weight
+            gauss->setWeight(jsonValue[g]["weight"].asDouble());
+            
+            //read mean
+            Eigen::VectorXd mean(dimension);
+            Json::Value jMean = jsonValue[g]["mean"];
+            for (int i=0; i<dimension; i++)
+                mean[i] = jMean[i].asDouble();
+            
+            //read covariance
+            Eigen::MatrixXd variance(dimension, dimension);
+            Json::Value jVariance = jsonValue[g]["covariance"];
+            if (varianceIsFull)
+            {
+                //read values in lower triangular order.
+                //i and j are the coordinates of the matrix (i=row, j=col)
+                //k is the index of the input vector.
+                int i=0;
+                int j=0;
+                for (unsigned int k=0; k<jVariance.size(); k++)
+                {
+                    variance(i,j) = jVariance[k].asDouble();
+                    if (i != j)
+                        variance(j,i) = variance(i,j);
+                    
+                    //go one step to the right when we exceed the matrix dimensions
+                    //begin on the diagonal.
+                    i++;
+                    if (i>dimension)
+                    {
+                        i=j;
+                        j++;
+                    }
+                }
+            }
+            else
+            {
+                //set all Values to zero, as we will not write to every cell.
+                variance.setZero();
+                //read diagonal elements. we don't have other values.
+                for (int i=0; i<dimension; i++)
+                    variance(i,i) = jVariance[i].asDouble();
+            }
+            
+            
+            gaussians.push_back(gauss);
+        }
+    }
+    std::ostream& operator<<(std::ostream& os, const GaussianMixtureModel& model)
+    {
+        //uses Jsoncpp as library. Jsoncpp is licensed as MIT, so we may use it without restriction.
+        Json::Value root(Json::arrayValue);
+        Json::FastWriter writer;
+        
+        for (unsigned int g=0; g<model.gaussians.size(); g++)
+        {
+            Json::Value arrayElement;
+            
+            //output the weight
+            arrayElement["weight"]      = model.gaussians[g]->getWeight();
+            
+            //output the mean as array of doubles
+            Json::Value mean(Json::arrayValue);
+            Eigen::VectorXd gMean = model.gaussians[g]->getMean();
+            for (int i=0; i<gMean.size(); i++)
+                mean.append(Json::Value(gMean[i]));
+            arrayElement["mean"]        = mean;
+            
+            //output the variance as array of double. only save the lower
+            //triangular, as the other values are mirrored.
+            Json::Value variance(Json::arrayValue);
+            Eigen::MatrixXd gVariance = model.gaussians[g]->getCovarianceMatrix();
+            for (int i=0; i<gVariance.rows(); i++)
+            {
+                for (int j=i; j<gVariance.cols(); j++)
+                {
+                    variance.append(Json::Value(gVariance(i, j)));
+                }
+            }
+            arrayElement["covariance"]    = variance;
+            
+            root.append(arrayElement);
+        }
+        
+        os << writer.write(root);
+        return os;
+    }
+    std::istream& operator>>(std::istream& is, GaussianMixtureModel& model)
+    {
+        Json::Value root;
+        Json::Reader reader;
+        reader.parse(is, root, false);
+        model.loadFromJsonValue(root);
     }
 }
