@@ -176,4 +176,14 @@ namespace music
         
         return true;
     }
+    
+    bool SQLiteDatabaseConnection::addSong(Song* song)
+    {
+        return false;
+    }
+    
+    bool SQLiteDatabaseConnection::addSongFeatures(SongFeatures* song)
+    {
+        return false;
+    }
 }

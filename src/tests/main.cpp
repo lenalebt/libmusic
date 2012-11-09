@@ -25,6 +25,8 @@ int main(int argc, char *argv[])
     
     if (testname == "basename")
         return tests::testBasename();
+    else if (testname == "stringhelper")
+        return tests::testStringHelper();
     else if (testname == "libmusicaccess")
         return tests::testLibMusicAccess();
     else if (testname == "eigen")

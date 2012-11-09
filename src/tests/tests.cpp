@@ -22,6 +22,7 @@
 #include <vector>
 #include <queue>
 
+#include "stringhelper.hpp"
 #include "console_colors.hpp"
 
 using namespace colors;
@@ -450,5 +451,31 @@ namespace tests
         return EXIT_SUCCESS;
     }
     
-    
+    int testStringHelper()
+    {
+        CHECK(endsWith("hallo", "o"));
+        CHECK(endsWith("hallo", "lo"));
+        CHECK(endsWith("hallo", "llo"));
+        CHECK(endsWith("hallo", "allo"));
+        CHECK(endsWith("hallo", "hallo"));
+        CHECK(!endsWith("hallo", "o!"));
+        CHECK(endsWith("hallo!", "o!"));
+        CHECK(!endsWith("hallo", "ollah"));
+        CHECK(!endsWith("hallo", "%"));
+        CHECK(!endsWith("hallo", "&"));
+        CHECK(!endsWith("hallo", "§"));
+        CHECK(!endsWith("hallo", "\""));
+        CHECK(!endsWith("hallo", "?"));
+        CHECK(!endsWith("hallo", "#"));
+        CHECK(!endsWith("hallo", "'"));
+        
+        std::string str("hAllO'!§$%&/()=?");
+        CHECK_EQ(str, "hAllO'!§$%&/()=?");
+        toupper(str);
+        CHECK_EQ(str, "HALLO'!§$%&/()=?");
+        tolower(str);
+        CHECK_EQ(str, "hallo'!§$%&/()=?");
+        
+        return EXIT_SUCCESS;
+    }
 }

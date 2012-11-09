@@ -13,4 +13,10 @@ namespace music
     {
         
     }
+    
+    SongFeatures::SongFeatures() :
+        id(-1)
+    {
+        
+    }
 }

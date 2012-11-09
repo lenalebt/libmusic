@@ -13,6 +13,8 @@ namespace music
      * 
      * @remarks Use this object to store data in a database.
      * 
+     * @todo features are not ready yet. some are missing, formats are not clear, etc.
+     * 
      * @ingroup database
      * @author Lena Brueder
      * @date 2012-07-16
@@ -20,13 +22,19 @@ namespace music
     class SongFeatures
     {
     private:
+        long id;
         double length;
         double tempo;
         double dynamicrange;
     protected:
         
     public:
+        /** @todo constructor not ready yet
+         */
+        SongFeatures();
         
+        void setID(long id)             {this->id = id;}
+        long getID() const              {return id;}
     };
     
     /**

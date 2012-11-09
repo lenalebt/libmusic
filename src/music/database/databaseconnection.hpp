@@ -2,6 +2,7 @@
 #define DATABASECONNECTION_HPP
 
 #include <string>
+#include "databaseentities.hpp"
 
 namespace music
 {
@@ -62,6 +63,9 @@ namespace music
         virtual bool endTransaction()=0;
         
         virtual ~DatabaseConnection() {}
+        
+        virtual bool addSong(Song* song)=0;
+        virtual bool addSongFeatures(SongFeatures* features)=0;
     };
 }
 #endif  //DATABASECONNECTION_HPP
