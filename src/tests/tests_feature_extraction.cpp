@@ -589,19 +589,56 @@ namespace tests
         for (int i=0; i<transformResult->getOriginalDuration() * 32; i++)
         {
             time = (1.0/32.0) * i;
-            DEBUG_VAR_OUT(time, 0);
+            //DEBUG_VAR_OUT(time, 0);
             data.push_back(t.estimateTimbre(time, time + 0.02));
         }
         DEBUG_VAR_OUT(data.size(), 0);
+        /*
         DEBUG_VAR_OUT(data[0], 0);
         DEBUG_VAR_OUT(data[1], 0);
         DEBUG_VAR_OUT(data[2], 0);
         DEBUG_VAR_OUT(data[3], 0);
+        */
+        int gaussianCount = 4;
         
-        music::GaussianMixtureModel gmm;
-        gmm.trainGMM(data, 2);
+        DEBUG_OUT("Writing CQFCCs to a file...", 10);
+        std::ofstream outstr("cqfcc.dat");
+        for (int i=0; i<data.size(); i++)
+        {
+            outstr << data[i].transpose() << std::endl;
+        }
         
-        DEBUG_VAR_OUT(gmm, 0);
+        music::GaussianMixtureModel gmm1;
+        gmm1.trainGMM(data, gaussianCount);
+        
+        music::GaussianMixtureModel gmm2;
+        gmm2.trainGMM(data, gaussianCount);
+        
+        std::vector<music::Gaussian*> gaussians1 = gmm1.getGaussians();
+        for (int i=0; i<gaussianCount; i++)
+            DEBUG_VAR_OUT(gaussians1[i]->getMean(), 0);
+        std::vector<music::Gaussian*> gaussians2 = gmm2.getGaussians();
+        for (int i=0; i<gaussianCount; i++)
+            DEBUG_VAR_OUT(gaussians2[i]->getMean(), 0);
+        
+        DEBUG_VAR_OUT(gmm1.compareTo(gmm2), 0);
+        DEBUG_VAR_OUT(gmm1.compareTo(gmm2), 0);
+        DEBUG_VAR_OUT(gmm1.compareTo(gmm2), 0);
+        DEBUG_VAR_OUT(gmm2.compareTo(gmm1), 0);
+        DEBUG_VAR_OUT(gmm2.compareTo(gmm1), 0);
+        DEBUG_VAR_OUT(gmm2.compareTo(gmm1), 0);
+        
+        for (int i=0; i<gaussianCount; i++)
+            DEBUG_VAR_OUT(gmm1.calculateValue(gaussians1[i]->getMean()), 0);
+        
+        for (int i=0; i<gaussianCount; i++)
+            DEBUG_VAR_OUT(gmm1.calculateValue(gaussians2[i]->getMean()), 0);
+        
+        for (int i=0; i<gaussianCount; i++)
+            DEBUG_VAR_OUT(gmm2.calculateValue(gaussians2[i]->getMean()), 0);
+        
+        for (int i=0; i<gaussianCount; i++)
+            DEBUG_VAR_OUT(gmm2.calculateValue(gaussians1[i]->getMean()), 0);
         
         
         //the part below is timbre estimation via the overtone ratio, which did not work that good.
