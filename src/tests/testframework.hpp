@@ -8,22 +8,7 @@
 #include <iostream>
 #include <iomanip>
 
-/**
- * @brief for making strings out of defines.
- */
-#define QUOTEME_(x) #x
-/**
- * @brief for making strings out of defines.
- */
-#define QUOTEME(x) QUOTEME_(x)
-
-#if defined __FILE__ && defined __LINE__
-    #define LINESTR(a,b)           tests::basename(std::string(QUOTEME(__FILE__))) + ":" + QUOTEME(__LINE__) + ": "+ QUOTEME(a) + " == " + QUOTEME(b) + "?"
-    #define LINESTR_OP(a,op,b)     tests::basename(std::string(QUOTEME(__FILE__))) + ":" + QUOTEME(__LINE__) + ": "+ QUOTEME(a) + " " + QUOTEME(op) + " " + QUOTEME(b) + "?"
-#else
-    #define LINESTR(a,b)           std::string(QUOTEME(a)) + " == " + QUOTEME(b) + "?"
-    #define LINESTR_OP(a,op,b)     std::string(QUOTEME(a)) + " " + QUOTEME(op) + " " + QUOTEME(b) + "?"
-#endif
+#include "debug.hpp"
 
 #define CHECK_EQ(a,b)           if (!check_equality(LINESTR(a,b), a, b)) return EXIT_FAILURE;
 #define CHECK_OP(a,op,b)        std::cerr << std::left << std::setw(TEST_PASSED_MSG_WIDTH) << LINESTR_OP(a,op,b) << " - " << std::flush; if (!(a op b)) {std::cerr << "failed!" << std::endl; return EXIT_FAILURE;} else {std::cerr << "passed!" << std::endl;}
@@ -41,19 +26,8 @@
  */
 namespace tests
 {
-    int testBasename();
-    
     /**
-     * @brief gives the basename of a given path, as the unix basename tool does.
-     * 
-     * This function works with unix and windows file names.
-     * 
-     * @return the basename of a filename
-     */
-    std::string basename(std::string filename);
-
-    /**
-     * @brief Üchecks, if two values are identical. Prints out
+     * @brief checks, if two values are identical. Prints out
      *      <code>message</code>, if not.
      * 
      * Von dieser Funktion muss für jeden Typen, der verglichen werden soll,
