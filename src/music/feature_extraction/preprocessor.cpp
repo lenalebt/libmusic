@@ -127,13 +127,18 @@ namespace music
             music::BPMEstimator<kiss_fft_scalar> bpmEst;
             if (!bpmEst.estimateBPM(transformResult))
             {
-                delete recording;
+                DEBUG_OUT("failed to calculate tempo; setting to -1.0...", 10);
+                if (callback != NULL)
+                    callback->progress(9.0/stepCount, "not able to calculate tempo of recording; setting tempo to -1.0.");
+                /*delete recording;
                 delete transformResult;
                 delete[] buffer;
                 conn->rollbackTransaction();
-                return false;
+                return false;*/
+                features->setTempo(-1.0);
             }
-            features->setTempo(bpmEst.getBPMMean());
+            else
+                features->setTempo(bpmEst.getBPMMean());
             //TODO: other tempo features should also be important!
             
             if (callback != NULL)
