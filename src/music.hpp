@@ -84,7 +84,7 @@
  *         cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/modules/Toolchain-QNX-6.5.0-armv7.cmake ..
  *         make -j4
  *         @endcode
- * - copy the file <code>libmusicaccess.so</code> to <code>/opt/bbndk-2.0.1/target/qnx6/armle-v7/usr/lib</code>
+ * - copy the file <code>libmusic.so</code> to <code>/opt/bbndk-2.0.1/target/qnx6/armle-v7/usr/lib</code>
  * - copy all header files (<code>*.hpp</code>) from the <code>../src/</code> directory to 
  *   <code>/opt/bbndk-2.0.1/target/qnx6/usr/include</code>. Also copy the headers 
  *   in the subdirectories!
