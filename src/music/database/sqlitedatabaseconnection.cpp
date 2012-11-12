@@ -371,6 +371,8 @@ namespace music
             return false;
         }
         
+        DEBUG_OUT("  transaction stack size: " << _transactionStack.size(), 50);
+        
         return true;
     }
     
@@ -407,6 +409,8 @@ namespace music
             return false;
         }
         
+        DEBUG_OUT("  transaction stack size: " << _transactionStack.size(), 50);
+        
         return true;
     }
     bool SQLiteDatabaseConnection::rollbackTransaction()
@@ -441,6 +445,8 @@ namespace music
             sqlite3_free(errorMsg);
             return false;
         }
+        
+        DEBUG_OUT("  transaction stack size: " << _transactionStack.size(), 50);
         
         return true;
     }
