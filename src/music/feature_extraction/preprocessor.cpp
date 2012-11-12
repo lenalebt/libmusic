@@ -65,6 +65,7 @@ namespace music
                 if (callback != NULL)
                     callback->progress(stepCount, "aborted, opening file failed.");
                 
+                conn->rollbackTransaction();
                 return false;
             }
             
@@ -77,6 +78,7 @@ namespace music
                 if (callback != NULL)
                     callback->progress(stepCount, "aborted, file is shorter than 10 seconds.");
                 
+                conn->rollbackTransaction();
                 return false;
             }
             
