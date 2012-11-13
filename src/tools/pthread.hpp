@@ -198,11 +198,14 @@ public:
     * @endcode
     *
     * @param[out] t Here, the element from the queue will be saved, if any.
+    * @param blockIfEmpty if this parameter is <code>false</code>, the
+    *       function will return <code>false</code> if the queue is empty and it
+    *       would otherwise have been blocked.
     * @return <code>true</code>, if removing the element from the queue was successful,
     * <code>false</code> sonst.
     * @see destroyQueue()
     */
-    bool dequeue (T& t);
+    bool dequeue (T& t, bool blockIfEmpty = true);
     /**
     * @brief Adds an element to the queue.
     * 
@@ -210,10 +213,13 @@ public:
     * no element should be added to the queue, it returns <code>false</code>.
     *
     * @param t The element that should be added to the queue.
+    * @param blockIfFull if this parameter is <code>false</code>, the
+    *       function will return <code>false</code> if the queue is empty and it
+    *       would otherwise have been blocked.
     * @return If adding the element was successful, or not.
     * @see destroyQueue()
     */
-    bool enqueue ( const T & t );
+    bool enqueue (const T& t, bool blockIfFull = true);
     /**
     * @brief Destroys the queue and will wake up all blocking operations.
     */
