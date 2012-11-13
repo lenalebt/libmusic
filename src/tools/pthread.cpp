@@ -102,3 +102,118 @@ PThreadMutexLocker::~PThreadMutexLocker()
 {
     mutex->unlock();
 }
+
+PThreadWaitCondition::PThreadWaitCondition()
+{
+    pthread_cond_init(&_cond, NULL);
+}
+void PThreadWaitCondition::wakeAll()
+{
+    pthread_cond_broadcast(&_cond);
+}
+void PThreadWaitCondition::wakeOne()
+{
+    pthread_cond_signal(&_cond);
+}
+void PThreadWaitCondition::wait(PThreadMutex* mutex)
+{
+    pthread_cond_wait(&_cond, &(mutex->mutex));
+}
+
+template <typename T>
+bool BlockingQueue<T>::dequeue (T& t)
+{
+    PThreadMutexLocker locker(&_mutex);
+    
+    bool waitForElement=true;
+    while (waitForElement)
+    {
+        if (_elementCount <= 0)
+        {
+            if (!_queueDestroyed)
+            {
+                _notEmpty.wait(&_mutex);
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else
+        {
+            waitForElement = false;
+        }
+    }
+    
+    _elementCount--;
+    t = _queue.front();
+    _queue.pop();
+    _notFull.wakeAll();
+    return true;
+}
+
+template <typename T>
+bool BlockingQueue<T>::enqueue ( const T & t )
+{
+    PThreadMutexLocker locker(&_mutex);
+    
+    if (_queueDestroyed)
+        return false;
+    
+    bool waitForSpace=true;
+    while (waitForSpace)
+    {
+        if (_elementCount >= _size)
+        {
+            if (!_queueDestroyed)
+            {
+                _notFull.wait(&_mutex);
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else
+        {
+            waitForSpace = false;
+        }
+    }
+    
+    _elementCount++;
+    _queue.push(t);
+    _notEmpty.wakeAll();
+    return true;
+}
+
+template <typename T>
+void BlockingQueue<T>::destroyQueue()
+{
+    PThreadMutexLocker locker(&_mutex);
+    _queueDestroyed = true;
+    _notFull.wakeAll();
+    _notEmpty.wakeAll();
+}
+
+template <typename T>
+bool BlockingQueue<T>::isDestroyed()
+{
+    PThreadMutexLocker locker(&_mutex);
+    return _queueDestroyed;
+}
+
+template <typename T>
+BlockingQueue<T>& BlockingQueue<T>::operator<<(const T& element)
+{
+    this->enqueue(element);
+    return *this;
+}
+template <typename T>
+T& BlockingQueue<T>::operator>>(T& element)
+{
+    this->dequeue(element);
+    return element;
+}
+
+template class BlockingQueue<int>;
+template class BlockingQueue<std::string>;

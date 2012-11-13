@@ -287,6 +287,7 @@ ADD_TEST(gmm                       "musictests" "gmm")
 ADD_TEST(gmm                       "musictests" "gaussian")
 ADD_TEST(kmeans                    "musictests" "kmeans")
 ADD_TEST(rng                       "musictests" "rng")
+ADD_TEST(blockingqueue             "musictests" "blockingqueue")
 ADD_TEST(preprocessfiles           "musictests" "preprocessfiles" "./testdata/")
 
 SET_TESTS_PROPERTIES(dct                     PROPERTIES DEPENDS fft)

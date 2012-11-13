@@ -6,6 +6,8 @@
 #include "progress_callback.hpp"
 #include "constantq.hpp"
 
+#include "pthread.hpp"
+
 namespace music
 {
     /**
@@ -193,6 +195,8 @@ namespace music
         unsigned int getTimbreModelSize()                 {return timbreModelSize;}
     };
     
+    class FilePreprocessorThread;
+    
     class MultithreadedFilePreprocessor
     {
     private:
@@ -202,6 +206,9 @@ namespace music
         double chromaTimeSliceSize;
         unsigned int chromaModelSize;
         bool chromaMakeTransposeInvariant;
+        
+        //adds a recording to the database (with features), blocks until done.
+        bool addRecording(databaseentities::Recording& recording);
     public:
         /**
          * @brief Constructs a new MultithreadedFilePreprocessor object.
@@ -216,6 +223,18 @@ namespace music
          * @see TimbreEstimator
          */
         MultithreadedFilePreprocessor(DatabaseConnection* conn, unsigned int timbreModelSize = 20, unsigned int timbreDimension = 20, double timbreTimeSliceSize = 0.01, unsigned int chromaModelSize = 8, double chromaTimeSliceSize = 0.05, bool chromaMakeTransposeInvariant = true);
+        
+        friend class FilePreprocessorThread;
+    };
+    
+    class FilePreprocessorThread : public PThread
+    {
+    private:
+        
+    protected:
+        
+    public:
+        
     };
 }
 

@@ -27,6 +27,8 @@
 #include "stringhelper.hpp"
 #include "console_colors.hpp"
 
+#include "pthread.hpp"
+
 using namespace colors;
 
 namespace tests
@@ -699,5 +701,35 @@ namespace tests
         
         
         return EXIT_SUCCESS;
+    }
+    
+    int testBlockingQueue()
+    {
+        BlockingQueue<int> bQueue(5);
+        CHECK(!bQueue.isDestroyed());
+        
+        CHECK(bQueue.enqueue(5));
+        CHECK(!bQueue.isDestroyed());
+        
+        bQueue << 9;
+        
+        int a;
+        bQueue >> a;
+        CHECK_EQ(a, 5);
+        CHECK(bQueue.dequeue(a));
+        CHECK_EQ(a, 9);
+        CHECK(!bQueue.isDestroyed());
+        
+        CHECK(bQueue.enqueue(7));
+        
+        bQueue.destroyQueue();
+        CHECK(bQueue.isDestroyed());
+        CHECK(!bQueue.enqueue(6));
+        
+        CHECK(bQueue.dequeue(a));
+        CHECK_EQ(a, 7);
+        
+        CHECK(!bQueue.dequeue(a));
+        CHECK_EQ(a, 7);
     }
 }

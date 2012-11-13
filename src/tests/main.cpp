@@ -72,6 +72,8 @@ int main(int argc, char *argv[])
         return tests::testKMeans();
     else if (testname == "rng")
         return tests::testRNG();
+    else if (testname == "blockingqueue")
+        return tests::testBlockingQueue();
     else if (testname == "preprocessfiles")
     {
         std::string path;
