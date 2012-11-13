@@ -50,8 +50,8 @@ IF ( CMAKE_COMPILER_IS_GNUCXX )
     #gcc should be more pedantic.
     ADD_DEFINITIONS(-Wall -pedantic -Wno-long-long)
     #allows usage of c++ comments from c without warnings
-    SET(CMAKE_C_FLAGS -std=c99)
-    SET(CMAKE_CXX_FLAGS -Wno-conversion-null)
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-conversion-null ")
 ELSE ( MSVC )
     MESSAGE ("Using MS Visual Studio compiler...")
 ENDIF()

@@ -95,7 +95,7 @@ license you like.
  */
 
 namespace Json {
-
+using namespace std;
 /// Converts a unicode code-point to UTF-8.
 static inline std::string 
 codePointToUTF8(unsigned int cp)

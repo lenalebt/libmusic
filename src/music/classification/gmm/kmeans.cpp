@@ -181,7 +181,7 @@ namespace music
             minDistance = std::numeric_limits<float>::max();
             for (unsigned int i=0; i<dataSize; i++)
             {
-                distance = fabs(distances[i] - draw);
+                distance = std::fabs(distances[i] - draw);
                 if (distance < minDistance)
                 {
                     minDistance = distance;

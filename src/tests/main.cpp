@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <algorithm>
 #include <cctype>
+#include <ctime>
 
 #include "tests.hpp"
 #include "tests_feature_extraction.hpp"
@@ -15,7 +16,7 @@
 
 int main(int argc, char *argv[])
 {
-    srand(time(NULL));
+    std::srand(std::time(NULL));
     
     if (argc < 2)
     {
@@ -24,7 +25,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
     std::string testname(argv[1]);
-    std::transform(testname.begin(), testname.end(), testname.begin(), ::tolower);
+    std::transform(testname.begin(), testname.end(), testname.begin(), (int(*)(int))std::tolower);
     
     #ifdef DEBUG_LEVEL
         std::cerr << "DEBUG_LEVEL: " << DEBUG_LEVEL << std::endl;

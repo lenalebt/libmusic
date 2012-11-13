@@ -40,7 +40,7 @@ namespace music
         int nonzeroEigenvalueCount = eigenvalues.size();
         for (int i=0; i<eigenvalues.size(); i++)
         {
-            if (fabs(eigenvalues[i]) < 0.01)
+            if (std::fabs(eigenvalues[i]) < 0.01)
                 nonzeroEigenvalueCount--;
             else    //eigen values are sorted in increasing order
                 break;
@@ -49,7 +49,7 @@ namespace music
         
         for (int i=eigenvalues.size()-nonzeroEigenvalueCount; i<eigenvalues.size(); i++)
         {
-            u.col(i) *= 1.0/sqrt(eigenvalues[i]);
+            u.col(i) *= 1.0/std::sqrt(eigenvalues[i]);
         }
         DEBUG_VAR_OUT(u, 250);
         

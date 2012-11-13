@@ -1,5 +1,6 @@
 #include "debug.hpp"
 #include "testframework.hpp"
+#include <cstdlib>
 
 namespace tests
 {
@@ -7,9 +8,9 @@ namespace tests
     {
         if (removeExtension)
         {
-            size_t pos = filename.find_last_of("/\\:"); //where remove folder?
+            std::size_t pos = filename.find_last_of("/\\:"); //where remove folder?
             pos = (pos!=std::string::npos) ? pos+1 : 0;
-            size_t extpos = filename.find_last_of(".");  //where remove extension?
+            std::size_t extpos = filename.find_last_of(".");  //where remove extension?
             if ((extpos == std::string::npos) || (extpos < pos))
                 extpos = filename.find_last_of("\"") != std::string::npos;  //remove " in the end
             else
@@ -18,7 +19,7 @@ namespace tests
         }
         else
         {
-            size_t pos = filename.find_last_of("/\\:");
+            std::size_t pos = filename.find_last_of("/\\:");
             pos = (pos!=std::string::npos) ? pos+1 : 0;
             return filename.substr(pos, filename.length() - pos - (filename.find_last_of("\"") != std::string::npos));
         }

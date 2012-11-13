@@ -89,7 +89,7 @@ namespace tests
     template<> inline bool check_equality(std::string message, double a, double b)
     {
         std::cerr << std::left << std::setw(TEST_PASSED_MSG_WIDTH) << message << " - " << std::flush;
-        if ((a == b) || ((fabs(b) > 1e-12) && (fabs((a / b) - 1) < DOUBLE_EQUALITY_BARRIER)) || (fabs(a-b) < DOUBLE_EQUALITY_BARRIER) )
+        if ((a == b) || ((std::fabs(b) > 1e-12) && (std::fabs((a / b) - 1) < DOUBLE_EQUALITY_BARRIER)) || (std::fabs(a-b) < DOUBLE_EQUALITY_BARRIER) )
         {
             std::cerr << colors::ConsoleColors::green() << "passed!" << colors::ConsoleColors::defaultText() << std::endl;
             return true;
@@ -105,7 +105,7 @@ namespace tests
     template<> inline bool check_equality(std::string message, float a, float b)
     {
         std::cerr << std::left << std::setw(TEST_PASSED_MSG_WIDTH) << message << " - " << std::flush;
-        if ((a == b) || ((fabs(b) > 1e-12) && (fabs((a / b) - 1) < FLOAT_EQUALITY_BARRIER)) || (fabs(a-b) < FLOAT_EQUALITY_BARRIER) )
+        if ((a == b) || ((std::fabs(b) > 1e-12) && (std::fabs((a / b) - 1) < FLOAT_EQUALITY_BARRIER)) || (std::fabs(a-b) < FLOAT_EQUALITY_BARRIER) )
         {
             std::cerr << colors::ConsoleColors::green() << "passed!" << colors::ConsoleColors::defaultText() << std::endl;
             return true;

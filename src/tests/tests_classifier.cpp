@@ -10,6 +10,7 @@
 
 #include <fstream>
 #include <vector>
+#include <ctime>
 
 namespace tests
 {
@@ -489,7 +490,7 @@ namespace tests
     {
         DEBUG_OUT("running test for k-means...", 0);
         music::KMeans<double> kmeans;
-        srand(time(NULL));
+        std::srand(std::time(NULL));
         
         //create data. don't have a generator for multivariate gaussian values, just taking equally distributed data (uncorrelated)
         //set these values to change how much data will be generated, and how many dimensions you have
