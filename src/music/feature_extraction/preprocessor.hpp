@@ -192,6 +192,31 @@ namespace music
          */
         unsigned int getTimbreModelSize()                 {return timbreModelSize;}
     };
+    
+    class MultithreadedFilePreprocessor
+    {
+    private:
+        unsigned int timbreModelSize;
+        unsigned int timbreDimension;
+        double timbreTimeSliceSize;
+        double chromaTimeSliceSize;
+        unsigned int chromaModelSize;
+        bool chromaMakeTransposeInvariant;
+    public:
+        /**
+         * @brief Constructs a new MultithreadedFilePreprocessor object.
+         * 
+         * @param conn A pointer to the database connection. May not be null.
+         * @param timbreModelSize The size of the timbre model, i.e. the
+         *      number of normal distributions in the gaussian mixture model
+         * @param timbreDimension The dimension of the timbre vectors.
+         * @param timeSliceSize The size of the time slices for one timbre vector in seconds.
+         * 
+         * @see GaussianMixtureModel
+         * @see TimbreEstimator
+         */
+        MultithreadedFilePreprocessor(DatabaseConnection* conn, unsigned int timbreModelSize = 20, unsigned int timbreDimension = 20, double timbreTimeSliceSize = 0.01, unsigned int chromaModelSize = 8, double chromaTimeSliceSize = 0.05, bool chromaMakeTransposeInvariant = true);
+    };
 }
 
 #endif //PREPROCESSOR_HPP
