@@ -200,12 +200,17 @@ namespace music
     class MultithreadedFilePreprocessor
     {
     private:
+        DatabaseConnection* conn;
+        
         unsigned int timbreModelSize;
         unsigned int timbreDimension;
         double timbreTimeSliceSize;
         double chromaTimeSliceSize;
         unsigned int chromaModelSize;
         bool chromaMakeTransposeInvariant;
+        
+        PThreadMutex _dbMutex;
+        std::vector<FilePreprocessorThread*> _threadList;
         
         //adds a recording to the database (with features), blocks until done.
         bool addRecording(databaseentities::Recording& recording);
@@ -224,17 +229,32 @@ namespace music
          */
         MultithreadedFilePreprocessor(DatabaseConnection* conn, unsigned int timbreModelSize = 20, unsigned int timbreDimension = 20, double timbreTimeSliceSize = 0.01, unsigned int chromaModelSize = 8, double chromaTimeSliceSize = 0.05, bool chromaMakeTransposeInvariant = true);
         
+        bool preprocessFiles(const std::vector<std::string>& files, unsigned int threadCount = 2);
+        
         friend class FilePreprocessorThread;
     };
     
     class FilePreprocessorThread : public PThread
     {
     private:
+        MultithreadedFilePreprocessor* _processor;
+        BlockingQueue<std::string>& _jobQueue;
         
+        musicaccess::IIRFilter* lowpassFilter;
+        ConstantQTransform* cqt;
+        
+        unsigned int timbreModelSize;
+        unsigned int timbreDimension;
+        double timbreTimeSliceSize;
+        double chromaTimeSliceSize;
+        unsigned int chromaModelSize;
+        bool chromaMakeTransposeInvariant;
     protected:
         
     public:
-        
+        FilePreprocessorThread(MultithreadedFilePreprocessor* processor,
+            BlockingQueue<std::string>& jobQueue, unsigned int timbreModelSize = 20, unsigned int timbreDimension = 20, double timbreTimeSliceSize = 0.01, unsigned int chromaModelSize = 8, double chromaTimeSliceSize = 0.05, bool chromaMakeTransposeInvariant = true);
+        void run();
     };
 }
 

@@ -121,7 +121,7 @@ void PThreadWaitCondition::wait(PThreadMutex* mutex)
 }
 
 template <typename T>
-bool BlockingQueue<T>::dequeue (T& t, bool blockIfEmpty)
+bool BlockingQueue<T>::dequeue(T& t)
 {
     PThreadMutexLocker locker(&_mutex);
     
@@ -130,13 +130,8 @@ bool BlockingQueue<T>::dequeue (T& t, bool blockIfEmpty)
     {
         if (_elementCount <= 0)
         {
-            if (blockIfEmpty)
-            {
-                if (!_queueDestroyed)
-                    _notEmpty.wait(&_mutex);
-                else
-                    return false;
-            }
+            if (!_queueDestroyed)
+                _notEmpty.wait(&_mutex);
             else
                 return false;
         }
@@ -152,7 +147,7 @@ bool BlockingQueue<T>::dequeue (T& t, bool blockIfEmpty)
 }
 
 template <typename T>
-bool BlockingQueue<T>::enqueue (const T& t, bool blockIfFull)
+bool BlockingQueue<T>::enqueue(const T& t)
 {
     PThreadMutexLocker locker(&_mutex);
     
@@ -164,13 +159,8 @@ bool BlockingQueue<T>::enqueue (const T& t, bool blockIfFull)
     {
         if (_elementCount >= _size)
         {
-            if (blockIfFull)
-            {
-                if (!_queueDestroyed)
-                    _notFull.wait(&_mutex);
-                else
-                    return false;
-            }
+            if (!_queueDestroyed)
+                _notFull.wait(&_mutex);
             else
                 return false;
         }
