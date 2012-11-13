@@ -99,6 +99,7 @@ SET(
     src/tools/randomnumbers.cpp
     src/tools/matrixhelper.cpp
     src/tools/filesystem.cpp
+    src/tools/pthread.cpp
     src/tools/jsoncpp/jsoncpp.cpp
     
     #uihelper
@@ -152,6 +153,7 @@ SET(
     src/tools/randomnumbers.hpp
     src/tools/matrixhelper.hpp
     src/tools/filesystem.hpp
+    src/tools/pthread.hpp
     src/tools/jsoncpp/json/json.h
     src/tools/jsoncpp/json/json-forwards.h
     
