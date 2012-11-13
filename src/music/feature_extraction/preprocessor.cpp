@@ -202,8 +202,11 @@ namespace music
     {
         
     }
-    bool MultithreadedFilePreprocessor::preprocessFiles(const std::vector<std::string>& files, unsigned int threadCount)
+    bool MultithreadedFilePreprocessor::preprocessFiles(const std::vector<std::string>& files, unsigned int threadCount, ProgressCallbackCaller* callback)
     {
+        if (callback)
+            callback->progress(0.0, "init");
+        
         BlockingQueue<std::string> jobQueue(3 * threadCount);
         //start threads
         for (unsigned int i=0; i<threadCount; i++)
@@ -218,11 +221,18 @@ namespace music
         //add files to the blocking queue. the worker threads will automatically
         //dequeue the elements on the other side and call the addRecording()
         //function to add the results to the database.
+        int i=0;
         for (std::vector<std::string>::const_iterator it = files.begin(); it != files.end(); it++)
         {
+            i++;
             jobQueue.enqueue(*it);
+            if (callback)
+                callback->progress(double(i)/double(files.size()+2), std::string("processing file ") + *it);
         }
         jobQueue.destroyQueue();
+        
+        if (callback)
+            callback->progress(double(i+1)/double(files.size()+2), "waiting for last threads to finish...");
         
         //wait for thread termination
         for (unsigned int i=0; i<threadCount; i++)
@@ -230,12 +240,15 @@ namespace music
             _threadList[i]->join();
         }
         
+        if (callback)
+            callback->progress(1.0, "finished");
+        
         return true;
     }
     
     bool MultithreadedFilePreprocessor::addRecording(databaseentities::Recording& recording)
     {
-        PThreadMutexLocker locker(&_dbMutex);
+        PThreadMutexLocker locker(&_dbMutex);   //TODO: databaseconnection needs to be a seperate thread
         bool retVal = conn->beginTransaction();
         retVal = retVal || conn->addRecording(recording);
         retVal = retVal || conn->endTransaction();

@@ -229,7 +229,7 @@ namespace music
          */
         MultithreadedFilePreprocessor(DatabaseConnection* conn, unsigned int timbreModelSize = 20, unsigned int timbreDimension = 20, double timbreTimeSliceSize = 0.01, unsigned int chromaModelSize = 8, double chromaTimeSliceSize = 0.05, bool chromaMakeTransposeInvariant = true);
         
-        bool preprocessFiles(const std::vector<std::string>& files, unsigned int threadCount = 2);
+        bool preprocessFiles(const std::vector<std::string>& files, unsigned int threadCount = 2, ProgressCallbackCaller* callback = NULL);
         
         friend class FilePreprocessorThread;
     };

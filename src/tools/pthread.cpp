@@ -35,14 +35,9 @@ bool PThread::isRunThread()
 
 void PThread::start()
 {
-    std::cout << "trying to start thread..." << std::endl;
     int rc;
     pthread_attr_init( &threadAttr );
     rc = pthread_create(&thread, /*&threadAttr*/ NULL, runPThread, this);
-    if (rc==0)
-        std::cout << "thread started..." << std::endl;
-    else
-        std::cout << "thread NOT started..." << std::endl;
 }
 bool PThread::join(long msecs)
 {
