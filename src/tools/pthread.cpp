@@ -116,7 +116,7 @@ void PThreadWaitCondition::wait(PThreadMutex* mutex)
 }
 
 template <typename T>
-bool BlockingQueue<T>::dequeue(T& t)
+bool BlockingQueue<T>::dequeue(T& t, bool block)
 {
     PThreadMutexLocker locker(&_mutex);
     
@@ -126,7 +126,12 @@ bool BlockingQueue<T>::dequeue(T& t)
         if (_elementCount <= 0)
         {
             if (!_queueDestroyed)
-                _notEmpty.wait(&_mutex);
+            {
+                if (block)
+                    _notEmpty.wait(&_mutex);
+                else
+                    return false;
+            }
             else
                 return false;
         }
@@ -198,5 +203,8 @@ T& BlockingQueue<T>::operator>>(T& element)
     return element;
 }
 
+namespace music {namespace databaseentities {class Recording;} }
+
 template class BlockingQueue<int>;
 template class BlockingQueue<std::string>;
+template class BlockingQueue<music::databaseentities::Recording*>;

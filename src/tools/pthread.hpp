@@ -198,11 +198,13 @@ public:
     * @endcode
     *
     * @param[out] t Here, the element from the queue will be saved, if any.
+    * @param block If the operation should block if no data is available, or return
+    *       <code>false</code> in this case.
     * @return <code>true</code>, if removing the element from the queue was successful,
     * <code>false</code> sonst.
     * @see destroyQueue()
     */
-    bool dequeue (T& t);
+    bool dequeue (T& t, bool block=true);
     /**
     * @brief Adds an element to the queue.
     * 

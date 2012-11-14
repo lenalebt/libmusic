@@ -209,11 +209,11 @@ namespace music
         unsigned int chromaModelSize;
         bool chromaMakeTransposeInvariant;
         
-        PThreadMutex _dbMutex;
+        BlockingQueue<databaseentities::Recording*> _recordingQueue;
         std::vector<FilePreprocessorThread*> _threadList;
         
         //adds a recording to the database (with features), blocks until done.
-        bool addRecording(databaseentities::Recording& recording);
+        void addRecording(databaseentities::Recording* recording);
     public:
         /**
          * @brief Constructs a new MultithreadedFilePreprocessor object.

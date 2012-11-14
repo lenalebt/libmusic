@@ -198,7 +198,8 @@ namespace music
         timbreTimeSliceSize(timbreTimeSliceSize),
         chromaTimeSliceSize(chromaTimeSliceSize),
         chromaModelSize(chromaModelSize),
-        chromaMakeTransposeInvariant(chromaMakeTransposeInvariant)
+        chromaMakeTransposeInvariant(chromaMakeTransposeInvariant),
+        _recordingQueue(10)
     {
         
     }
@@ -207,7 +208,13 @@ namespace music
         if (callback)
             callback->progress(0.0, "init");
         
-        BlockingQueue<std::string> jobQueue(3 * threadCount);
+        //queue has size 2 because this should be sufficient.
+        //threads take one element, and it will immediately be refilled.
+        //one would be enough, and the other one is for the cases where two
+        //threads are ready taking one element before this thread will be restarted.
+        //this is a very rare condition, and not a problem, but with two elements,
+        //the performance might increase a bit.
+        BlockingQueue<std::string> jobQueue(2);
         //start threads
         for (unsigned int i=0; i<threadCount; i++)
         {
@@ -228,6 +235,16 @@ namespace music
             jobQueue.enqueue(*it);
             if (callback)
                 callback->progress(double(i)/double(files.size()+2), std::string("processing file ") + *it);
+            
+            databaseentities::Recording* recording = NULL;
+            //read recordings from the worker threads and save them to the database
+            //perform non-blocking read. as long as there are recordings, save them.
+            //this approach is needed as only the creator thread may write to the database.
+            while(_recordingQueue.dequeue(recording, false))
+            {
+                conn->addRecording(*recording);
+                delete recording;
+            }
         }
         jobQueue.destroyQueue();
         
@@ -238,6 +255,27 @@ namespace music
         for (unsigned int i=0; i<threadCount; i++)
         {
             _threadList[i]->join();
+            
+            //since every thread will produce an output, we need to
+            //put every result to the database to not get a deadlock here
+            //(the _recordingQueue might get full otherwise)
+            databaseentities::Recording* recording = NULL;
+            while(_recordingQueue.dequeue(recording, false))
+            {
+                conn->addRecording(*recording);
+                delete recording;
+            }
+        }
+        _recordingQueue.destroyQueue();
+        
+        //now empty the queue with blocking reads. there should not be
+        //anything in the queue, but this way we are 100% sure.
+        //the last read will not block due to the queue being destroyed.
+        databaseentities::Recording* recording = NULL;
+        while(_recordingQueue.dequeue(recording, true))
+        {
+            conn->addRecording(*recording);
+            delete recording;
         }
         
         if (callback)
@@ -246,13 +284,10 @@ namespace music
         return true;
     }
     
-    bool MultithreadedFilePreprocessor::addRecording(databaseentities::Recording& recording)
+    void MultithreadedFilePreprocessor::addRecording(databaseentities::Recording* recording)
     {
-        PThreadMutexLocker locker(&_dbMutex);   //TODO: databaseconnection needs to be a seperate thread
-        bool retVal = conn->beginTransaction();
-        retVal = retVal || conn->addRecording(recording);
-        retVal = retVal || conn->endTransaction();
-        return retVal;
+        //mutexes etc are handled by the queue.
+        _recordingQueue.enqueue(recording);
     }
     
     FilePreprocessorThread::FilePreprocessorThread(MultithreadedFilePreprocessor* processor,
@@ -351,17 +386,9 @@ namespace music
                 features->setChromaModel(chromaModel.getModel()->toJSONString());
                 
                 //this adds the recording, as well as its features, to the database.
-                if (!_processor->addRecording(*recording))
-                {
-                    delete recording;
-                    delete transformResult;
-                    delete[] buffer;
-                    continue;
-                }
+                //the pointer will be deleted by the other thread
+                _processor->addRecording(recording);
                 
-                //TODO: return recording->getID();
-                
-                delete recording;
                 delete transformResult;
                 delete[] buffer;
             }
