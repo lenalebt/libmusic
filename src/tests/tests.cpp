@@ -46,7 +46,7 @@ namespace tests
         
         CHECK_EQ(file.getPosition(), 0u);
         CHECK_EQ(file.getChannelCount(), 2);
-        CHECK_EQ(file.getSampleCount(), 1424384);
+        CHECK_EQ(file.getSampleCount(), 1424384u);
         CHECK_EQ(file.getSampleSize(), 2);
         CHECK_EQ(file.getSampleRate(), 44100);
         
@@ -64,7 +64,7 @@ namespace tests
         CHECK(!file.isFileOpen());
         
         musicaccess::Resampler22kHzMono resampler;
-        int sampleCount = file.getSampleCount();
+        unsigned int sampleCount = file.getSampleCount();
         resampler.resample(file.getSampleRate(), &buffer, sampleCount, file.getChannelCount());
         
         CHECK_OP(sampleCount, <=, file.getSampleCount());
@@ -100,14 +100,16 @@ namespace tests
         CHECK_EQ(m, m2);
         
         std::cerr << "Testing sparse matrix..." << std::endl;
-        Eigen::DynamicSparseMatrix<double> mSparse(2,2);
-        mSparse.insert(0,0) = 3;
+        Eigen::SparseMatrix<double> mSparse(2,2);
+        std::vector<Eigen::Triplet<double> > tlist;
+        tlist.push_back(Eigen::Triplet<double>(0, 0, 3.0));
+        tlist.push_back(Eigen::Triplet<double>(1, 0, 2.5));
+        tlist.push_back(Eigen::Triplet<double>(0, 1,-1.0));
+        tlist.push_back(Eigen::Triplet<double>(1, 1, 1.5));
+        mSparse.setFromTriplets(tlist.begin(), tlist.end());
         CHECK_EQ(mSparse.coeff(0,0), 3);
-        mSparse.insert(1,0) = 2.5;
         CHECK_EQ(mSparse.coeff(1,0), 2.5);
-        mSparse.insert(0,1) = -1;
         CHECK_EQ(mSparse.coeff(0,1), -1);
-        mSparse.insert(1,1) = 1.5;
         CHECK_EQ(mSparse.coeff(1,1), 1.5);
         
         m2 = m * mSparse;
@@ -474,13 +476,13 @@ namespace tests
         buffer = new float[file.getSampleCount()];
         CHECK(buffer != NULL);
         
-        int sampleCount = file.readSamples(buffer, file.getSampleCount());
+        unsigned int sampleCount = file.readSamples(buffer, file.getSampleCount());
         //estimated size might not be accurate!
         CHECK_OP(sampleCount, >=, 0.9*file.getSampleCount());
         CHECK_OP(sampleCount, <=, 1.1*file.getSampleCount());
         
         DEBUG_OUT("checking bounds of input data...", 0);
-        for (int i=0; i<file.getSampleCount(); i++)
+        for (unsigned int i=0; i<file.getSampleCount(); i++)
         {
             if ((buffer[i] > 1.0) || (buffer[i] < -1.0))
             {
@@ -498,7 +500,7 @@ namespace tests
         CHECK_OP(sampleCount, <, file.getSampleCount());
         
         DEBUG_OUT("checking bounds of resampled data...", 0);
-        for (int i=0; i<sampleCount; i++)
+        for (unsigned int i=0; i<sampleCount; i++)
         {
             if ((buffer[i] > 1.0) || (buffer[i] < -1.0))
             {
@@ -597,7 +599,7 @@ namespace tests
         buffer = new float[file.getSampleCount()];
         CHECK(buffer != NULL);
         
-        int sampleCount = file.readSamples(buffer, file.getSampleCount());
+        unsigned int sampleCount = file.readSamples(buffer, file.getSampleCount());
         //estimated size might not be accurate!
         CHECK_OP(sampleCount, >=, 0.9*file.getSampleCount());
         CHECK_OP(sampleCount, <=, 1.1*file.getSampleCount());
@@ -731,5 +733,7 @@ namespace tests
         
         CHECK(!bQueue.dequeue(a));
         CHECK_EQ(a, 7);
+        
+        return EXIT_SUCCESS;
     }
 }

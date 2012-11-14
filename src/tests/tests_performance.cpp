@@ -89,7 +89,7 @@ namespace performance_tests
             float* buffer = NULL;
             buffer = new float[file.getSampleCount()];
             assert(buffer != NULL);
-            int sampleCount = file.readSamples(buffer, file.getSampleCount());
+            unsigned int sampleCount = file.readSamples(buffer, file.getSampleCount());
             
             CHECK_OP(sampleCount, <=, file.getSampleCount());
             
@@ -272,7 +272,7 @@ namespace performance_tests
             float* buffer = NULL;
             buffer = new float[file.getSampleCount()];
             assert(buffer != NULL);
-            int sampleCount = file.readSamples(buffer, file.getSampleCount());
+            unsigned int sampleCount = file.readSamples(buffer, file.getSampleCount());
             if (sampleCount==0)
             {
                 ERROR_OUT("some error happened while decoding audio stream, skipping this file...", 0);

@@ -117,7 +117,7 @@ namespace tests
             buffer = new float[file.getSampleCount()];
             CHECK(buffer != NULL);
             
-            int sampleCount = file.readSamples(buffer, file.getSampleCount());
+            unsigned int sampleCount = file.readSamples(buffer, file.getSampleCount());
             //estimated size might not be accurate!
             CHECK_OP(sampleCount, >=, 0.9*file.getSampleCount());
             CHECK_OP(sampleCount, <=, 1.1*file.getSampleCount());
@@ -196,7 +196,7 @@ namespace tests
         buffer = new float[file.getSampleCount()];
         CHECK(buffer != NULL);
         
-        int sampleCount = file.readSamples(buffer, file.getSampleCount());
+        unsigned int sampleCount = file.readSamples(buffer, file.getSampleCount());
         //estimated size might not be accurate!
         CHECK_OP(sampleCount, >=, 0.9*file.getSampleCount());
         CHECK_OP(sampleCount, <=, 1.1*file.getSampleCount());
@@ -273,7 +273,7 @@ namespace tests
         buffer = new float[file.getSampleCount()];
         CHECK(buffer != NULL);
         
-        int sampleCount = file.readSamples(buffer, file.getSampleCount());
+        unsigned int sampleCount = file.readSamples(buffer, file.getSampleCount());
         //estimated size might not be accurate!
         CHECK_OP(sampleCount, >=, 0.9*file.getSampleCount());
         CHECK_OP(sampleCount, <=, 1.1*file.getSampleCount());
@@ -392,7 +392,7 @@ namespace tests
         buffer = new float[file.getSampleCount()];
         CHECK(buffer != NULL);
         
-        int sampleCount = file.readSamples(buffer, file.getSampleCount());
+        unsigned int sampleCount = file.readSamples(buffer, file.getSampleCount());
         //estimated size might not be accurate!
         CHECK_OP(sampleCount, >=, 0.9*file.getSampleCount());
         CHECK_OP(sampleCount, <=, 1.1*file.getSampleCount());
@@ -433,7 +433,7 @@ namespace tests
             buffer = new float[file.getSampleCount()];
             CHECK(buffer != NULL);
             
-            int sampleCount = file.readSamples(buffer, file.getSampleCount());
+            unsigned int sampleCount = file.readSamples(buffer, file.getSampleCount());
             //estimated size might not be accurate!
             CHECK_OP(sampleCount, >=, 0.9*file.getSampleCount());
             CHECK_OP(sampleCount, <=, 1.1*file.getSampleCount());
@@ -583,7 +583,7 @@ namespace tests
             buffer = new float[file.getSampleCount()];
             CHECK(buffer != NULL);
             
-            int sampleCount = file.readSamples(buffer, file.getSampleCount());
+            unsigned int sampleCount = file.readSamples(buffer, file.getSampleCount());
             //estimated size might not be accurate!
             CHECK_OP(sampleCount, >=, 0.9*file.getSampleCount());
             CHECK_OP(sampleCount, <=, 1.1*file.getSampleCount());
@@ -655,7 +655,7 @@ namespace tests
             buffer = new float[file.getSampleCount()];
             CHECK(buffer != NULL);
             
-            int sampleCount = file.readSamples(buffer, file.getSampleCount());
+            unsigned int sampleCount = file.readSamples(buffer, file.getSampleCount());
             //estimated size might not be accurate!
             CHECK_OP(sampleCount, >=, 0.9*file.getSampleCount());
             CHECK_OP(sampleCount, <=, 1.1*file.getSampleCount());
@@ -705,7 +705,7 @@ namespace tests
         buffer = new float[file.getSampleCount()];
         CHECK(buffer != NULL);
         
-        int sampleCount = file.readSamples(buffer, file.getSampleCount());
+        unsigned int sampleCount = file.readSamples(buffer, file.getSampleCount());
         //estimated size might not be accurate!
         CHECK_OP(sampleCount, >=, 0.9*file.getSampleCount());
         CHECK_OP(sampleCount, <=, 1.1*file.getSampleCount());
@@ -953,7 +953,7 @@ namespace tests
             buffer = new float[file.getSampleCount()];
             CHECK(buffer != NULL);
             
-            int sampleCount = file.readSamples(buffer, file.getSampleCount());
+            unsigned int sampleCount = file.readSamples(buffer, file.getSampleCount());
             //estimated size might not be accurate!
             CHECK_OP(sampleCount, >=, 0.9*file.getSampleCount());
             CHECK_OP(sampleCount, <=, 1.1*file.getSampleCount());
@@ -1223,7 +1223,7 @@ namespace tests
         buffer = new float[file.getSampleCount()];
         CHECK(buffer != NULL);
         
-        int sampleCount = file.readSamples(buffer, file.getSampleCount());
+        unsigned int sampleCount = file.readSamples(buffer, file.getSampleCount());
         //estimated size might not be accurate!
         CHECK_OP(sampleCount, >=, 0.9*file.getSampleCount());
         CHECK_OP(sampleCount, <=, 1.1*file.getSampleCount());
