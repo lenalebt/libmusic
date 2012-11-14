@@ -31,7 +31,7 @@
  *  * <code>doxygen</code>, if you want to build the documentation. This package is optional.
  *  * <code>cmake</code>, which is the build system and needed to compile the software.
  *  * <code>libmusicaccess</code>, which should be bundled or found at the same place you found <code>libmusic</code>.
- *  * <code>eigen</code> >= 3.0, this library is used for matrix and vector operations.
+ *  * <code>eigen</code> >= 3.1.2, this library is used for matrix and vector operations.
  *  * <code>sqlite3</code>, which is the database backend.
  * 
  * @subsection mainpage_normal_install Installing on a normal *nix system
