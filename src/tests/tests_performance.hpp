@@ -43,6 +43,8 @@ namespace performance_tests
      */
     int testTimbreParameters(const std::string& timbreVectorTimeLength = std::string("0.01"),
         const std::string& folder = std::string("./testdata/instrument/singlenotes/"));
+    
+    int testGMMRand();
 }
 
 #endif  //TESTS_PERFORMANCE_HPP

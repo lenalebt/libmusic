@@ -203,10 +203,15 @@ namespace music
     {
         
     }
-    bool MultithreadedFilePreprocessor::preprocessFiles(const std::vector<std::string>& files, unsigned int threadCount, ProgressCallbackCaller* callback)
+    BlockingQueue<databaseentities::id_datatype>* MultithreadedFilePreprocessor::preprocessFiles(const std::vector<std::string>& files, unsigned int threadCount, ProgressCallbackCaller* callback)
     {
         if (callback)
             callback->progress(0.0, "init");
+        
+        //put the successful recording IDs in a queue and return that.
+        //can be used to recalculate the scores. needs to be deleted from the outside.
+        BlockingQueue<databaseentities::id_datatype>* recordingIDQueue =
+            new BlockingQueue<databaseentities::id_datatype>(files.size() + 10);
         
         //queue has size 2 because this should be sufficient.
         //threads take one element, and it will immediately be refilled.
@@ -243,6 +248,7 @@ namespace music
             while(_recordingQueue.dequeue(recording, false))
             {
                 conn->addRecording(*recording);
+                recordingIDQueue->enqueue(recording->getID());
                 delete recording;
             }
         }
@@ -263,6 +269,7 @@ namespace music
             while(_recordingQueue.dequeue(recording, false))
             {
                 conn->addRecording(*recording);
+                recordingIDQueue->enqueue(recording->getID());
                 delete recording;
             }
         }
@@ -275,13 +282,16 @@ namespace music
         while(_recordingQueue.dequeue(recording, true))
         {
             conn->addRecording(*recording);
+            recordingIDQueue->enqueue(recording->getID());
             delete recording;
         }
+        
+        recordingIDQueue->destroyQueue();
         
         if (callback)
             callback->progress(1.0, "finished");
         
-        return true;
+        return recordingIDQueue;
     }
     
     void MultithreadedFilePreprocessor::addRecording(databaseentities::Recording* recording)

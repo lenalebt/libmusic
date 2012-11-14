@@ -206,5 +206,8 @@ T& BlockingQueue<T>::operator>>(T& element)
 namespace music {namespace databaseentities {class Recording;} }
 
 template class BlockingQueue<int>;
+template class BlockingQueue<unsigned int>;
+template class BlockingQueue<long>;
+template class BlockingQueue<unsigned long>;
 template class BlockingQueue<std::string>;
 template class BlockingQueue<music::databaseentities::Recording*>;

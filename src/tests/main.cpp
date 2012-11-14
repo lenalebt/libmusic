@@ -66,6 +66,8 @@ int main(int argc, char *argv[])
         return tests::testFisherLDA();
     else if (testname == "gmm")
         return tests::testGMM();
+    else if (testname == "gmmrand")
+        return performance_tests::testGMMRand();
     else if (testname == "gaussian")
         return tests::testGaussian();
     else if (testname == "kmeans")

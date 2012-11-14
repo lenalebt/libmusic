@@ -287,6 +287,8 @@ namespace tests
         DEBUG_OUT("training GMM 3...", 10);
         gmm3.trainGMM(data2, gaussianCount);
         
+        DEBUG_VAR_OUT(gmm1.toJSONString(), 10);
+        
         DEBUG_OUT("results of GMM 1:", 10);
         std::vector<music::Gaussian<kiss_fft_scalar>*> gaussians = gmm1.getGaussians();
         CHECK_EQ(gaussians.size(), gaussianCount);

@@ -389,6 +389,9 @@ namespace music
             }
         }
         
+        if (maxCorrPos.size() <= 1)
+            return false;
+        
         DEBUG_OUT("calculating beat lengths...", 15);
         std::vector<float> diffPosVector;
         {
