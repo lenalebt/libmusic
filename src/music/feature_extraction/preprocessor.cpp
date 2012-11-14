@@ -102,7 +102,7 @@ namespace music
             float* buffer = NULL;
             DEBUG_OUT("will read " << file.getSampleCount() << " samples.", 10);
             buffer = new float[file.getSampleCount()];
-            int sampleCount = file.readSamples(buffer, file.getSampleCount());
+            unsigned int sampleCount = file.readSamples(buffer, file.getSampleCount());
             DEBUG_OUT("read " << sampleCount << " samples.", 10);
             resampler.resample(file.getSampleRate(), &buffer, sampleCount, file.getChannelCount());
             
@@ -199,7 +199,7 @@ namespace music
         chromaTimeSliceSize(chromaTimeSliceSize),
         chromaModelSize(chromaModelSize),
         chromaMakeTransposeInvariant(chromaMakeTransposeInvariant),
-        _recordingQueue(10)
+        _recordingQueue(1000)
     {
         
     }
@@ -352,7 +352,7 @@ namespace music
                 float* buffer = NULL;
                 DEBUG_OUT("will read " << file.getSampleCount() << " samples.", 20);
                 buffer = new float[file.getSampleCount()];
-                int sampleCount = file.readSamples(buffer, file.getSampleCount());
+                unsigned int sampleCount = file.readSamples(buffer, file.getSampleCount());
                 DEBUG_OUT("read " << sampleCount << " samples.", 20);
                 resampler.resample(file.getSampleRate(), &buffer, sampleCount, file.getChannelCount());
                 
