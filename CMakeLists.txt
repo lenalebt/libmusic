@@ -64,7 +64,7 @@ SET(CMAKE_MODULE_PATH
 
 FIND_PACKAGE(Musicaccess REQUIRED)
 #used for matrix multiplication, maybe for fft, too
-FIND_PACKAGE(Eigen3 3.0.0 REQUIRED)
+FIND_PACKAGE(Eigen3 3.1.2 REQUIRED)
 #use doxygen for documentation. don't need this for compilation.
 FIND_PACKAGE(Doxygen)
 #sqlite is needed for the database backend
