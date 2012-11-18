@@ -258,6 +258,9 @@ namespace music
             }
         }
         
+        chordLikelihoodVector.clear();
+        localKeyChordLikelihoodVector.clear();
+        
         return true;
     }
     
