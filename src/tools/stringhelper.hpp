@@ -6,6 +6,9 @@
 #include <cctype>
 #include <sstream>
 
+#include <functional>
+#include <locale>
+
 /**
  * @brief Tests if a string ends with another string.
  * @return <code>true</code>, if <code>str</code> ends with <code>ending</code>. <code>false</code>
@@ -41,7 +44,9 @@ inline bool contains(const std::string& str, const std::string& other)
  */
 inline void tolower(std::string& string)
 {
-    std::transform(string.begin(), string.end(), string.begin(), (int (*)(int))::tolower);
+    //std::transform(string.begin(), string.end(), string.begin(), (int (*)(int))::tolower);
+    std::transform(string.begin(), string.end(), string.begin(), 
+    std::bind2nd(std::ptr_fun(&std::tolower<char>), std::locale("")));
 }
 
 /**

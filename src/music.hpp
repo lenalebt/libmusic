@@ -23,6 +23,7 @@
  * libmusic is a library which is capable of classifying music into user-defined clusters.
  * It uses the \ref constantq_transform to analyze the input data.
  * 
+ * @tableofcontents
  * @todo write something clever here
  * 
  * @section mainpage_install Install

@@ -803,6 +803,8 @@ namespace tests
         
         std::queue<std::string> files;
         
+        files << "./testdata/test.mp3";
+        
         files << "./testdata/chords/chord-major-a-guitar.mp3";
         files << "./testdata/chords/chord-major-c7-guitar.mp3";
         files << "./testdata/chords/chord-major-c-guitar.mp3";
@@ -982,7 +984,7 @@ namespace tests
             }
             */
             
-            music::TimbreEstimator t(transformResult, 12);
+            music::TimbreEstimator t(transformResult, 108);
             double time;
             std::vector<Eigen::Matrix<kiss_fft_scalar, Eigen::Dynamic, 1> > data;
             //for (double time=0.0; time<transformResult->getOriginalDuration(); time += 0.125/8)
