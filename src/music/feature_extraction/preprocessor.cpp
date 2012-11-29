@@ -330,6 +330,8 @@ namespace music
                 databaseentities::RecordingFeatures* features = new databaseentities::RecordingFeatures();
                 recording->setRecordingFeatures(features);
                 
+                DEBUG_OUT("opening file..." << filename, 30);
+                
                 if (!file.open(filename))
                 {
                     DEBUG_OUT("opening file failed: " << filename, 10);
@@ -348,6 +350,7 @@ namespace music
                     continue;
                 }
                 
+                DEBUG_OUT("read file metadata...", 30);
                 //first metadata, then features
                 if (file.getMetadata() != NULL)
                 {
@@ -361,20 +364,56 @@ namespace music
                 musicaccess::Resampler22kHzMono resampler;
                 float* buffer = NULL;
                 DEBUG_OUT("will read " << file.getSampleCount() << " samples.", 20);
-                buffer = new float[file.getSampleCount()];
-                unsigned int sampleCount = file.readSamples(buffer, file.getSampleCount());
+                try{buffer = new float[file.getSampleCount()];}
+                catch (std::bad_alloc& ex)
+                {
+                    std::cerr << "skipping file due to low memory: " << filename << std::endl;
+                    continue;
+                }
+                unsigned int sampleCount = 0;
+                try{sampleCount = file.readSamples(buffer, file.getSampleCount());}
+                catch (std::bad_alloc& ex)
+                {
+                    delete[] buffer;
+                    std::cerr << "skipping file due to low memory: " << filename << std::endl;
+                    continue;
+                }
                 DEBUG_OUT("read " << sampleCount << " samples.", 20);
-                resampler.resample(file.getSampleRate(), &buffer, sampleCount, file.getChannelCount());
+                try{resampler.resample(file.getSampleRate(), &buffer, sampleCount, file.getChannelCount());}
+                catch (std::bad_alloc& ex)
+                {
+                    delete[] buffer;
+                    std::cerr << "skipping file due to low memory: " << filename << std::endl;
+                    continue;
+                }
                 
-                music::ConstantQTransformResult* transformResult = cqt->apply(buffer, sampleCount);
+                DEBUG_OUT("file resampled, applying CQT...", 30);
+                
+                music::ConstantQTransformResult* transformResult = NULL;
+                try {transformResult = cqt->apply(buffer, sampleCount);}
+                catch (std::bad_alloc& ex)
+                {
+                    delete[] buffer;
+                    std::cerr << "skipping file due to low memory: " << filename << std::endl;
+                    continue;
+                }
+                delete[] buffer;
+                if (!transformResult)
+                {
+                    std::cerr << "skipping file due to low memory: " << filename << std::endl;
+                    continue;
+                }
+                
                 //save length of file (in seconds)
                 features->setLength(transformResult->getOriginalDuration());
                 
+                DEBUG_OUT("calculate dynamic range...", 30);
                 music::PerTimeSliceStatistics<kiss_fft_scalar> perTimeSliceStatistics(transformResult, 0.005);
                 music::DynamicRangeCalculator<kiss_fft_scalar> dynamicRangeCalculator(&perTimeSliceStatistics);
                 dynamicRangeCalculator.calculateDynamicRange();
                 features->setDynamicRange(dynamicRangeCalculator.getLoudnessRMS());
                 
+                DEBUG_OUT("calculate tempo...", 30);
                 music::BPMEstimator<kiss_fft_scalar> bpmEst;
                 if (!bpmEst.estimateBPM(transformResult))
                 {
@@ -385,22 +424,32 @@ namespace music
                     features->setTempo(bpmEst.getBPMMean());
                 //TODO: other tempo features should also be important!
                 
+                DEBUG_OUT("extract timbre...", 30);
                 //extract timbre
                 music::TimbreModel timbreModel(transformResult);
                 timbreModel.calculateModel(timbreModelSize, timbreTimeSliceSize, timbreDimension);
                 features->setTimbreModel(timbreModel.getModel()->toJSONString());
                 
+                DEBUG_OUT("extract chroma...", 30);
                 //extract chroma
                 music::ChromaModel chromaModel(transformResult);
                 chromaModel.calculateModel(chromaModelSize, chromaTimeSliceSize, chromaMakeTransposeInvariant);
                 features->setChromaModel(chromaModel.getModel()->toJSONString());
                 
+                DEBUG_OUT("saving file...", 30);
                 //this adds the recording, as well as its features, to the database.
                 //the pointer will be deleted by the other thread
                 _processor->addRecording(recording);
                 
                 delete transformResult;
-                delete[] buffer;
+            }
+            catch (const std::bad_alloc& e)
+            {
+                std::cerr << "bad alloc: " << e.what() << std::endl;
+            }
+            catch (const std::exception& e)
+            {
+                std::cerr << "an error occurred: " << e.what() << std::endl;
             }
             catch (...)
             {

@@ -302,7 +302,18 @@ namespace music
         
         Eigen::Matrix<std::complex<kiss_fft_scalar>, Eigen::Dynamic, Eigen::Dynamic> resultMatrix;
         
-        transformResult->octaveMatrix = new Eigen::Matrix<std::complex<kiss_fft_scalar>, Eigen::Dynamic, Eigen::Dynamic >*[octaveCount];
+        try{transformResult->octaveMatrix = new Eigen::Matrix<std::complex<kiss_fft_scalar>, Eigen::Dynamic, Eigen::Dynamic >*[octaveCount];}
+        catch (const std::bad_alloc& ex)
+        {
+            delete transformResult;
+            delete[] fftSourceDataZeroPadMemory;
+            delete[] data;
+            delete[] fftData;
+            return NULL;
+        }
+        for (int i=0; i<octaveCount; i++)
+            transformResult->octaveMatrix[i]=NULL;
+        
         transformResult->drop = new int[octaveCount];
         
         transformResult->originalZeroPadding = zeroPadding;
@@ -319,7 +330,15 @@ namespace music
             DEBUG_OUT("drop[" << octave << "] = " << transformResult->drop[octave], 30);
             
             octaveResult = NULL;
-            octaveResult = new Eigen::Matrix<std::complex<kiss_fft_scalar>, Eigen::Dynamic, Eigen::Dynamic >(binsPerOctave, sampleCountWithBlock / fftHop * atomNr);
+            try{octaveResult = new Eigen::Matrix<std::complex<kiss_fft_scalar>, Eigen::Dynamic, Eigen::Dynamic >(binsPerOctave, sampleCountWithBlock / fftHop * atomNr);}
+            catch (const std::bad_alloc& ex)
+            {
+                delete transformResult;
+                delete[] fftSourceDataZeroPadMemory;
+                delete[] data;
+                delete[] fftData;
+                return NULL;
+            }
             assert(octaveResult != NULL);
             
             int windowNumber=0;
@@ -392,7 +411,15 @@ namespace music
                 
                 //change samplerate
                 float* newData = NULL;
-                newData = new float[sampleCount/2];
+                try{newData = new float[sampleCount/2];}
+                catch (const std::bad_alloc& ex)
+                {
+                    delete transformResult;
+                    delete[] fftSourceDataZeroPadMemory;
+                    delete[] data;
+                    delete[] fftData;
+                    return NULL;
+                }
                 assert(newData != NULL);
                 for (int i=0; i<sampleCount/2; i++)
                 {
@@ -547,7 +574,8 @@ namespace music
     {
         for (int i=0; i<octaveCount; i++)
         {
-            delete octaveMatrix[i];
+            if (octaveMatrix[i])
+                delete octaveMatrix[i];
         }
         delete[] octaveMatrix;
         delete[] drop;
