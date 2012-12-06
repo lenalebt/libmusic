@@ -132,8 +132,10 @@ namespace tests
             music::ConstantQTransformResult* transformResult = cqt->apply(buffer, sampleCount);
             CHECK(transformResult != NULL);
             
+            music::PerTimeSliceStatistics<kiss_fft_scalar> ptss(transformResult, 0.01);
+            
             music::BPMEstimator<kiss_fft_scalar> bpmEst;
-            bpmEst.estimateBPM(transformResult);
+            bpmEst.estimateBPM(&ptss);
             
             DEBUG_OUT("measured by hand, the beat should be between " << minBPM << " and " << maxBPM << " bpm.", 10);
             

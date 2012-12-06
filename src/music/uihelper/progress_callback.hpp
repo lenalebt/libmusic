@@ -9,7 +9,7 @@
 namespace music
 {
     /**
-     * @brief This class is a progress callback functor.
+     * @brief This class is a progress callback object.
      * 
      * This class is used to signal progress to the calling part of a function,
      * even if the function is not finished yet. This can be used to inform the user

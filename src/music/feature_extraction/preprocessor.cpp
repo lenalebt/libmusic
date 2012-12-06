@@ -116,8 +116,9 @@ namespace music
             if (callback != NULL)
                 callback->progress(5.0/stepCount, "calculating dynamic range...");
             
-            music::PerTimeSliceStatistics<kiss_fft_scalar> perTimeSliceStatistics(transformResult, 0.005);
-            music::DynamicRangeCalculator<kiss_fft_scalar> dynamicRangeCalculator(&perTimeSliceStatistics);
+            music::PerTimeSliceStatistics<kiss_fft_scalar>* perTimeSliceStatistics = new
+                music::PerTimeSliceStatistics<kiss_fft_scalar>(transformResult, 0.01);
+            music::DynamicRangeCalculator<kiss_fft_scalar> dynamicRangeCalculator(perTimeSliceStatistics);
             dynamicRangeCalculator.calculateDynamicRange();
             features->setDynamicRange(dynamicRangeCalculator.getLoudnessRMS());
             
@@ -125,7 +126,7 @@ namespace music
                 callback->progress(7.0/stepCount, "calculating bpm...");
             
             music::BPMEstimator<kiss_fft_scalar> bpmEst;
-            if (!bpmEst.estimateBPM(transformResult))
+            if (!bpmEst.estimateBPM(perTimeSliceStatistics))
             {
                 DEBUG_OUT("failed to calculate tempo; setting to -1.0...", 10);
                 if (callback != NULL)
@@ -140,6 +141,8 @@ namespace music
             else
                 features->setTempo(bpmEst.getBPMMean());
             //TODO: other tempo features should also be important!
+            delete perTimeSliceStatistics;
+            perTimeSliceStatistics = NULL;
             
             if (callback != NULL)
                 callback->progress(10.0/stepCount, "calculating timbre model...");
@@ -408,14 +411,15 @@ namespace music
                 features->setLength(transformResult->getOriginalDuration());
                 
                 DEBUG_OUT("calculate dynamic range...", 30);
-                music::PerTimeSliceStatistics<kiss_fft_scalar> perTimeSliceStatistics(transformResult, 0.005);
-                music::DynamicRangeCalculator<kiss_fft_scalar> dynamicRangeCalculator(&perTimeSliceStatistics);
+                music::PerTimeSliceStatistics<kiss_fft_scalar>* perTimeSliceStatistics = new
+                    music::PerTimeSliceStatistics<kiss_fft_scalar>(transformResult, 0.01);
+                music::DynamicRangeCalculator<kiss_fft_scalar> dynamicRangeCalculator(perTimeSliceStatistics);
                 dynamicRangeCalculator.calculateDynamicRange();
                 features->setDynamicRange(dynamicRangeCalculator.getLoudnessRMS());
                 
                 DEBUG_OUT("calculate tempo...", 30);
                 music::BPMEstimator<kiss_fft_scalar> bpmEst;
-                if (!bpmEst.estimateBPM(transformResult))
+                if (!bpmEst.estimateBPM(perTimeSliceStatistics))
                 {
                     DEBUG_OUT("failed to calculate tempo; setting to -1.0...", 10);
                     features->setTempo(-1.0);
@@ -423,6 +427,8 @@ namespace music
                 else
                     features->setTempo(bpmEst.getBPMMean());
                 //TODO: other tempo features should also be important!
+                delete perTimeSliceStatistics;
+                perTimeSliceStatistics = NULL;
                 
                 DEBUG_OUT("extract timbre...", 30);
                 //extract timbre

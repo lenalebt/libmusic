@@ -2,6 +2,7 @@
 #define BPM_HPP
 
 #include "constantq.hpp"
+#include "feature_extraction_helper.hpp"
 
 namespace music
 {
@@ -10,7 +11,7 @@ namespace music
      * @todo Implementierung überdenken/überarbeiten
      * @ingroup feature_extraction
      */
-    template <typename Scalartype=kiss_fft_scalar>
+    template <typename ScalarType=kiss_fft_scalar>
     class BPMEstimator
     {
     private:
@@ -18,15 +19,10 @@ namespace music
         double bpmMedian;
         double bpmVariance;
         
-        bool estimateBPM1(ConstantQTransformResult* transformResult);
-        void estimateBPM2(ConstantQTransformResult* transformResult);
-        void estimateBPM3(ConstantQTransformResult* transformResult);
-        void estimateBPM4(ConstantQTransformResult* transformResult);
-        void estimateBPM5(ConstantQTransformResult* transformResult);
     protected:
         
     public:
-        bool estimateBPM(ConstantQTransformResult* transformResult);
+        bool estimateBPM(PerTimeSliceStatistics<ScalarType>* timeSliceStatistics);
         
         double getBPMMean() const       {return bpmMean;}
         double getBPMMedian() const     {return bpmMedian;}
