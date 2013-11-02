@@ -62,7 +62,14 @@ SET(CMAKE_MODULE_PATH
     "${CMAKE_SOURCE_DIR}/cmake/modules/"
     )
 
-FIND_PACKAGE(Musicaccess REQUIRED)
+#music decoding libraries
+FIND_PACKAGE(Sndfile REQUIRED)
+FIND_PACKAGE(Mpg123 REQUIRED)
+FIND_PACKAGE(Vorbisfile REQUIRED)
+ADD_DEFINITIONS(-DHAVE_VORBISFILE=1)
+FIND_PACKAGE(SRC REQUIRED)
+ADD_DEFINITIONS(-DUSE_GPL_SRC=1) #TODO: rmove this from source code
+
 #used for matrix multiplication, maybe for fft, too
 FIND_PACKAGE(Eigen3 3.1.2 REQUIRED)
 #use doxygen for documentation. don't need this for compilation.
@@ -101,6 +108,11 @@ SET(
     src/tools/filesystem.cpp
     src/tools/pthread.cpp
     src/tools/jsoncpp/jsoncpp.cpp
+    
+    #musicaccess
+    src/musicaccess/filter.cpp
+    src/musicaccess/resample.cpp
+    src/musicaccess/soundfile.cpp
     
     #uihelper
     src/music/uihelper/progress_callback.cpp
@@ -145,6 +157,11 @@ SET(
     src/music/database/databaseconnection.hpp
     src/music/database/sqlitedatabaseconnection.hpp
     src/music/database/databaseentities.hpp
+    
+    #musicaccess
+    src/musicaccess/filter.hpp
+    src/musicaccess/resample.hpp
+    src/musicaccess/soundfile.hpp
     
     #tools
     src/tools/console_colors.hpp
@@ -207,6 +224,7 @@ INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_BINARY_DIR}
     ${SQLITE_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIR}
+    ${VORBISFILE_INCLUDE_DIR}
     src/
     src/tools
     src/tools/jsoncpp
@@ -259,8 +277,11 @@ ADD_LIBRARY(
     )
 #tell the linker which libs need to be linked
 TARGET_LINK_LIBRARIES(music
-    ${MUSICACCESS_LIBRARIES}
     ${SQLITE3_LIBRARIES}
+    ${SNDFILE_LIBRARIES}
+    ${MPG123_LIBRARIES}
+    ${SRC_LIBRARIES}
+    ${VORBISFILE_LIBRARIES}
     m
     )
 SET_TARGET_PROPERTIES(music
@@ -309,8 +330,11 @@ ADD_EXECUTABLE(musictests
 SET_TARGET_PROPERTIES(musictests PROPERTIES COMPILE_FLAGS -DBUILD_TESTS)
 #tell the linker which libs need to be linked
 TARGET_LINK_LIBRARIES(musictests
-    ${MUSICACCESS_LIBRARIES}
     ${SQLITE3_LIBRARIES}
+    ${SNDFILE_LIBRARIES}
+    ${MPG123_LIBRARIES}
+    ${VORBISFILE_LIBRARIES}
+    ${SRC_LIBRARIES}
     m
     )
 #use "make test" to start all tests.
