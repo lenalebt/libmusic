@@ -31,7 +31,6 @@
  * To install the library, you need to install some other libraries and tools:
  *  * <code>doxygen</code>, if you want to build the documentation. This package is optional.
  *  * <code>cmake</code>, which is the build system and needed to compile the software.
- *  * <code>libmusicaccess</code>, which should be bundled or found at the same place you found <code>libmusic</code>.
  *  * <code>eigen</code> >= 3.1.2, this library is used for matrix and vector operations.
  *  * <code>sqlite3</code>, which is the database backend.
  * 
@@ -103,12 +102,6 @@
  * Nothing here up to now.
  * @todo write something clever here
  * 
- * @section mainpage_needtoknow Things you need to know when using this library
- * This library uses some code from the book "Numerical Recipes" (see \ref bug
- * for the occurences). The code from this book is not free software, it may not
- * be used in the context it is used. If you plan to release this software
- * to the wild, you need to replace these parts in order to be in line
- * with the license.
  * 
  */
 

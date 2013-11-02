@@ -23,10 +23,6 @@ namespace music
      * 
      * @ingroup transforms
      * @remarks The transform could be improved regarding speed.
-     * @bug The DCT algorithms were more or less
-     *      taken from the book "Numerical Recipes".
-     *      The algorithms in this book are not free software! These algorithms
-     *      should be replaced soon.
      * 
      * @author Lena Brueder
      * @date 2012-08-29
