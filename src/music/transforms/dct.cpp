@@ -1,4 +1,5 @@
 #include "dct.hpp"
+#include <cmath>
 
 #include "debug.hpp"
 
@@ -150,7 +151,7 @@ namespace music
         delete[] tmpData;
     }
     
-    DCT::DCT() : fft()
+    DCT::DCT(int size) : fft(size)
     {
         
     }

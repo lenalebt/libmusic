@@ -34,7 +34,7 @@ namespace music
         protected:
             
         public:
-            DCT();
+            DCT(int size);
             ~DCT();
             /**
              * @brief Performs a discrete cosine transform, form I.

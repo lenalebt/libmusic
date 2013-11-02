@@ -1,12 +1,13 @@
 #ifndef FFT_HPP
 #define FFT_HPP
 
-#include "kiss_fftr.h"
-#include "kiss_fft.h"
+#define kiss_fft_scalar float
+typedef struct { kiss_fft_scalar r; kiss_fft_scalar i; }kiss_fft_cpx;
+
+#include <fftw3.h>
 
 namespace music
 {
-    #define FFT_PREFACTOR_COUNT 12
     /**
      * @brief This class implements the Fast Fourier Transform.
      * 
@@ -22,12 +23,15 @@ namespace music
     class FFT
     {
     private:
-        kiss_fftr_cfg rCfg[FFT_PREFACTOR_COUNT];
-        kiss_fft_cfg  cCfg[FFT_PREFACTOR_COUNT];
-        kiss_fftr_cfg riCfg[FFT_PREFACTOR_COUNT];
-        kiss_fft_cfg  ciCfg[FFT_PREFACTOR_COUNT];
+		fftwf_plan fftw_pc;
+		fftwf_plan fftw_pr;
+		float* fftw_inr;
+		fftwf_complex* fftw_in;
+		fftwf_complex* fftw_out;
+		
+		int fftLen;
     public:
-        FFT();
+        FFT(int size);
         ~FFT();
         
         /**
@@ -58,18 +62,6 @@ namespace music
          * 
          */
         void docFFT(const kiss_fft_cpx *timeData, int timeLength, kiss_fft_cpx *freqData, int& freqLength);
-        
-        /**
-         * @brief Performs an inverse FFT with real output values.
-         * @bug does not report the lengths of the fields correctly
-         */
-        void doiFFT(const kiss_fft_cpx *freqData, int freqLength, kiss_fft_scalar *timeData, int& timeLength);
-        
-        // /**
-        //  * @brief Performs an inverse FFT with complex output values.
-        //  * @todo Implementation
-        //  */
-        // void doicFFT(const kiss_fft_cpx *freqData, int freqLength, kiss_fft_cpx *timeData, int& timeLength);
     };
 }
 

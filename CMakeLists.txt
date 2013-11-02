@@ -76,6 +76,8 @@ FIND_PACKAGE(Eigen3 3.1.2 REQUIRED)
 FIND_PACKAGE(Doxygen)
 #sqlite is needed for the database backend
 FIND_PACKAGE(SQLITE3 REQUIRED)
+#FFTW is used for fft calculations
+FIND_PACKAGE(FFTW REQUIRED)
 
 #place source files here
 SET(
@@ -126,10 +128,6 @@ SET(
     src/music/classification/gmm/gmm.cpp
     src/music/classification/gmm/gaussian.cpp
     src/music/classification/gmm/kmeans.cpp
-    
-    #kissfft source files
-    src/kissfft/kiss_fft.c
-    src/kissfft/tools/kiss_fftr.c
     
     #parts of the test framework that are needed in between
     src/tests/debug.cpp
@@ -187,10 +185,6 @@ SET(
     src/music/classification/gmm/gmm.hpp
     src/music/classification/gmm/kmeans.hpp
     
-    #kissfft headers
-    src/kissfft/kiss_fft.h
-    src/kissfft/tools/kiss_fftr.h
-    
     #parts of the test framework that are needed in between
     src/tests/debug.hpp
     )
@@ -225,6 +219,7 @@ INCLUDE_DIRECTORIES(
     ${SQLITE_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIR}
     ${VORBISFILE_INCLUDE_DIR}
+    ${FFTW_INCLUDES}
     src/
     src/tools
     src/tools/jsoncpp
@@ -236,8 +231,6 @@ INCLUDE_DIRECTORIES(
     src/music/classification
     src/music/classification/gmm
     src/tests
-    src/kissfft
-    src/kissfft/tools
     )
 
 #to copy a directory (e.g. test files) to another.
@@ -282,6 +275,7 @@ TARGET_LINK_LIBRARIES(music
     ${MPG123_LIBRARIES}
     ${SRC_LIBRARIES}
     ${VORBISFILE_LIBRARIES}
+    ${FFTW_LIBRARIES}
     m
     )
 SET_TARGET_PROPERTIES(music
@@ -335,6 +329,7 @@ TARGET_LINK_LIBRARIES(musictests
     ${MPG123_LIBRARIES}
     ${VORBISFILE_LIBRARIES}
     ${SRC_LIBRARIES}
+    ${FFTW_LIBRARIES}
     m
     )
 #use "make test" to start all tests.
@@ -435,14 +430,6 @@ INSTALL (FILES ${music_feature_extraction_headers}
     )
 FILE(GLOB music_tools_headers "${CMAKE_CURRENT_SOURCE_DIR}/src/tools/*.hpp")
 INSTALL (FILES ${music_tools_headers}
-    DESTINATION include/music
-    )
-FILE(GLOB music_kissfft_headers "${CMAKE_CURRENT_SOURCE_DIR}/src/kissfft/*.h")
-INSTALL (FILES ${music_kissfft_headers}
-    DESTINATION include/music
-    )
-FILE(GLOB music_kissfft_tools_headers "${CMAKE_CURRENT_SOURCE_DIR}/src/kissfft/tools/*.h")
-INSTALL (FILES ${music_kissfft_tools_headers}
     DESTINATION include/music
     )
 FILE(GLOB music_json_headers "${CMAKE_CURRENT_SOURCE_DIR}/src/tools/jsoncpp/json/*.h")

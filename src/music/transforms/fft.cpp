@@ -3,95 +3,55 @@
 
 namespace music
 {
-    FFT::FFT()
+    FFT::FFT(int size) : fftLen(size)
     {
-        for (int i=0; i<FFT_PREFACTOR_COUNT; i++)
-        {
-            int timeLength = 1 << (i+1);
-            //init kissfft
-            rCfg[i] = kiss_fftr_alloc(timeLength, 0, NULL, NULL);
-            cCfg[i] = kiss_fft_alloc(timeLength, 0, NULL, NULL);
-            
-            //init inverse kissfft
-            riCfg[i] = kiss_fftr_alloc(timeLength, 1, NULL, NULL);
-            ciCfg[i] = kiss_fft_alloc(timeLength, 1, NULL, NULL);
-            
-            //DEBUG_OUT(rCfg << " " << rCfg[0] << " " << rCfg[1], 10);
-        }
-    }
+		fftw_in = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * fftLen);
+		fftw_inr = (float*) fftwf_malloc(sizeof(float) * fftLen);
+		fftw_out = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * fftLen);
+		fftw_pc = fftwf_plan_dft_1d(fftLen, fftw_in, fftw_out, FFTW_FORWARD, FFTW_ESTIMATE);
+		fftw_pr = fftwf_plan_dft_r2c_1d(fftLen, fftw_inr, fftw_out, FFTW_ESTIMATE);
+	}
     FFT::~FFT()
     {
-        for (int i=0; i<FFT_PREFACTOR_COUNT; i++)
-        {
-            free(rCfg[i]);
-            free(cCfg[i]);
-            
-            free(riCfg[i]);
-            free(ciCfg[i]);
-        }
+		fftwf_destroy_plan(fftw_pc);
+		fftwf_destroy_plan(fftw_pr);
+        fftwf_free(fftw_in);
+        fftwf_free(fftw_inr);
+        fftwf_free(fftw_out);
     }
     
     void FFT::doFFT(const kiss_fft_scalar *timeData, int timeLength, kiss_fft_cpx *freqData, int& freqLength)
     {
-        freqLength = timeLength/2 +1;
-        
-        //choose the right cfg
-        int i=0;
-        for (i=0; i<FFT_PREFACTOR_COUNT; i++)
-        {
-            if (timeLength & 2)
-                break;
-            timeLength >>= 1; 
-        }
-        //start kissfft
-        kiss_fftr(rCfg[i], timeData, freqData);
+		for (int i = 0; i < fftLen; i++)
+		{
+			fftw_inr[i] = timeData[i];
+		}
+		
+		fftwf_execute(fftw_pr);
+		
+		for (int i = 0; i < fftLen; i++)
+		{
+			freqData[i].r = fftw_out[i][0];
+			freqData[i].i = fftw_out[i][1];
+		}
+		freqLength = timeLength/2+1;
     }
     
     void FFT::docFFT(const kiss_fft_cpx *timeData, int timeLength, kiss_fft_cpx *freqData, int& freqLength)
     {
-        freqLength = timeLength;
-        
-        //choose the right cfg
-        int i=0;
-        for (i=0; i<FFT_PREFACTOR_COUNT; i++)
-        {
-            if (timeLength & 2)
-                break;
-            timeLength >>= 1; 
-        }
-        //start kissfft
-        kiss_fft(cCfg[i], timeData, freqData);
+		for (int i = 0; i < fftLen; i++)
+		{
+			fftw_in[i][0] = timeData[i].r;
+			fftw_in[i][1] = timeData[i].i;
+		}
+		
+		fftwf_execute(fftw_pc);
+		
+		for (int i = 0; i < fftLen; i++)
+		{
+			freqData[i].r = fftw_out[i][0];
+			freqData[i].i = fftw_out[i][1];
+		}
+		freqLength = timeLength;
     }
-    
-    void FFT::doiFFT(const kiss_fft_cpx *freqData, int freqLength, kiss_fft_scalar *timeData, int& timeLength)
-    {
-        //choose the right cfg
-        int i=0;
-        for (i=0; i<FFT_PREFACTOR_COUNT; i++)
-        {
-            if (timeLength & 2)
-                break;
-            timeLength >>= 1; 
-        }
-        //start inverse kissfft
-        kiss_fftri(riCfg[i], freqData, timeData);
-        timeLength = 2*(freqLength-1);
-    }
-    
-    /*
-    void FFT::doicFFT(const kiss_fft_cpx *freqData, int freqLength, kiss_fft_cpx *timeData, int& timeLength)
-    {
-        //choose the right cfg
-        int i=0;
-        for (i=0; i<FFT_PREFACTOR_COUNT; i++)
-        {
-            if (timeLength & 2)
-                break;
-            timeLength >>= 1; 
-        }
-        //start inverse kissfft
-        kiss_ffti(ciCfg[i], freqData, timeData);
-        timeLength = 2*(freqLength-1);
-    }
-    */
 }

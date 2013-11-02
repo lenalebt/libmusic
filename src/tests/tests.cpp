@@ -131,7 +131,7 @@ namespace tests
     
     int testFFT()
     {
-        music::FFT fft;
+        music::FFT fft(8);
         
         DEBUG_OUT("calculating the fft of a signal...", 0)
         
@@ -211,6 +211,7 @@ namespace tests
         intlist.push_back(511);
         //intlist.push_back(512);   //does not work, but I think that is okay.
         
+        music::FFT fft2(1024);
         for(std::list<int>::iterator it = intlist.begin(); it != intlist.end(); it++)
         {
             DEBUG_OUT("applying with sine of frequency " << *it << "*T...", 0);
@@ -222,7 +223,7 @@ namespace tests
                 largemem[i] = sin((*it)*2*M_PI*i/1024.0);
             }
             
-            fft.doFFT(largemem, 1024, largeoutmem, freqLength);
+            fft2.doFFT(largemem, 1024, largeoutmem, freqLength);
             CHECK_EQ(freqLength, 513);
             
             int largestPosition=-1;
@@ -237,7 +238,7 @@ namespace tests
             }
             CHECK_EQ(largestPosition, *it);
             
-            fft.doFFT(largemem, 64, largeoutmem, freqLength);
+            fft2.doFFT(largemem, 64, largeoutmem, freqLength);
             CHECK_EQ(freqLength, 33);
         }
         
@@ -245,7 +246,7 @@ namespace tests
     }
     int testDCT()
     {
-        music::DCT dct;
+        music::DCT dct(130);
         //music::FFT fft;
         
         DEBUG_OUT("calculating the dct of a signal of length 128...", 0);

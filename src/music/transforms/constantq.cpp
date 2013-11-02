@@ -108,7 +108,7 @@ namespace music
         //TODO: Calculate spectral kernels for one octave
         Eigen::Matrix<std::complex<kiss_fft_scalar>, Eigen::Dynamic, Eigen::Dynamic>* tmpFKernel =
             new Eigen::Matrix<std::complex<kiss_fft_scalar>, Eigen::Dynamic, Eigen::Dynamic>(cqt->fftLen, binsPerOctave * cqt->atomNr);     //fill into non-sparse matrix first, and then make sparse out of it (does not need that much memory)
-        FFT fft;
+        FFT fft(cqt->fftLen);
         
         for (int bin = 1; bin <= binsPerOctave; bin++)
         {
@@ -270,7 +270,6 @@ namespace music
         int sampleCountWithBlock = sampleCount + 2*maxBlock;
         int originalSampleCount = sampleCount;
         
-        FFT fft;
         //temporary fft data
         std::complex<kiss_fft_scalar>* fftData = NULL;
         fftData = new std::complex<kiss_fft_scalar>[fftLen];
@@ -319,6 +318,8 @@ namespace music
         transformResult->originalZeroPadding = zeroPadding;
         
         int emptyHops = firstCenter / atomHop;
+        
+        FFT fft(fftLen);
         
         //apply cqt once per octave
         for (int octave=octaveCount-1; octave >= 0; octave--)
